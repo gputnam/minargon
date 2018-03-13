@@ -1,0 +1,31 @@
+.pca-fiber-dead {
+    background-color: gray;
+}
+.pca-fiber-vacant {
+    background-color: rgb(245, 245, 245);
+}
+.pca-fiber-installed {
+    background-color: rgb(221, 221, 221);
+}
+.pca-fiber-fail {
+    background-color: #F2DEDE;
+}
+.pca-fiber-success {
+    background-color: #DFF0D8;
+}
+.pca-fiber-cell {
+    overflow: auto; 
+    margin: 1px;
+    padding: 5px; 
+    width: 70px;
+    height: 60px;
+    float: left;
+    font-size: 9pt;
+    text-align: center;
+}
+
+.pca-fiber-cell div:first-child {
+    font-size: 10pt;
+}
+
+

@@ -1,0 +1,12 @@
+.unknown{
+    fill:#e0e0e0;
+    background-color:#e0e0e0;
+}
+.on{
+    fill:green;
+    background-color:green
+}
+.off{
+    fill:grey;
+    background-color:grey;
+}

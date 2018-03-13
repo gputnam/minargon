@@ -1,0 +1,256 @@
+body { 
+  padding-top: 65px;
+}
+
+.bg-maroon {
+  background: rgb(127, 7, 10);
+}
+
+/* horizon */
+.horizon {
+    border-top: solid 1px #000;
+    border-bottom: solid 1px #000;
+    overflow: hidden;
+    position: relative;
+}
+
+.horizon:hover > .title {
+    font-weight: bold;
+}
+
+.horizon + .horizon {
+    border-top: none;
+}
+
+.horizon canvas {
+    display: block;
+}
+
+.horizon .title,
+.horizon .value {
+    bottom: 0;
+    line-height: 30px;
+    margin: 0 6px;
+    position: absolute;
+    text-shadow: 0 0.5px 0 rgba(255,255,255,.5);
+    white-space: nowrap;
+}
+
+.horizon .value {
+    background-color: rgba(255,255,255,0.5);
+}
+
+.horizon .title {
+    left: 0;
+}
+
+.horizon .value {
+    right: 0;
+}
+
+/* daq.html */
+#card table tr td {
+    font-size: 10px;
+    text-align: right;
+    width: 25px;
+    height: 18px;
+}
+
+#crate table tr td {
+    padding:2px;
+}
+
+#card table {
+    border-spacing: 2px;
+    border-collapse: separate;
+}
+
+.card-label-row {
+    padding-right: 5px;
+}
+
+.card-label-col {
+    text-align:center !important;
+}
+
+/* check_rates.html */
+#crateY table tr td {
+    padding:2.25px;
+}
+
+#crateX table tr td {
+    padding:2.25px;
+}
+
+#card1 table tr td {
+    font-size: 10px;
+    text-align: right;
+    width: 25px;
+    height: 18px;
+}
+
+#card1 table {
+    border-spacing: 2px;
+    border-collapse: separate;
+    padding-bottom: 20px;
+    padding-top: 10px;
+}
+
+.card1-label-row {
+    padding-right: 5px;
+}
+
+.card1-label-col {
+    text-align:center !important;
+}
+
+#card2 table tr td {
+    font-size: 10px;
+    text-align: right;
+    width: 25px;
+    height: 18px;
+}
+
+#card2 table {
+    border-spacing: 2px;
+    border-collapse: separate;
+    padding-bottom: 20px;
+    padding-top: 10px;
+}
+
+.card2-label-row {
+    padding-right: 5px;
+}
+
+.card2-label-col {
+    text-align:center !important;
+}
+
+/* trigger_occupancy.html */
+#crateZ table tr td {
+    padding:2.25px;
+}
+
+/* detector.html */
+#projection-menu {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+
+.graticule {
+    fill: none;
+    stroke: #777;
+    stroke-opacity: .5;
+    stroke-width: .5px;
+}
+
+.land {
+    fill: #222;
+}
+
+.boundary {
+    fill: none;
+    stroke: #fff;
+    stroke-width: .5px;
+}
+
+/* histogram.js */
+.bar {
+    fill: steelblue;
+}
+
+.missing {
+    background-image: url(../images/missing-data.png);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 90% 90%;
+}
+
+.axis text {
+    font: 10px sans-serif;
+}
+
+.x.label {
+    font: 14px sans-serif;
+}
+
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.x.axis line {
+    shape-rendering: auto;
+}
+
+.line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.area {
+    fill: #31a354;
+    stroke: #000;
+    stroke-width: 0;
+    opacity: 0.25;
+}
+
+.title {
+    line-height: 30px;
+    font-size: 10pt;
+}
+
+.monospace {
+    font-family:monospace;
+}
+
+.label-block {
+    display: inline-block;
+    min-width: 60px;
+}
+
+.border-bottom {
+    border-bottom: 1px solid black;
+    margin-bottom: 10px;
+}
+
+.word-wrap {
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
+}
+
+svg {
+    font: 10px sans-serif;
+}
+
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+
+.axis {
+    font: 10px sans-serif;
+}
+
+.axis text {
+    -webkit-transition: fill-opacity 250ms linear;
+}
+
+.axis line {
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.line {
+    background: #000;
+    opacity: .2;
+    z-index: 2;
+}

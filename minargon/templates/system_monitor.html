@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+{% block title %}System Monitor{% endblock %}
+{% block head %}
+{{ super() }}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
+{% endblock %}
+{% block body %}
+{{ super() }}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <p class="pull-right">Step: 
+        <select id="step-menu">
+          {% for i in [1,10,100,1000] %}
+            <option {% if step == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12" style="padding:0" id="demo"></div>
+    </div>
+  </div>
+{%endblock%}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
+    <script>
+        var step = {{ step }};
+        var height = {{ height }};
+    </script>
+    <script src="{{ url_for('static', filename='js/snostream.js') }}"></script>
+<script>
+  $("#step-menu").on("change", function() {
+      window.location.replace("{{ url_for('system_monitor') }}?step=" + this.value + "&height={{ height }}"+ "&channel_data={{ channel_data_str }}" 
+          + "&n_channels={{n_channels}}");
+  });
+
+var size = $('#demo').width();
+var context = cubism.context()
+    .serverDelay(1e3)
+    .clientDelay(1e3)
+    .step({{ step }}*1000)
+    .size(size);
+
+d3.select("#demo").selectAll(".axis")
+    .data(["top", "bottom"])
+  .enter().append("div")
+    .attr("class", function(d) { return d + " axis"; })
+    .each(function(d) { d3.select(this).call(context.axis().ticks(12).orient(d)); });
+
+d3.select("#demo").append("div")
+    .attr("class", "rule")
+    .call(context.rule());
+
+var datums = ['event', 'wordcount'];
+{% for datum in per_channel_datums %}
+  for (var i=0;i<{{n_channels}};i++) {
+    datums.push('{{datum}}:' + i.toString());
+  }
+{% endfor %}
+console.log(datums);
+d3.select("#demo").selectAll(".horizon")
+  //.data(['cpu','mem', 'baseline_0', 'baseline_1'].map(get_metric))
+  .data(datums.map(get_metric))
+  .enter().insert("div", ".bottom")
+    .attr("class", "horizon")
+  .call(context.horizon().height({{ height }}));
+
+context.on("focus", function(i) {
+  d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
+});
+
+function get_metric(name) {
+  var format = d3.time.format("%d-%b-%y");
+  return context.metric(function(start, stop, step, callback) {
+    d3.json($SCRIPT_ROOT + '/hello_world_metric' + 
+            '?expr=' + name +
+            '&start=' + start.toISOString() +
+            '&stop=' + stop.toISOString() +
+            '&now=' + new Date().toISOString() +
+            '&step=' + step, function(data) {
+              if (!data) return callback(new Error('unable to load data'));
+              return callback(null,data.values);
+    });
+  }, name);
+}
+
+</script>
+{% endblock %}

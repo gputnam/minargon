@@ -1,0 +1,154 @@
+{% extends "layout.html" %}
+{% block title %}Noise Monitor{% endblock %}
+{% block head %}
+{{ super() }}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
+{% endblock %}
+{% block body %}
+{{ super() }}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <p class="pull-right">Step: 
+        <select id="step-menu">
+          {% for i in [1,10,100,1000] %}
+            <option {% if step == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <button id="add-operation">+</button>
+      <div class="operations"></div>
+    </div>
+    <div class="row">
+      <div class="col-md-12" style="padding:0" id="demo"></div>
+    </div>
+  </div>
+{%endblock%}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
+    <script>
+        var step = {{ step }};
+        var height = {{ height }};
+    </script>
+    <script src="{{ url_for('static', filename='js/snostream.js') }}"></script>
+<script>
+  $("#step-menu").on("change", function() {
+      window.location.replace("{{ url_for('system_monitor') }}?step=" + this.value + "&height={{ height }}"+ "&n_channels={{n_channels}}");
+  });
+
+  var channel_options = `
+     <select id="channel-menu">
+     <option selected="selected" value="None">None</option>
+     {% for n in range(n_channels) %}
+       <option value="{{ n }}">Channel {{ n }}</option>
+     {% endfor %}
+     </select>`;
+
+
+var size = $('#demo').width();
+var context = cubism.context()
+    .serverDelay(1e3)
+    .clientDelay(1e3)
+    .step({{ step }}*1000)
+    .size(size);
+
+d3.select("#demo").selectAll(".axis")
+    .data(["top", "bottom"])
+  .enter().append("div")
+    .attr("class", function(d) { return d + " axis"; })
+    .each(function(d) { d3.select(this).call(context.axis().ticks(12).orient(d)); });
+
+d3.select("#demo").append("div")
+    .attr("class", "rule")
+    .call(context.rule());
+
+datums = []
+for (var i=0;i<{{n_channels}};i++) {
+  datums.push('rms:' + i.toString());
+}
+console.log(datums);
+d3.select("#demo").selectAll(".horizon")
+  //.data(['cpu','mem', 'baseline_0', 'baseline_1'].map(get_metric))
+  .data(datums.map(get_metric))
+  .enter().insert("div", ".bottom")
+    .attr("class", "horizon")
+  .call(context.horizon().height({{ height }}));
+
+context.on("focus", function(i) {
+  d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
+});
+
+  $("#add-operation").on("click", function() {
+    $(".operations").append(
+      `<div class="operand">
+        <select id="op-menu">
+          <option selected="selected" value="covariance">covariance</option>
+          <option value="sum">sum</option>
+        </select>` + channel_options + channel_options + 
+      `</div>`);
+    var this_operand = $(".operations").children().last();
+    d3.select("#demo").selectAll(".horizon")
+      .data(get_operation(this_operand))
+      .enter().insert("div", ".bottom")
+      .attr("class", "horizon")
+      .call(context.horizon().height({{ height }}));
+
+function get_metric(name) {
+  var format = d3.time.format("%d-%b-%y");
+  return context.metric(function(start, stop, step, callback) {
+    d3.json($SCRIPT_ROOT + '/hello_world_metric' + 
+            '?expr=' + name +
+            '&start=' + start.toISOString() +
+            '&stop=' + stop.toISOString() +
+            '&now=' + new Date().toISOString() +
+            '&step=' + step, function(data) {
+              if (!data) return callback(new Error('unable to load data'));
+              return callback(null,data.values);
+    });
+  }, name);
+}
+
+function get_operation(controller) {
+  var format = d3.time.format("%d-%b-%y");
+  return context.metric(function(start, stop, step, callback) {
+    var channels = [];
+    controller.find("#channel-menu").each(function() {
+      channels.push( $(this).val() );
+    });
+    var promises = channels.map(function(channel) { channel_data_promise("noise_sample", channel) });
+    var data = [];
+    promises.forEach( (promise) => promise.resolve().then((dat) => data.push(dat)));
+    alert(data);
+    return callback(null, 1);
+  });
+
+}
+
+function channel_data_promise(name, channel) {
+  var format = d3.time.format("%d-%b-%y");
+  return context.metric(function(start, stop, step, callback) {
+    d3.json($SCRIPT_ROOT + '/channel_data' + 
+            '?expr=' + name +
+            '?channel=' + channel +
+            '&start=' + start.toISOString() +
+            '&stop=' + stop.toISOString() +
+            '&now=' + new Date().toISOString() +
+            '&step=' + step, function(data) {
+              if (!data) return callback(new Error('unable to load data'));
+              return callback(null,data.values);
+    });
+  }, name);
+}
+
+</script>
+{% endblock %}

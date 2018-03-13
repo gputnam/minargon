@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block title %}Status{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <main role="main" class="container">
+        <div style="text-align:right">
+            <a href="var/log/">View Log Files</a>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Uptime</th>
+                            <th>Name</th>
+                            <th>Machine</th>
+                            <th style="text-align:center">Log</th>
+                            <th style="text-align:center">Link</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    {% for program in programs %}
+                        <tr id="{{ program.name }}">
+                            <td id="status" />
+                            <td id="uptime" />
+                            <td>{{ program.name }}</td>
+                            <td>{{ program.machine }}</td>
+                            <td style="text-align:center">
+				{% if program.display_log %}
+				    <a href="{{ url_for('view_log', name=program.name) }}">Tail -f</a>
+				{% endif %}
+                            </td>
+                            <td style="text-align:center">
+                                {% if program.link %}
+                                    <a href="{{ program.link }}" target="_blank">Link</a>
+                                {% endif %}
+                            </td>
+                            <td>{% if program.description %}{{ program.description }}{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/status.js') }}"></script>
+    <script>
+        {% for program in programs %}
+            update_status('{{ program.name }}', 2);
+        {% endfor %}
+    </script>
+{% endblock %}

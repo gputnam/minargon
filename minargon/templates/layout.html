@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        {% block head %}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>{% block title %}{% endblock %}</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" media="screen">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/toastr.min.css') }}" media="screen">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/minard.css') }}" media="screen">
+        {% endblock %}
+    </head>
+    <body>
+        {% block body %}
+        {% macro nav_link(endpoint, name) -%}
+            {% if request.endpoint == endpoint %}
+                <li class="nav-item active"><a class="nav-link" href="{{ url_for(endpoint, **kwargs) }}">{{ name }}</a></li>
+            {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for(endpoint, **kwargs) }}">{{ name }}</a></li>
+            {% endif %}
+        {%- endmacro %}
+        {% macro dropdown_link(endpoint, name) -%}
+            {% if request.endpoint == endpoint %}
+                <a class="dropdown-item" href="{{ url_for(endpoint, **kwargs) }}">{{ name }}</a>
+            {% else %}
+                <a class="dropdown-item" href="{{ url_for(endpoint, **kwargs) }}">{{ name }}</a>
+            {% endif %}
+        {%- endmacro %}
+        <nav class="navbar navbar-expand-md bg-maroon navbar-dark fixed-top">
+          <a class="navbar-brand" href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='images/SBND-color.png') }}" width="30" height="30" class="d-inline-block align-top" alt="">
+            &nbsp;SBND Monitoring
+          </a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" 
+                  aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="navbar-collapse collapse" id="navbar">
+            <ul class="navbar-nav mr-auto">
+              {{ nav_link('status', 'Status') }}
+              {{ nav_link('snostream', 'Stream') }}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('docs') }}">Docs</a></li>
+            </ul>
+          </div><!--/.navbar-collapse -->
+        </nav>
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <div class="container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissable" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% endblock %}
+        <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+
+        <!-- $SCRIPT_ROOT for app location -->
+        <script type="text/javascript">
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        </script>
+
+        <script src="{{ url_for('static', filename='js/minard.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/toastr-alarms.js') }}"></script>
+
+        {% block script %}{% endblock %}
+    </body>
+</html>
+
