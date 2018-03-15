@@ -96,7 +96,15 @@ def channel_data():
     p = redis.pipeline()
     for i in range(int(start),int(stop),step):
         p.get('stream/1:%i:channel_data:%i' % (i,channel))
-    result = [json.loads(x)[expr] if x else 0 for x in p.execute()]
+    result = []
+    for x in p.execute():
+        if x:
+            json_dict = json.loads(x)
+            if expr in json_dict:
+                result.append(json_dict[expr])
+                continue
+        result.append( 0 )
+        
     return jsonify(values=result)
 
 @app.route('/hello_world_metric')
@@ -135,4 +143,63 @@ def hello_world_metric():
         result = [a/b for a, b in zip(result,counts)]
 
     return jsonify(values=result)
+
+@app.route('/query')
+def query():
+    name = request.args.get('name','',type=str)
+
+    if name == 'dispatcher':
+        return jsonify(name=redis.get('dispatcher'))
+
+    if 'nhit' in name:
+        seconds = request.args.get('seconds',type=int)
+
+        now = int(time.time())
+
+        p = redis.pipeline()
+        for i in range(seconds):
+            p.lrange('ts:1:{ts}:{name}'.format(ts=now-i,name=name),0,-1)
+        nhit = map(int,sum(p.execute(),[]))
+        return jsonify(value=nhit)
+
+    if name in ('occupancy','cmos','base'):
+        now = int(time.time())
+        step = request.args.get('step',60,type=int)
+
+        interval = get_hash_interval(step)
+
+        i, remainder = divmod(now, interval)
+
+        def div(a,b):
+            if a is None or b is None:
+                return None
+            return float(a)/float(b)
+
+        if remainder < interval//2:
+            # haven't accumulated enough data for this window
+            # so just return the last time block
+            if redis.ttl('ts:%i:%i:%s:lock' % (interval,i-1,name)) > 0:
+                # if ttl for lock exists, it means the values for the last
+                # interval were already computed
+                values = redis.hmget('ts:%i:%i:%s' % (interval, i-1, name),CHANNELS)
+                return jsonify(values=values)
+            else:
+                i -= 1
+
+        if name in ('cmos', 'base'):
+            # grab latest sum of values and divide by the number
+            # of values to get average over that window
+            sum_ = redis.hmget('ts:%i:%i:%s:sum' % (interval,i,name),CHANNELS)
+            len_ = redis.hmget('ts:%i:%i:%s:len' % (interval,i,name),CHANNELS)
+
+            values = map(div,sum_,len_)
+        else:
+            hits = redis.hmget('ts:%i:%i:occupancy:hits' % (interval,i), CHANNELS)
+            count = int(redis.get('ts:%i:%i:occupancy:count' % (interval,i)))
+            if count > 0:
+                values = [int(n)/count if n is not None else None for n in hits]
+            else:
+                values = [None]*len(CHANNELS)
+
+        return jsonify(values=values)
 

@@ -21,7 +21,7 @@
     </div>
     <div class="row">
       <button id="add-operation">+</button>
-      <div class="operations"></div>
+      <div id="operations"></div>
     </div>
     <div class="row">
       <div class="col-md-12" style="padding:0" id="demo"></div>
@@ -35,6 +35,7 @@
     <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
     <script src="{{ url_for('static', filename='js/minard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minargon/Data.js') }}"></script>
     <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
     <script>
         var step = {{ step }};
@@ -48,12 +49,10 @@
 
   var channel_options = `
      <select id="channel-menu">
-     <option selected="selected" value="None">None</option>
      {% for n in range(n_channels) %}
-       <option value="{{ n }}">Channel {{ n }}</option>
+       <option value="{{ n }}" {% if n==0%}selected="selected" {% endif %}>Channel {{ n }}</option>
      {% endfor %}
      </select>`;
-
 
 var size = $('#demo').width();
 var context = cubism.context()
@@ -74,12 +73,11 @@ d3.select("#demo").append("div")
 
 datums = []
 for (var i=0;i<{{n_channels}};i++) {
-  datums.push('rms:' + i.toString());
+  datums.push(new D3DataLink(new ChannelLink($SCRIPT_ROOT, "rms", i)));
 }
-console.log(datums);
+console.log(datums.map(datum => datum.name()));
 d3.select("#demo").selectAll(".horizon")
-  //.data(['cpu','mem', 'baseline_0', 'baseline_1'].map(get_metric))
-  .data(datums.map(get_metric))
+  .data(datums.map(data_link => context.metric(data_link.get_data, data_link.name()))) 
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
   .call(context.horizon().height({{ height }}));
@@ -88,67 +86,101 @@ context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
 });
 
+function covariance(sample1, sample2) {
+  var ret = 0;
+  for (var i = 0; i < sample1.length; i++) {
+    ret += sample1[i] * sample2[i];
+  }
+  ret = ret / sample1.length;
+  return ret;
+}
+
+function zip_sum(samples) {
+  var ret = [];
+  var n_samples = samples.length;
+  var sample_len = samples[0].length;
+  for (var i = 0; i < sample_len; i ++) {
+    ret.push(0);
+    for (var j = 0; j < n_samples; j ++) {
+      ret[i] = ret[i] + samples[i][j];
+    }
+  }
+  return ret;
+}
+
+function covariance_multi(sample_list1, sample_list2) {
+  return sample_list1.map((sample1, i) => covariance(sample1, sample_list2[i]));
+}
+
+function operation_type(str) {
+  if (str === "covariance") {
+    return function(samples) {
+      return covariance_multi(samples[0], samples[1]);
+    };
+  }
+  if (str === "correlation") {
+   return function(samples) {
+     var covariances =  covariance_multi(samples[0], samples[1]) 
+     var var1 = covariance_multi(samples[0], samples[0]) 
+     var var2 =  covariance_multi(samples[1], samples[1]);
+     return covariance.map((cov, i) => cov / var1[i] / var2[i]);
+   };
+  }
+  if (str === "sum_rms") {
+    return function(samples) {
+      var combined = zip_sum(values);
+      return covariance_multi(combined, combined);
+    };
+  }
+}
+
+function operation(str) {
+  return function(values) {
+    /*
+    for (sample in values) {
+      if (sample == 0) { 
+        return 0;
+      }
+    }*/
+    return operation_type(str)(values);
+  }
+}
+
+  // Adding in a new "noise" operation
   $("#add-operation").on("click", function() {
-    $(".operations").append(
-      `<div class="operand">
+    // add in the html
+    $("#operations").append(
+      `<div id="operand">
         <select id="op-menu">
           <option selected="selected" value="covariance">covariance</option>
           <option value="sum">sum</option>
         </select>` + channel_options + channel_options + 
       `</div>`);
-    var this_operand = $(".operations").children().last();
-    d3.select("#demo").selectAll(".horizon")
-      .data(get_operation(this_operand))
+    // grab the html we just injected
+    var operations_div = $("#operations").get(0);
+    var this_operand = $(operations_div).find("#operand").get(0);
+    // and the list of options defined therein
+    var this_select = [];
+    $(this_operand).children().each(
+      function() { this_select.push($(this).val()); });
+    // and from this you can get the channels
+    var this_selected_channels = this_select.slice(1);
+    // associate a new DataLink with it (through jquery)
+    $(this_operand).data("data_link", 
+      new D3DataChain(
+        this_selected_channels.map(channel => new D3DataLink(new ChannelLink($SCRIPT_ROOT, "noise_sample", channel))),
+        operation(this_select[0])
+       )
+    );
+    
+    var data_link = $(this_operand).data("data_link");
+    // and hook up to cubism
+    d3.select("#demo").selectAll(".new")
+      .data([context.metric(data_link.get_data, data_link.name())])
       .enter().insert("div", ".bottom")
-      .attr("class", "horizon")
+      .attr("class", "new")
       .call(context.horizon().height({{ height }}));
-
-function get_metric(name) {
-  var format = d3.time.format("%d-%b-%y");
-  return context.metric(function(start, stop, step, callback) {
-    d3.json($SCRIPT_ROOT + '/hello_world_metric' + 
-            '?expr=' + name +
-            '&start=' + start.toISOString() +
-            '&stop=' + stop.toISOString() +
-            '&now=' + new Date().toISOString() +
-            '&step=' + step, function(data) {
-              if (!data) return callback(new Error('unable to load data'));
-              return callback(null,data.values);
-    });
-  }, name);
-}
-
-function get_operation(controller) {
-  var format = d3.time.format("%d-%b-%y");
-  return context.metric(function(start, stop, step, callback) {
-    var channels = [];
-    controller.find("#channel-menu").each(function() {
-      channels.push( $(this).val() );
-    });
-    var promises = channels.map(function(channel) { channel_data_promise("noise_sample", channel) });
-    var data = [];
-    promises.forEach( (promise) => promise.resolve().then((dat) => data.push(dat)));
-    alert(data);
-    return callback(null, 1);
   });
-
-}
-
-function channel_data_promise(name, channel) {
-  var format = d3.time.format("%d-%b-%y");
-  return context.metric(function(start, stop, step, callback) {
-    d3.json($SCRIPT_ROOT + '/channel_data' + 
-            '?expr=' + name +
-            '?channel=' + channel +
-            '&start=' + start.toISOString() +
-            '&stop=' + stop.toISOString() +
-            '&now=' + new Date().toISOString() +
-            '&step=' + step, function(data) {
-              if (!data) return callback(new Error('unable to load data'));
-              return callback(null,data.values);
-    });
-  }, name);
-}
 
 </script>
 {% endblock %}

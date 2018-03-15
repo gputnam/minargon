@@ -31,6 +31,7 @@
     <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
     <script src="{{ url_for('static', filename='js/minard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minargon/Data.js') }}"></script>
     <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
     <script>
         var step = {{ step }};
@@ -60,16 +61,15 @@ d3.select("#demo").append("div")
     .attr("class", "rule")
     .call(context.rule());
 
-var datums = ['event', 'wordcount'];
+var datums = [];
 {% for datum in per_channel_datums %}
-  for (var i=0;i<{{n_channels}};i++) {
-    datums.push('{{datum}}:' + i.toString());
-  }
+for (var i=0;i<{{n_channels}};i++) {
+  datums.push(new D3DataLink(new ChannelLink($SCRIPT_ROOT, '{{datum}}', i)));
+}
 {% endfor %}
-console.log(datums);
+console.log(datums.map(datum => datum.name()));
 d3.select("#demo").selectAll(".horizon")
-  //.data(['cpu','mem', 'baseline_0', 'baseline_1'].map(get_metric))
-  .data(datums.map(get_metric))
+  .data(datums.map(data_link => context.metric(data_link.get_data, data_link.name())))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
   .call(context.horizon().height({{ height }}));
@@ -77,21 +77,6 @@ d3.select("#demo").selectAll(".horizon")
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
 });
-
-function get_metric(name) {
-  var format = d3.time.format("%d-%b-%y");
-  return context.metric(function(start, stop, step, callback) {
-    d3.json($SCRIPT_ROOT + '/hello_world_metric' + 
-            '?expr=' + name +
-            '&start=' + start.toISOString() +
-            '&stop=' + stop.toISOString() +
-            '&now=' + new Date().toISOString() +
-            '&step=' + step, function(data) {
-              if (!data) return callback(new Error('unable to load data'));
-              return callback(null,data.values);
-    });
-  }, name);
-}
 
 </script>
 {% endblock %}
