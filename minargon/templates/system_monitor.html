@@ -44,12 +44,28 @@
           + "&n_channels={{n_channels}}");
   });
 
+var data_link_constructors = {};
+data_link_constructors["rms"] = (channel) => new D3DataLink(new ChannelLink($SCRIPT_ROOT, "rms", channel));
+data_link_constructors["baseline"] = (channel) => new D3DataLink(new ChannelLink($SCRIPT_ROOT, "baseline", channel));
+data_link_constructors["max"] = (channel) => new D3DataLink(new ChannelLink($SCRIPT_ROOT, "max", channel));
+data_link_constructors['n_peaks'] = function(channel) { 
+  return new D3DataLink(new ChannelLink($SCRIPT_ROOT, "peaks", channel), function(x) {
+    return x.length
+  }, 'n_peaks: ' + channel.toString());
+};
+data_link_constructors['mean_peak_width'] = function(channel) { 
+  return new D3DataLink(new ChannelLink($SCRIPT_ROOT, "peaks", channel), function(x) {
+    return x.reduce((sum, peak) => sum + peak.width, 0);
+  }, 'mean_peak_width: ' + channel.toString());
+};
+
+
 var size = $('#demo').width();
 var context = cubism.context()
     .serverDelay(1e3)
     .clientDelay(1e3)
     .step({{ step }}*1000)
-    .size(size);
+    .size(size / {{step_size}});
 
 d3.select("#demo").selectAll(".axis")
     .data(["top", "bottom"])
@@ -64,12 +80,12 @@ d3.select("#demo").append("div")
 var datums = [];
 {% for datum in per_channel_datums %}
 for (var i=0;i<{{n_channels}};i++) {
-  datums.push(new D3DataLink(new ChannelLink($SCRIPT_ROOT, '{{datum}}', i)));
+  datums.push(data_link_constructors["{{datum}}"](i));
 }
 {% endfor %}
 console.log(datums.map(datum => datum.name()));
 d3.select("#demo").selectAll(".horizon")
-  .data(datums.map(data_link => context.metric(data_link.get_data, data_link.name())))
+  .data(datums.map(data_link => context.metric(data_link.get_data.bind(data_link), data_link.name())))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
   .call(context.horizon().height({{ height }}));

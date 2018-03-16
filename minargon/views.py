@@ -46,6 +46,7 @@ def system_monitor():
     if not request.args.get('step'):
         return redirect(url_for('system_monitor',step=1,height=20,_external=True))
     step = request.args.get('step',1,type=int)
+    step_size = request.args.get('step_size', 1, type=int)
     height = request.args.get('height',40,type=int)
     per_channel_datums = request.args.get('channel_data', "", type=str).split(",")
     if per_channel_datums == ['']:
@@ -53,6 +54,7 @@ def system_monitor():
     n_channels = request.args.get('n_channels', 16, type=int)
     render_args = {
         'step': step,
+	'step_size': step_size,
         'height': height,
         'per_channel_datums': per_channel_datums,
         'n_channels': n_channels,
