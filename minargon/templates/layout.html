@@ -61,18 +61,14 @@
             {% endif %}
         {% endwith %}
         {% endblock %}
-        <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/library/jquery.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/library/toastr.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/library/bootstrap.min.js') }}"></script>
 
         <!-- $SCRIPT_ROOT for app location -->
         <script type="text/javascript">
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
         </script>
-
-        <script src="{{ url_for('static', filename='js/minard.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/toastr-alarms.js') }}"></script>
-
         {% block script %}{% endblock %}
     </body>
 </html>

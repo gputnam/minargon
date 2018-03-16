@@ -34,16 +34,14 @@
     </main>
 {% endblock %}
 {% block script %}
-    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/cubism.v1.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/minard.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/library/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minard/tzscale.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minard/stream_utilities.js') }}"></script>
     <script>
         var step = {{ step }};
         var height = {{ height }};
     </script>
-    <script src="{{ url_for('static', filename='js/snostream.js') }}"></script>
 {% endblock %}
