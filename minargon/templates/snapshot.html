@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block title %}Snapshot{% endblock %}
+{% block head %}
+{{ super() }}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div id="correlation"></div>
+{%endblock%}
+{% block script %}
+    <!-- plotly?? -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minard/tzscale.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minargon/Data.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minard/stream_utilities.js') }}"></script>
+  
+<script>
+d3.json("{{ url_for('correlation') }}", function(err, data) {
+  if (data.correlation == null) return;
+  var n_channels = data.n_channels;
+  var matrix = [];
+  for (var i = 0; i < n_channels; i++) {
+    matrix.push(new Array(n_channels));
+  }
+  var row_start_index = 0;
+  var row_length = n_channels;
+
+  var matrix_i = 0;
+  var matrix_j = 0;
+
+  for (i = 0; i < data.correlation.length; i++) {
+    // new row
+    if (i - row_start_index == row_length) {
+      row_start_index = i;
+      row_length = row_length - 1;
+      matrix_i = n_channels - row_length;
+      matrix_j = matrix_j + 1;
+    }
+    matrix[matrix_i][matrix_j] = data.correlation[i];
+    matrix[matrix_j][matrix_i] = data.correlation[i];
+    matrix_i = matrix_i + 1;
+  }
+
+  var plotly_data = [ { z: matrix, type: 'heatmap'}]; 
+
+  Plotly.newPlot('correlation', plotly_data);
+})
+
+
+</script> 
+{% endblock %}

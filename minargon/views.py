@@ -7,6 +7,7 @@ import json
 import os
 import sys
 import random
+import constants
 from tools import parseiso
 
 redis = Redis()
@@ -30,7 +31,7 @@ def docs(dir='', subdir='', filename='index.html'):
     return app.send_static_file(path)
 
 @app.route('/vststream')
-def snostream():
+def vststream():
     if len(request.args) == 0:
         return redirect(url_for('snostream',step=1,height=20,_external=True))
     step = request.args.get('step',1,type=int)
@@ -41,7 +42,17 @@ def snostream():
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
-@app.route('/system_monitor')
+@app.route('/correlation')
+def correlation():
+    n_correlation_values = (constants.N_CHANNELS+1)*constants.N_CHANNELS/2 
+    correlation = list(redis.lrange('snapshot:correlation',0, n_correlation_values-1))
+    return jsonify(correlation=correlation,n_channels=constants.N_CHANNELS)
+
+@app.route('/snapshot')
+def snapshot():
+    return render_template('snapshot.html')
+
+@app.route('/wires')
 def system_monitor():
     if not request.args.get('step'):
         return redirect(url_for('system_monitor',step=1,height=20,_external=True))
@@ -109,7 +120,7 @@ def channel_data():
         
     return jsonify(values=result)
 
-@app.route('/hello_world_metric')
+@app.route('/generic_metric')
 def hello_world_metric():
     args = request.args
 
