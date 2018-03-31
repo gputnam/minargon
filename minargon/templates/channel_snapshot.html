@@ -1,0 +1,119 @@
+{% extends "layout.html" %}
+{% block title %}Snapshot{% endblock %}
+{% block head %}
+{{ super() }}
+  <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+<div class="row">
+<div class="col-md-3 col-centered">
+<div class="card">
+    <div class="card-header">Channel {{channel}} Snapshot</div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">FEM 0</li>
+        <li class="list-group-item">Board 0</li>
+        <li class="list-group-item">Taken at <span id="snapshot-time"></span></li>
+    </ul>
+</div>
+</div>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Stream Options</div>
+            <div class="card-body">
+		<form class="form" role="form">
+		<div class="form-group row">
+		    <label class="col-sm-4 control-form-label col-form-label">
+		    Step
+		    </label>
+		    <div class="col-sm-8">
+		    <select id="data-step" class="form-control" onchange="updateStep(this,context)">
+                    {% for step in steps %}
+                        <option value="{{step}}">{{step}} seconds</option>
+                    {% endfor %}
+		    </select>
+                    </div>
+                </div>
+		</form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8" style="padding:0" id="timeseries"></div>
+</div>
+    <div class="row">
+    <div class="col-md-12" style="padding:0" id="waveform-holder">
+        <div id="waveform"></div>
+    </div>
+    </div>
+    <div class="row">
+    <div class="col-md-12" style="padding:0" id="FFT-holder">
+        <div id="FFT"></div>
+    </div>
+    </div>
+</div>
+{%endblock%}
+{% block script %}
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minard/tzscale.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minargon/Data.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minard/stream_utilities.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minargon/add-timeseries.js') }}"></script>
+  
+<script>
+// get snapshot time
+d3.json($SCRIPT_ROOT + "/snapshot_time", function(err, data) {
+  var time = moment(new Date(data.timestamp * 1000));
+  $("#snapshot-time").html(time.format("MM/DD hh:mm:ss"));
+});
+
+// draw waveform and fft
+d3.json($SCRIPT_ROOT + "/snapshot_data?" + $.param({data: "waveform", channel: "{{channel}}"}), function(err, data) {
+  if (data == null || data.waveform == null) return;
+
+  var xrange = Array.apply(null, Array(data.waveform.length)).map(function (_, i) {return i;});
+
+  var trace = {
+    x: xrange,
+    y: data.waveform,
+    type: 'scatter'
+  };
+
+  Plotly.newPlot('waveform', [trace])
+});
+
+d3.json($SCRIPT_ROOT + "/snapshot_data?" + $.param({data: "fft", channel: "{{channel}}"}), function(err, data) {
+  if (data == null || data.fft == null) return;
+
+  var xrange = Array.apply(null, Array(data.fft.length - 1)).map(function (_, i) {return i;});
+
+  var fft = data.fft.slice(1, -1).map( (dat) => dat / data.fft.length);
+
+  var trace = {
+    x: xrange,
+    y: fft,
+    type: 'scatter'
+  };
+
+  Plotly.newPlot('FFT', [trace])
+});
+// setup cubism
+var context;
+$(document).ready(function() {
+    context = create_cubism_context("#timeseries", $("#data-step").value());
+    var data_links = [
+	DATA_TYPES["rms"].data_link($SCRIPT_ROOT, {{channel}}),
+	DATA_TYPES["baseline"].data_link($SCRIPT_ROOT, {{channel}}),
+    ];
+    add_metrics("#timeseries", context, data_links, 40);
+});
+</script> 
+{% endblock %}

@@ -58,7 +58,7 @@ class D3DataChain {
 class D3DataLink {
   // takes as input a class which must implement the interface defined
   // by ChannelLink below.
-  constructor(link_builder, operation, name) {
+  constructor(link_builder, name, operation) {
     this.link_builder = link_builder;
     this.local_name = name;
     if (operation === undefined) {
@@ -88,12 +88,18 @@ class D3DataLink {
      });
   }
 
-  name() {
-    if (this.local_name === null || this.local_name === undefined) {
-      return this.link_builder.name();
+  name(new_name) {
+    if (new_name === undefined) {
+        if (this.local_name === null || this.local_name === undefined) {
+          return this.link_builder.name();
+        }
+        else {
+          return this.local_name;
+        }
     }
     else {
-      return this.local_name;
+        this.local_name = new_name;
+        return this;
     }
   }
 
@@ -107,6 +113,7 @@ class D3DataLink {
   }
 }
 
+// pass to D3DataLink to get stuff
 class ChannelLink {
   constructor(script_root, data_name, channel_no) {
     this.data_name = data_name;
@@ -124,7 +131,24 @@ class ChannelLink {
 	'&step=' + step;
   }
   name() {
-    return this.data_name + ": "  + this.channel_no.toString();
+    return this.data_name;
   }
 }
+
+
+// definitions of important stuff for different data inputs
+var DATA_TYPES = {}
+
+DATA_TYPES["rms"] = {
+  default_thrsholds: [0, 5],
+  data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "rms", channel_no)) },
+};
+
+DATA_TYPES["baseline"] = {
+  default_thresholds: [700, 900], 
+  data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "baseline", channel_no)) },
+};
+
+
+
 

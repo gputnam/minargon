@@ -8,10 +8,14 @@
 {% endblock %}
 {% block body %}
 {{ super() }}
+<div class="container">
+<p>
+Snapshot taken at <span id="snapshot-time"></span>
+</p>
 <div id="correlation"></div>
+</div>
 {%endblock%}
 {% block script %}
-    <!-- plotly?? -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
     <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
@@ -23,6 +27,13 @@
     <script src="{{ url_for('static', filename='js/minard/stream_utilities.js') }}"></script>
   
 <script>
+// get snapshot time
+d3.json($SCRIPT_ROOT + "/snapshot_time", function(err, data) {
+  var time = moment(new Date(data.timestamp * 1000));
+  $("#snapshot-time").html(time.format("MM/DD hh:mm:ss"));
+});
+
+// draw the correlation matrix
 d3.json("{{ url_for('correlation') }}", function(err, data) {
   if (data.correlation == null) return;
   var n_channels = data.n_channels;

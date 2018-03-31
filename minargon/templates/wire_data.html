@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+{% block title %}System Monitor{% endblock %}
+{% block head %}
+{{ super() }}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+<div class="row">
+    <div class="col-md-6 col-centered">
+        <div class="card">
+            <div class="card-header">Stream Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
+                <div class="form-group row">
+                    <label class="col-sm-4 control-form-label col-form-label">
+                    Step
+                    </label>
+                    <div class="col-sm-8">
+                    <select id="data-step" class="form-control" onchange="updateStep(this,context)">
+                    {% for step in steps %}
+                        <option value="{{step}}">{{step}} seconds</option>
+                    {% endfor %}
+                    </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-4 control-form-label col-form-label">
+                    Height
+                    </label>
+                    <div class="col-sm-8">
+                    <select id="data-height" class="form-control" onchange="updateHeight(this, horizons)">
+                    {% for height in [5, 10, 20, 40] %}
+                        <option {%if height == 10 %}selected="true"{% endif %} value="{{height}}">{{height}}</option>
+                    {% endfor %}
+                    </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-4 control-form-label col-form-label">Data</label>
+                    <div class="col-sm-8">
+                    <select id="data-type" class="form-control" onchange="updateDatums(horizons, datum_list(this.value))">
+                    {% for datum in data %}
+                        <option value="{{datum}}">{{datum}}</option>
+                    {% endfor %}
+                    </select>
+                    </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12" style="padding:0" id="timeseries"></div>
+</div>
+</div>
+{%endblock%}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minard/tzscale.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minargon/Data.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minargon/add-timeseries.js') }}"></script>
+<script>
+
+function datum_list(name) {
+    var datums = [];
+    for (var i = 0; i < {{n_channels}}; i++) {
+        datums.push(DATA_TYPES[name].data_link($SCRIPT_ROOT, i).name("channel: " + i));
+    }
+    return datums;
+}
+
+// setup cubism
+var context;
+$(document).ready(function() {
+    context = create_cubism_context("#timeseries", $("#data-step").val());
+    add_metrics("#timeseries", context, datum_list($("data-type").val()), $("data-height").val());
+});
+
+</script>
+{% endblock %}

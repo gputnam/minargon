@@ -48,30 +48,51 @@ def correlation():
     correlation = list(redis.lrange('snapshot:correlation',0, n_correlation_values-1))
     return jsonify(correlation=correlation,n_channels=constants.N_CHANNELS)
 
-@app.route('/snapshot')
-def snapshot():
-    return render_template('snapshot.html')
+@app.route('/daq')
+def daq():
+    return render_template('daq.html')
+
+@app.route('/noise_snapshot')
+def noise_snapshot():
+    return render_template('noise_snapshot.html')
+
+@app.route('/channel_snapshot')
+def channel_snapshot():
+    channel = request.args.get('channel', 0, type=int)
+    template_args = {
+        'channel': channel,
+        'steps': constants.REDIS_TIME_STEPS
+    }
+    return render_template('channel_snapshot.html', **template_args)
+
+@app.route('/snapshot_data')
+def snapshot_data():
+    channel = request.args.get('channel', type=int)
+    data_type = request.args.get('data')
+    
+    data = redis.lrange("snapshot:%s:%i" % (data_type, channel), 0, -1)
+    ret = {}
+    ret[data_type] = data
+    return jsonify(**ret)
+
+@app.route('/snapshot_time')
+def snapshot_time():
+    time = redis.get('snapshot_time')
+    return jsonify(timestamp=time)
 
 @app.route('/wires')
 def system_monitor():
-    if not request.args.get('step'):
-        return redirect(url_for('system_monitor',step=1,height=20,_external=True))
-    step = request.args.get('step',1,type=int)
-    step_size = request.args.get('step_size', 1, type=int)
-    height = request.args.get('height',40,type=int)
-    per_channel_datums = request.args.get('channel_data', "", type=str).split(",")
-    if per_channel_datums == ['']:
-        per_channel_datums = []
-    n_channels = request.args.get('n_channels', 16, type=int)
+    n_channels = constants.N_CHANNELS
+    data = constants.CHANNEL_DATA
+    steps = constants.REDIS_TIME_STEPS
+
     render_args = {
-        'step': step,
-	'step_size': step_size,
-        'height': height,
-        'per_channel_datums': per_channel_datums,
         'n_channels': n_channels,
-        'channel_data_str': request.args.get('channel_data', "", type=str)
+        'data': data,
+        'steps': steps
     }
-    return render_template('system_monitor.html', **render_args)
+
+    return render_template('wire_data.html', **render_args)
 
 @app.route('/noise_monitor')
 def noise_monitor():
