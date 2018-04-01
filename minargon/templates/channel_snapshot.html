@@ -68,32 +68,34 @@
   
 <script>
 // get snapshot time
-d3.json($SCRIPT_ROOT + "/snapshot_time", function(err, data) {
+d3.json($SCRIPT_ROOT + "/snapshot/time", function(err, data) {
   var time = moment(new Date(data.timestamp * 1000));
   $("#snapshot-time").html(time.format("MM/DD hh:mm:ss"));
 });
 
 // draw waveform and fft
-d3.json($SCRIPT_ROOT + "/snapshot_data?" + $.param({data: "waveform", channel: "{{channel}}"}), function(err, data) {
-  if (data == null || data.waveform == null) return;
+d3.json($SCRIPT_ROOT + "/snapshot/waveform" + $.param({wire: "{{channel}}"}), function(err, data) {
+  if (data == null || data.value == null) return;
+  var waveform = data.value;
 
-  var xrange = Array.apply(null, Array(data.waveform.length)).map(function (_, i) {return i;});
+  var xrange = Array.apply(null, Array(waveform.length)).map(function (_, i) {return i;});
 
   var trace = {
     x: xrange,
-    y: data.waveform,
+    y: waveform,
     type: 'scatter'
   };
 
   Plotly.newPlot('waveform', [trace])
 });
 
-d3.json($SCRIPT_ROOT + "/snapshot_data?" + $.param({data: "fft", channel: "{{channel}}"}), function(err, data) {
-  if (data == null || data.fft == null) return;
+d3.json($SCRIPT_ROOT + "/snapshot/fft" + $.param({wire: "{{channel}}"}), function(err, data) {
+  if (data == null || data.value == null) return;
+  var fft_vals = data.value;
 
-  var xrange = Array.apply(null, Array(data.fft.length - 1)).map(function (_, i) {return i;});
+  var xrange = Array.apply(null, Array(fft_vals.length - 1)).map(function (_, i) {return i;});
 
-  var fft = data.fft.slice(1, -1).map( (dat) => dat / data.fft.length);
+  var fft = fft_vals.slice(1, -1).map( (dat) => dat / fft_vals.length);
 
   var trace = {
     x: xrange,

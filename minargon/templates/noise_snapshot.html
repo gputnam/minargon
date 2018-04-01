@@ -25,15 +25,17 @@ Snapshot taken at <span id="snapshot-time"></span>
   
 <script>
 // get snapshot time
-d3.json($SCRIPT_ROOT + "/snapshot_time", function(err, data) {
+d3.json("{{ url_for('snapshot/time') }}", function(err, data) {
   var time = moment(new Date(data.timestamp * 1000));
   $("#snapshot-time").html(time.format("MM/DD hh:mm:ss"));
 });
 
 // draw the correlation matrix
-d3.json("{{ url_for('correlation') }}", function(err, data) {
+d3.json("{{ url_for('snapshot/correlation') }}", function(err, data) {
   if (data.correlation == null) return;
-  var n_channels = data.n_channels;
+  var n_channels = {{n_channels}};
+  var correlation = data.value;
+
   var matrix = [];
   for (var i = 0; i < n_channels; i++) {
     matrix.push(new Array(n_channels));
@@ -44,7 +46,7 @@ d3.json("{{ url_for('correlation') }}", function(err, data) {
   var matrix_i = 0;
   var matrix_j = 0;
 
-  for (i = 0; i < data.correlation.length; i++) {
+  for (i = 0; i < correlation.length; i++) {
     // new row
     if (i - row_start_index == row_length) {
       row_start_index = i;
@@ -52,8 +54,8 @@ d3.json("{{ url_for('correlation') }}", function(err, data) {
       matrix_i = n_channels - row_length;
       matrix_j = matrix_j + 1;
     }
-    matrix[matrix_i][matrix_j] = data.correlation[i];
-    matrix[matrix_j][matrix_i] = data.correlation[i];
+    matrix[matrix_i][matrix_j] = correlation[i];
+    matrix[matrix_j][matrix_i] = correlation[i];
     matrix_i = matrix_i + 1;
   }
 

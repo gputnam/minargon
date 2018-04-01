@@ -35,7 +35,10 @@ def docs(dir='', subdir='', filename='index.html'):
 
 @app.route('/noise_snapshot')
 def noise_snapshot():
-    return render_template('noise_snapshot.html')
+    template_args = {
+        'n_channels': constants.N_CHANNELS
+    }
+    return render_template('noise_snapshot.html', **template_args)
 
 @app.route('/channel_snapshot')
 def channel_snapshot():
@@ -51,17 +54,17 @@ def wires():
     fem = request.args.get('fem', 0, type=int)
     card = request.args.get('card', 0, type=int)
     initial_datum = request.args.get('data', 'rms')
-    n_channels = constants.N_CHANNELS
+    n_channels_per_fem = constants.N_CHANNELS_PER_FEM
     data = constants.CHANNEL_DATA
     steps = constants.REDIS_TIME_STEPS
 
     render_args = {
-        'n_channels_per_fem': n_channels,
+        'n_channels_per_fem': n_channels_per_fem,
         'data': data,
         'steps': steps,
         'fem': fem,
         'card': card,
         'intial_datum': initial_datum,
     }
-    return render_template('wire_data.html', **render_args)
+    return render_template('wire_view.html', **render_args)
 

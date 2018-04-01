@@ -1,5 +1,6 @@
 # Detector Stuff
 N_CHANNELS = 16
+N_CHANNELS_PER_FEM = 16
 
 # Redis Stuff
 REDIS_TIME_STEPS = [1, 10]
