@@ -30,18 +30,6 @@ def docs(dir='', subdir='', filename='index.html'):
     path = join('docs', dir, subdir, filename)
     return app.send_static_file(path)
 
-@app.route('/vststream')
-def vststream():
-    if len(request.args) == 0:
-        return redirect(url_for('snostream',step=1,height=20,_external=True))
-    step = request.args.get('step',1,type=int)
-    height = request.args.get('height',40,type=int)
-    return render_template('vststream.html',step=step,height=height)
-
-@app.route('/status')
-def status():
-    return render_template('status.html', programs=PROGRAMS)
-
 @app.route('/correlation')
 def correlation():
     n_correlation_values = (constants.N_CHANNELS+1)*constants.N_CHANNELS/2 
@@ -77,23 +65,22 @@ def snapshot_time():
     return jsonify(timestamp=time)
 
 @app.route('/wires')
-def system_monitor():
-    fem = args.get('fem', 0, type=int)
-    card = args.get('card', 0, type=int)
-    initial_datum = args.get('data', 'rms')
+def wires():
+    fem = request.args.get('fem', 0, type=int)
+    card = request.args.get('card', 0, type=int)
+    initial_datum = request.args.get('data', 'rms')
     n_channels = constants.N_CHANNELS
     data = constants.CHANNEL_DATA
     steps = constants.REDIS_TIME_STEPS
 
     render_args = {
-        'n_channels': n_channels,
+        'n_channels_per_fem': n_channels,
         'data': data,
         'steps': steps,
         'fem': fem,
         'card': card,
         'intial_datum': initial_datum,
     }
-
     return render_template('wire_data.html', **render_args)
 
 @app.route('/channel_data')
@@ -129,7 +116,7 @@ def channel_data():
     return jsonify(values=result)
 
 @app.route('/generic_metric')
-def hello_world_metric():
+def generic_metric():
     args = request.args
 
     expr = args.get('expr',type=str)
@@ -164,63 +151,4 @@ def hello_world_metric():
         result = [a/b for a, b in zip(result,counts)]
 
     return jsonify(values=result)
-
-@app.route('/query')
-def query():
-    name = request.args.get('name','',type=str)
-
-    if name == 'dispatcher':
-        return jsonify(name=redis.get('dispatcher'))
-
-    if 'nhit' in name:
-        seconds = request.args.get('seconds',type=int)
-
-        now = int(time.time())
-
-        p = redis.pipeline()
-        for i in range(seconds):
-            p.lrange('ts:1:{ts}:{name}'.format(ts=now-i,name=name),0,-1)
-        nhit = map(int,sum(p.execute(),[]))
-        return jsonify(value=nhit)
-
-    if name in ('occupancy','cmos','base'):
-        now = int(time.time())
-        step = request.args.get('step',60,type=int)
-
-        interval = get_hash_interval(step)
-
-        i, remainder = divmod(now, interval)
-
-        def div(a,b):
-            if a is None or b is None:
-                return None
-            return float(a)/float(b)
-
-        if remainder < interval//2:
-            # haven't accumulated enough data for this window
-            # so just return the last time block
-            if redis.ttl('ts:%i:%i:%s:lock' % (interval,i-1,name)) > 0:
-                # if ttl for lock exists, it means the values for the last
-                # interval were already computed
-                values = redis.hmget('ts:%i:%i:%s' % (interval, i-1, name),CHANNELS)
-                return jsonify(values=values)
-            else:
-                i -= 1
-
-        if name in ('cmos', 'base'):
-            # grab latest sum of values and divide by the number
-            # of values to get average over that window
-            sum_ = redis.hmget('ts:%i:%i:%s:sum' % (interval,i,name),CHANNELS)
-            len_ = redis.hmget('ts:%i:%i:%s:len' % (interval,i,name),CHANNELS)
-
-            values = map(div,sum_,len_)
-        else:
-            hits = redis.hmget('ts:%i:%i:occupancy:hits' % (interval,i), CHANNELS)
-            count = int(redis.get('ts:%i:%i:occupancy:count' % (interval,i)))
-            if count > 0:
-                values = [int(n)/count if n is not None else None for n in hits]
-            else:
-                values = [None]*len(CHANNELS)
-
-        return jsonify(values=values)
 

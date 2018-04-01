@@ -40,20 +40,23 @@
             <img src="{{ url_for('static', filename='images/SBND-color.png') }}" width="30" height="30" class="d-inline-block align-top" alt="">
             &nbsp;SBND Monitoring
           </a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" 
+          <!--<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" 
                   aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
-          </button>
+          </button>-->
           <div class="navbar-collapse collapse" id="navbar">
             <ul class="navbar-nav mr-auto">
-              {{ nav_link('status', 'Status') }}
-              {{ nav_link('vststream', 'Stream') }}
+              {{ nav_link('noise_snapshot', 'Noise Snapshot') }}
+              {{ nav_link('channel_snapshot', 'Channel Snapshot') }}
+              {{ nav_link('wires', 'Wire View') }}
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('docs') }}">Docs</a></li>
             </ul>
           </div><!--/.navbar-collapse -->
         </nav>
+
+<!--
         {% with messages = get_flashed_messages(with_categories=True) %}
             {% if messages %}
                 <div class="container">
@@ -66,6 +69,7 @@
                 </div>
             {% endif %}
         {% endwith %}
+-->
         {% endblock %}
         <script src="{{ url_for('static', filename='js/library/jquery.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/library/toastr.min.js') }}"></script>
