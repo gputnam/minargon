@@ -2,7 +2,6 @@
 {% block title %}System Monitor{% endblock %}
 {% block head %}
 {{ super() }}
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
   <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
   <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
 {% endblock %}
@@ -32,9 +31,9 @@
                     Height
                     </label>
                     <div class="col-sm-8">
-                    <select id="data-height" class="form-control" onchange="updateHeight(this, horizons)">
-                    {% for height in [5, 10, 20, 40] %}
-                        <option {%if height == 10 %}selected="true"{% endif %} value="{{height}}">{{height}}</option>
+                    <select id="data-height" class="form-control" onchange="updateParam('#timeseries', context, Param())">
+                    {% for height in [20, 40, 60, 80, 100] %}
+                        <option {%if height == 40 %}selected="true"{% endif %} value="{{height}}">{{height}}</option>
                     {% endfor %}
                     </select>
                     </div>
@@ -42,11 +41,23 @@
                 <div class="form-group row">
                     <label class="col-sm-4 control-form-label col-form-label">Data</label>
                     <div class="col-sm-8">
-                    <select id="data-type" class="form-control" onchange="updateDatums(horizons, datum_list(this.value))">
+                    <select id="data-type" class="form-control" onchange="newData(this)"/>
                     {% for datum in data %}
-                        <option value="{{datum}}">{{datum}}</option>
+                        <option {% if datum==inital_datum %}selected="true" {%endif%}value="{{datum}}">{{datum}}</option>
                     {% endfor %}
                     </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-4 control-form-label col-form-label"> Threshold Hi</label>
+                    <div class="col-sm-8">
+                        <input type="text" id="threshold-hi" onkeydown="if (event.keyCode == 13) updateParam('#timeseries', context, Param())"/> 
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-4 control-form-label col-form-label"> Threshold Lo</label>
+                    <div class="col-sm-8">
+                        <input type="text" id="threshold-lo" onkeydown="if (event.keyCode == 13) updateParam('#timeseries', context, Param())"/> 
                     </div>
                 </div>
                 </form>
@@ -67,21 +78,45 @@
     <script src="{{ url_for('static', filename='js/minard/tzscale.js') }}"></script>
     <script src="{{ url_for('static', filename='js/minargon/Data.js') }}"></script>
     <script src="{{ url_for('static', filename='js/minargon/add-timeseries.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minargon/detector.js') }}"></script>
 <script>
+
+function Param(newParam) {
+    if (newParam === undefined) 
+        return {
+	    height: $("#data-height").val(),
+	    threshold_lo: $("#threshold-lo").val(),
+	    threshold_hi: $("#threshold-hi").val()
+        };
+    else {
+        $("#data-height").val(newParam["height"]);
+        $("#threshold-lo").val(newParam["threshold_lo"]);
+        $("#threshold-hi").val(newParam["threshold_hi"]);
+    } 
+}
+
+function newData(selector) {
+    var param = Param();
+    param["threshold_lo"] = DATA_TYPES[selector.value]["default_thresholds"][0];
+    param["threshold_hi"] = DATA_TYPES[selector.value]["default_thresholds"][1];
+    Param(param);
+    updateData('#timeseries', context, datum_list(selector.value), param);
+}
 
 function datum_list(name) {
     var datums = [];
-    for (var i = 0; i < {{n_channels}}; i++) {
-        datums.push(DATA_TYPES[name].data_link($SCRIPT_ROOT, i).name("channel: " + i));
+    for (var i = 0; i < {{n_channels_per_fem}}; i++) {
+        datums.push(DATA_TYPES[name].data_link($SCRIPT_ROOT, get_wire({{card}}, {{fem}}, i)).name("channel " + i));
     }
     return datums;
 }
 
 // setup cubism
 var context;
+var horizon;
 $(document).ready(function() {
     context = create_cubism_context("#timeseries", $("#data-step").val());
-    add_metrics("#timeseries", context, datum_list($("data-type").val()), $("data-height").val());
+    horizon = add_metrics("#timeseries", context, datum_list($("#data-type").val()), Param());
 });
 
 </script>

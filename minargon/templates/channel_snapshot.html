@@ -108,7 +108,7 @@ d3.json($SCRIPT_ROOT + "/snapshot_data?" + $.param({data: "fft", channel: "{{cha
 // setup cubism
 var context;
 $(document).ready(function() {
-    context = create_cubism_context("#timeseries", $("#data-step").value());
+    context = create_cubism_context("#timeseries", $("#data-step").val());
     var data_links = [
 	DATA_TYPES["rms"].data_link($SCRIPT_ROOT, {{channel}}),
 	DATA_TYPES["baseline"].data_link($SCRIPT_ROOT, {{channel}}),

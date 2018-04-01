@@ -1,11 +1,27 @@
 // Requires cubism.js loaded
 
-function add_metrics(target, context, data_links, height) {
-    d3.select(target).selectAll(".horizon")
-      .data(data_links.map(data_link => context.metric(data_link.get_data.bind(data_link), data_link.name())))
+function add_metrics(target, context, data_links, param) {
+    // add new metrics
+    var data = data_links.map(data_link => context.metric(data_link.get_data.bind(data_link), data_link.name()));
+    make_horizons(target, context, data, param);
+}
+
+function delete_horizons(target, context) {
+    // delete old metrics
+    d3.select(target).selectAll('.horizon')
+        .call(context.horizon().remove)
+        .remove();    
+}
+
+function make_horizons(target, context, data, param) {
+    d3.select(target).selectAll('.horizon')
+        .data(data)
       .enter().insert("div", ".bottom")
         .attr("class", "horizon")
-      .call(context.horizon().height(height));  
+      .call(context.horizon()
+          .height(param["height"])
+          .extent( (param["threshold_lo"] === undefined || param["threshold_hi"] == undefined)
+              ? null : [param["threshold_lo"], param["threshold_hi"]]));
 }
 
 function create_cubism_context(target, step) {
@@ -48,14 +64,15 @@ function updateStep(selector, context) {
     context.step(selector.value*1000); 
 } 
 
-function updateHeight(selector, horizons) {
-    horizons.map((horizon) => horizon.height(selector.value));
+function updateParam(target, context, param) {
+    var data = d3.select(target).selectAll('.horizon').data();
+    delete_horizons(target, context);
+    make_horizons(target, context, data, param);
 }
 
-function updateData(horizons, datums) {
-    horizons.map(function(horizon, i) { 
-        horizon.metric(context.metric(datums[i].get_data.bind(datums[i]), datums[i].name()));
-    });
+function updateData(target, context, data_links, param) {
+    delete_horizons(target, context);
+    add_metrics(target, context, data_links, param);
 }
 
 

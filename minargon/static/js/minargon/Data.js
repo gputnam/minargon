@@ -140,7 +140,7 @@ class ChannelLink {
 var DATA_TYPES = {}
 
 DATA_TYPES["rms"] = {
-  default_thrsholds: [0, 5],
+  default_thresholds: [0, 5],
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "rms", channel_no)) },
 };
 

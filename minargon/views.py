@@ -48,10 +48,6 @@ def correlation():
     correlation = list(redis.lrange('snapshot:correlation',0, n_correlation_values-1))
     return jsonify(correlation=correlation,n_channels=constants.N_CHANNELS)
 
-@app.route('/daq')
-def daq():
-    return render_template('daq.html')
-
 @app.route('/noise_snapshot')
 def noise_snapshot():
     return render_template('noise_snapshot.html')
@@ -82,6 +78,9 @@ def snapshot_time():
 
 @app.route('/wires')
 def system_monitor():
+    fem = args.get('fem', 0, type=int)
+    card = args.get('card', 0, type=int)
+    initial_datum = args.get('data', 'rms')
     n_channels = constants.N_CHANNELS
     data = constants.CHANNEL_DATA
     steps = constants.REDIS_TIME_STEPS
@@ -89,25 +88,13 @@ def system_monitor():
     render_args = {
         'n_channels': n_channels,
         'data': data,
-        'steps': steps
+        'steps': steps,
+        'fem': fem,
+        'card': card,
+        'intial_datum': initial_datum,
     }
 
     return render_template('wire_data.html', **render_args)
-
-@app.route('/noise_monitor')
-def noise_monitor():
-    if not request.args.get('step'):
-        return redirect(url_for('system_monitor',step=1,height=20,_external=True))
-    step = request.args.get('step',1,type=int)
-    height = request.args.get('height',40,type=int)
-    n_channels = request.args.get('n_channels', 16, type=int)
-    render_args = {
-        'step': step,
-        'height': height,
-        'n_channels': n_channels,
-        'channel_data_str': request.args.get('channel_data', "", type=str)
-    }
-    return render_template('noise_monitor.html', **render_args)
 
 @app.route('/channel_data')
 def channel_data():
