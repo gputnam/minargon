@@ -40,3 +40,4 @@ app.config.from_envvar('MINARD_SETTINGS', silent=False)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 import minargon.views
+import minargon.redis_api
