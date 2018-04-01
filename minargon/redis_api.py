@@ -18,17 +18,18 @@ PROGRAMS = []
 """
 
 @app.route('/snapshot/<data>')
-def snapshot():
+def snapshot(data):
     redis_key = "snapshot:%s" % data
     for (k, v) in request.args.iteritems():
         redis_key += ":%s:%s" % (k, v)
     key_type = redis.type(redis_key)
     if key_type == "list":
         redis_data = list(redis.lrange(redis_key, 0, -1))
-    elif key_tpye == "string":
+    elif key_type == "string":
         redis_data = redis.get(redis_key)
     else:
         redis_data = 0 
+    print redis_key
     return jsonify(value=redis_data)
 
 @app.route('/correlation')
@@ -52,7 +53,7 @@ def snapshot_time():
     time = redis.get('snapshot_time')
     return jsonify(timestamp=time)
 
-def stream_data(base_key, stream, start, stop, step, data_map):
+def stream_data(base_key, stream, start, stop, step, now_client, data_map):
     now = int(time.time())
 
     # adjust for clock skew
@@ -61,7 +62,8 @@ def stream_data(base_key, stream, start, stop, step, data_map):
     stop -= dt
     p = redis.pipeline()
     for i in range(int(start),int(stop),step):
-        p.get(('stream/%i:%i:' % (stream, i)) + base_key)
+        key = ('stream/%i:%i:' % (stream, i)) + base_key
+        p.get(key)
     result = [data_map(x) for x in p.execute()]
         
     return result
@@ -79,18 +81,18 @@ def channel_data():
     step = args.get('step',type=int)//1000
 
     base_key = "channel_data:wire:%i" % channel
-    def channel_data_map(datum):
+    def channel_data_map(x):
         if x:
             json_dict = json.loads(x)
             if expr in json_dict:
                 return json_dict[expr]
         return 0
 
-    data = stream_data(base_key, 1, start, stop, channel_data_map)
+    data = stream_data(base_key, 1, start, stop, step, now_client, channel_data_map)
     return jsonify(values=data)
 
 @app.route('/stream/<stream_no>/<data>')
-def stream():
+def stream(stream_no, data):
     stream_no = int(stream_no)
     base_key = data
     for (k, v) in request.args.iteritems():
@@ -105,6 +107,6 @@ def stream():
     step = args.get('step',type=int)//1000
 
 
-    data = stream_data(base_key, stream_no, start, stop, float)
+    data = stream_data(base_key, stream_no, start, stop, step, now_client, float)
     return jsonify(values=data)
 

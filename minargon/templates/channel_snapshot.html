@@ -69,12 +69,12 @@
 <script>
 // get snapshot time
 d3.json($SCRIPT_ROOT + "/snapshot/time", function(err, data) {
-  var time = moment(new Date(data.timestamp * 1000));
+  var time = moment(new Date(data.value * 1000));
   $("#snapshot-time").html(time.format("MM/DD hh:mm:ss"));
 });
 
 // draw waveform and fft
-d3.json($SCRIPT_ROOT + "/snapshot/waveform" + $.param({wire: "{{channel}}"}), function(err, data) {
+d3.json($SCRIPT_ROOT + "/snapshot/waveform?" + $.param({wire: "{{channel}}"}), function(err, data) {
   if (data == null || data.value == null) return;
   var waveform = data.value;
 
@@ -89,7 +89,7 @@ d3.json($SCRIPT_ROOT + "/snapshot/waveform" + $.param({wire: "{{channel}}"}), fu
   Plotly.newPlot('waveform', [trace])
 });
 
-d3.json($SCRIPT_ROOT + "/snapshot/fft" + $.param({wire: "{{channel}}"}), function(err, data) {
+d3.json($SCRIPT_ROOT + "/snapshot/fft?" + $.param({wire: "{{channel}}"}), function(err, data) {
   if (data == null || data.value == null) return;
   var fft_vals = data.value;
 

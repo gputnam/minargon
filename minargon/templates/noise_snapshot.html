@@ -25,14 +25,14 @@ Snapshot taken at <span id="snapshot-time"></span>
   
 <script>
 // get snapshot time
-d3.json("{{ url_for('snapshot/time') }}", function(err, data) {
-  var time = moment(new Date(data.timestamp * 1000));
+d3.json($SCRIPT_ROOT + '/snapshot/time', function(err, data) {
+  var time = moment(new Date(data.value * 1000));
   $("#snapshot-time").html(time.format("MM/DD hh:mm:ss"));
 });
 
 // draw the correlation matrix
-d3.json("{{ url_for('snapshot/correlation') }}", function(err, data) {
-  if (data.correlation == null) return;
+d3.json($SCRIPT_ROOT + '/snapshot/correlation' , function(err, data) {
+  if (data.value == null) return;
   var n_channels = {{n_channels}};
   var correlation = data.value;
 
