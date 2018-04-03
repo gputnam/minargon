@@ -32,27 +32,6 @@ def snapshot(data):
         redis_data = 0 
     return jsonify(value=redis_data)
 
-@app.route('/correlation')
-def correlation():
-    n_correlation_values = (constants.N_CHANNELS+1)*constants.N_CHANNELS/2 
-    correlation = list(redis.lrange('snapshot:correlation',0, n_correlation_values-1))
-    return jsonify(correlation=correlation,n_channels=constants.N_CHANNELS)
-
-@app.route('/snapshot_data')
-def snapshot_data():
-    channel = request.args.get('channel', type=int)
-    data_type = request.args.get('data')
-    
-    data = redis.lrange("snapshot:%s:%i" % (data_type, channel), 0, -1)
-    ret = {}
-    ret[data_type] = data
-    return jsonify(**ret)
-
-@app.route('/snapshot_time')
-def snapshot_time():
-    time = redis.get('snapshot_time')
-    return jsonify(timestamp=time)
-
 def stream_data(base_key, stream, args, data_map):
     start = args.get('start',type=parseiso)
     stop = args.get('stop',type=parseiso)
