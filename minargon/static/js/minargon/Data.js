@@ -72,8 +72,12 @@ class D3DataLink {
   get_data(start, stop, step, d3_callback) {
      var self = this;
      return d3.json(self.link_builder.data_link(start, stop, step),
-	function(data) {
-	    if (!data) return d3_callback(new Error('unable to load data'));
+	function(err, data) {
+	    if (!data) {
+                console.log(data);
+                console.log(err);
+                return d3_callback(new Error('unable to load data'));
+            }
 	    return d3_callback(null,self.map_operation(data.values));
 	});
   }
@@ -122,33 +126,114 @@ class ChannelLink {
   }
 
   data_link(start, stop, step) {
-    return this.root + '/channel_data' + 
-	'?expr=' + this.data_name +
-        '&channel=' + this.channel_no.toString() + 
-	'&start=' + start.toISOString() +
-	'&stop=' + stop.toISOString() +
-	'&now=' + new Date().toISOString() +
-	'&step=' + step;
+    var channel_args = {
+      expr: this.data_name,
+      channel: this.channel_no.toString()
+    };
+    var args_dict = Object.assign({}, timeArgs(start, stop, step), channel_args);
+
+    return this.root + '/channel_data?' + $.param(args_dict); 
   }
   name() {
     return this.data_name;
   }
 }
 
+// pass to D3DataLink to get stuff
+class FEMLink {
+    constructor(script_root, data_name, card, fem) {
+        this.data_name = data_name;
+        this.card = card;
+        this.fem = fem;
+        this.root = script_root;
+    }
+
+    data_link(start, stop, step) {
+        var stream = getDaqStream(step);
+        var args = $.param(timeArgs(start, stop, step));
+
+        return this.root + '/stream/' + stream + '/' + this.data_name + '/' + this.card + '/' + this.fem + '?' + args;
+    }
+    name() {
+        return this.data_name;
+    }
+}
+
+// Link to data on a power supply
+class PowerSupplyLink {
+    constructor(script_root, data_name, supply_name) {
+        this.root = script_root;
+        this.data_name = data_name;
+        this.supply_name = supply_name;
+    }
+
+    data_link(start, stop, step) {
+        var stream = getPowerStream(step);
+        var args = $.param(timeArgs(start, stop, step));
+        return this.root + '/power_stream/' + stream + '/' + this.data_name + '/' + this.supply_name + '?' + args;
+    }
+ 
+    name() {
+        return this.data_name;
+    }
+}
+
+// what redis stream you should be subscribing to
+// TODO: implement
+function getDaqStream(step) {
+    return 1;
+}
+
+function getPowerStream(step) {
+    return 100;
+}
+
+function timeArgs(start, stop, step) {
+  return {
+   start: start.toISOString(),
+   stop: stop.toISOString(),
+   step: step,
+   now: new Date().toISOString()
+ };
+
+}
 
 // definitions of important stuff for different data inputs
-var DATA_TYPES = {}
+var CHANNEL_DATA_TYPES = {}
 
-DATA_TYPES["rms"] = {
+CHANNEL_DATA_TYPES["rms"] = {
   default_thresholds: [0, 5],
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "rms", channel_no)) },
 };
 
-DATA_TYPES["baseline"] = {
+CHANNEL_DATA_TYPES["baseline"] = {
   default_thresholds: [700, 900], 
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "baseline", channel_no)) },
 };
 
+var FEM_DATA_TYPES = {};
+
+FEM_DATA_TYPES["rms"]  = {
+  default_thresholds: [0, 5],
+  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "rms", card, fem)) },
+};
+
+FEM_DATA_TYPES["baseline"]  = {
+  default_thresholds: [700, 900],
+  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "baseline", card, fem)) },
+};
+
+var POWER_SUPPLY_DATA_TYPES = {}
+
+POWER_SUPPLY_DATA_TYPES["voltage"] = {
+  default_thresholds: [40, 50],
+  data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "voltage", power_supply)) },
+};
+
+POWER_SUPPLY_DATA_TYPES["current"] = {
+  default_thresholds: [6, 8],
+  data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "current", power_supply)) },
+};
 
 
 

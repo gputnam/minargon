@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Snapshot{% endblock %}
+{% block title %}Channel Snapshot{% endblock %}
 {% block head %}
 {{ super() }}
   <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
@@ -110,8 +110,8 @@ var context;
 $(document).ready(function() {
     context = create_cubism_context("#timeseries", $("#data-step").val());
     var data_links = [
-	DATA_TYPES["rms"].data_link($SCRIPT_ROOT, {{channel}}),
-	DATA_TYPES["baseline"].data_link($SCRIPT_ROOT, {{channel}}),
+	CHANNEL_DATA_TYPES["rms"].data_link($SCRIPT_ROOT, {{channel}}),
+	CHANNEL_DATA_TYPES["baseline"].data_link($SCRIPT_ROOT, {{channel}}),
     ];
     add_metrics("#timeseries", context, data_links, 40);
 });

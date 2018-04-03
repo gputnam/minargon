@@ -58,13 +58,51 @@ def wires():
     data = constants.CHANNEL_DATA
     steps = constants.REDIS_TIME_STEPS
 
+    view_ind = {
+      'fem': fem, 
+      'card': card
+    }
+
     render_args = {
-        'n_channels_per_fem': n_channels_per_fem,
         'data': data,
         'steps': steps,
-        'fem': fem,
-        'card': card,
+        'view_ind': view_ind,
         'intial_datum': initial_datum,
+        'detector': constants.detector,
+        'view_type': 'channel',
     }
     return render_template('wire_view.html', **render_args)
+
+@app.route('/fem_view')
+def fem_view():
+    card = request.args.get('card', 0, type=int)
+    initial_datum = request.args.get('data', 'rms')
+    n_channels_per_fem = constants.N_CHANNELS_PER_FEM
+    data = constants.FEM_DATA
+    steps = constants.REDIS_TIME_STEPS
+
+    view_ind = {
+      'card': card
+    }
+
+    render_args = {
+        'data': data,
+        'steps': steps,
+        'view_ind': view_ind,
+        'intial_datum': initial_datum,
+        'detector': constants.detector,
+        'view_type': 'fem',
+    }
+    return render_template('fem_view.html', **render_args)
+
+@app.route('/power_supplies')
+def power_supplies():
+    supply = "PL506"
+    render_args = {
+        'data': constants.POWER_SUPPLY_DATA,
+        'supply_name': supply,
+        'steps': constants.REDIS_POWER_SUPPLY_TIME_STEPS,
+    }
+
+    return render_template('power_supplies.html', **render_args)
 

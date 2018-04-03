@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Wire View{% endblock %}
+{% block title %}FEM View{% endblock %}
 {% block head %}
 {{ super() }}
   <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
@@ -30,6 +30,7 @@
 {% include "card_views_script.html" %}
 <script>
 
+
 // setup cubism
 var context;
 var horizon;
@@ -41,7 +42,7 @@ $(document).ready(function() {
     };
     Param(initial_param);
     context = create_cubism_context("#timeseries", $("#data-step").val());
-    horizon = add_metrics("#timeseries", context, channel_datum_list($("#data-type").val(), {{view_ind|safe}}, {{detector|safe}}), Param());
+    horizon = add_metrics("#timeseries", context, fem_datum_list($("#data-type").val(), {{view_ind|safe}}, {{detector|safe}}), Param());
 });
 
 </script>

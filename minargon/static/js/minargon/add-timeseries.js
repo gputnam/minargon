@@ -14,14 +14,18 @@ function delete_horizons(target, context) {
 }
 
 function make_horizons(target, context, data, param) {
+    var horizon = context.horizon();
+    if (!(param === undefined || param.height === undefined)) {
+      horizon = horizon.height(param.height);
+    }
+    if (!(param === undefined || param.threshold_lo === undefined || param.threshold_hi === undefined)) {
+      horizon = horizon.extent([param.threshold_lo, param.threshold_hi]);
+    }
     d3.select(target).selectAll('.horizon')
         .data(data)
       .enter().insert("div", ".bottom")
         .attr("class", "horizon")
-      .call(context.horizon()
-          .height(param["height"])
-          .extent( (param["threshold_lo"] === undefined || param["threshold_hi"] == undefined)
-              ? null : [param["threshold_lo"], param["threshold_hi"]]));
+      .call(horizon);
 }
 
 function create_cubism_context(target, step) {
@@ -58,6 +62,21 @@ function create_cubism_context(target, step) {
     return context;
 
 }
+
+function Param(newParam) {
+    if (newParam === undefined) 
+        return {
+	    height: $("#data-height").val(),
+	    threshold_lo: $("#threshold-lo").val(),
+	    threshold_hi: $("#threshold-hi").val()
+        };
+    else {
+        $("#data-height").val(newParam["height"]);
+        $("#threshold-lo").val(newParam["threshold_lo"]);
+        $("#threshold-hi").val(newParam["threshold_hi"]);
+    } 
+}
+
 
 // update cubism options 
 function updateStep(selector, context) { 

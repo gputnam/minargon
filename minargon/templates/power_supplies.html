@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Wire View{% endblock %}
+{% block title %}Power Supplies{% endblock %}
 {% block head %}
 {{ super() }}
   <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
@@ -26,8 +26,6 @@
     <script src="{{ url_for('static', filename='js/minargon/Data.js') }}"></script>
     <script src="{{ url_for('static', filename='js/minargon/add-timeseries.js') }}"></script>
     <script src="{{ url_for('static', filename='js/minargon/detector.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/minargon/card_views.js') }}"></script>
-{% include "card_views_script.html" %}
 <script>
 
 // setup cubism
@@ -36,13 +34,17 @@ var horizon;
 $(document).ready(function() {
     var initial_param = {
       height: 40, 
-      threshold_lo: CHANNEL_DATA_TYPES[$("#data-type").val()].default_thresholds[0],
-      threshold_hi: CHANNEL_DATA_TYPES[$("#data-type").val()].default_thresholds[1]
+      threshold_lo: POWER_SUPPLY_DATA_TYPES[$("#data-type").val()].default_thresholds[0],
+      threshold_hi: POWER_SUPPLY_DATA_TYPES[$("#data-type").val()].default_thresholds[1]
     };
     Param(initial_param);
     context = create_cubism_context("#timeseries", $("#data-step").val());
-    horizon = add_metrics("#timeseries", context, channel_datum_list($("#data-type").val(), {{view_ind|safe}}, {{detector|safe}}), Param());
+    horizon = add_metrics("#timeseries", context, [POWER_SUPPLY_DATA_TYPES[$("#data-type").val()].data_link($SCRIPT_ROOT, '{{supply_name}}')], Param());
 });
+
+function newData(selector, context, param) {
+    return updateData('#timeseries', context, [POWER_SUPPLY_DATA_TYPES[$("#data-type").val()].data_link($SCRIPT_ROOT, '{{supply_name}}')], param);
+}
 
 </script>
 {% endblock %}
