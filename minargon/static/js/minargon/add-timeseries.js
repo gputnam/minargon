@@ -79,8 +79,10 @@ function Param(newParam) {
 
 
 // update cubism options 
-function updateStep(selector, context) { 
+function updateStep(selector, datatype, context, param) { 
     context.step(selector.value*1000); 
+    // re-make the data
+    newData(datatype, context, param);
 } 
 
 function updateParam(target, context, param) {

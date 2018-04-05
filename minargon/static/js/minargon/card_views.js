@@ -1,4 +1,4 @@
-function newDaqData(selector, view_type, view_ind, detector) {
+function newDaqData(datatype, view_type, view_ind, detector) {
     var datum_list;
     var DATA_TYPES;
     if (view_type == "channel") {
@@ -10,11 +10,11 @@ function newDaqData(selector, view_type, view_ind, detector) {
         DATA_TYPES = FEM_DATA_TYPES;
     }
     var param = Param();
-    param["threshold_lo"] = DATA_TYPES[selector.value]["default_thresholds"][0];
-    param["threshold_hi"] = DATA_TYPES[selector.value]["default_thresholds"][1];
+    param["threshold_lo"] = DATA_TYPES[datatype]["default_thresholds"][0];
+    param["threshold_hi"] = DATA_TYPES[datatype]["default_thresholds"][1];
     Param(param);
 
-    updateData('#timeseries', context, datum_list(selector.value, view_ind, detector), param);
+    updateData('#timeseries', context, datum_list(datatype, view_ind, detector), param);
 }
 
 function fem_datum_list(name, view_ind, detector) {

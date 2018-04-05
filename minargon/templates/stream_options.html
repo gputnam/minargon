@@ -7,7 +7,7 @@
                     Step
                     </label>
                     <div class="col-sm-8">
-                    <select id="data-step" class="form-control" onchange="updateStep(this,context)">
+                    <select id="data-step" class="form-control" onchange="updateStep(this,$('#data-type').val(),context,Param())">
                     {% for step in steps %}
                         <option value="{{step}}">{{step}} seconds</option>
                     {% endfor %}
@@ -29,7 +29,7 @@
                 <div class="form-group row">
                     <label class="col-sm-4 control-form-label col-form-label">Data</label>
                     <div class="col-sm-8">
-                    <select id="data-type" class="form-control" onchange="newData(this, context, Param())">
+                    <select id="data-type" class="form-control" onchange="newData(this.value, context, Param())">
                     {% for datum in data %}
                         <option {% if datum==inital_datum %}selected="true" {%endif%}value="{{datum}}">{{datum}}</option>
                     {% endfor %}

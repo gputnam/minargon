@@ -126,13 +126,10 @@ class ChannelLink {
   }
 
   data_link(start, stop, step) {
-    var channel_args = {
-      expr: this.data_name,
-      channel: this.channel_no.toString()
-    };
-    var args_dict = Object.assign({}, timeArgs(start, stop, step), channel_args);
+    var args = $.param(timeArgs(start, stop, step));
+    var stream = getDaqStream(step); 
 
-    return this.root + '/channel_data?' + $.param(args_dict); 
+    return this.root + '/wire_stream/' + stream + '/' + this.data_name + '/' + this.channel_no +'?' + args;
   }
   name() {
     return this.data_name;
@@ -181,11 +178,11 @@ class PowerSupplyLink {
 // what redis stream you should be subscribing to
 // TODO: implement
 function getDaqStream(step) {
-    return 1;
+    return step / 1000;
 }
 
 function getPowerStream(step) {
-    return 100;
+    return step / 1000;
 }
 
 function timeArgs(start, stop, step) {
@@ -206,6 +203,11 @@ CHANNEL_DATA_TYPES["rms"] = {
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "rms", channel_no)) },
 };
 
+CHANNEL_DATA_TYPES["hit_occupancy"] = {
+  default_thresholds: [0, 1],
+  data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "hit_occupancy", channel_no)) },
+};
+
 CHANNEL_DATA_TYPES["baseline"] = {
   default_thresholds: [700, 900], 
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "baseline", channel_no)) },
@@ -223,17 +225,26 @@ FEM_DATA_TYPES["baseline"]  = {
   data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "baseline", card, fem)) },
 };
 
+FEM_DATA_TYPES["hit_occupancy"] = {
+  default_thresholds: [0, 1],
+  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "hit_occupancy", card, fem)) },
+};
+
 var POWER_SUPPLY_DATA_TYPES = {}
 
-POWER_SUPPLY_DATA_TYPES["voltage"] = {
+POWER_SUPPLY_DATA_TYPES["output_voltage"] = {
   default_thresholds: [40, 50],
-  data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "voltage", power_supply)) },
+  data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "output_voltage", power_supply)) },
 };
 
-POWER_SUPPLY_DATA_TYPES["current"] = {
+POWER_SUPPLY_DATA_TYPES["output_current"] = {
   default_thresholds: [6, 8],
-  data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "current", power_supply)) },
+  data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "output_current", power_supply)) },
 };
 
+POWER_SUPPLY_DATA_TYPES["max_output_current"] = {
+  default_thresholds: [12, 20],
+  data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "max_output_current", power_supply)) },
+};
 
 
