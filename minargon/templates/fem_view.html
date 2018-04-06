@@ -14,6 +14,11 @@
     </div>
 </div>
 <div class="row">
+    <div class="col-md-12" style="padding:0">
+        <div id="histogram"></div>
+    </div>
+</div>
+<div class="row">
     <div class="col-md-12" style="padding:0" id="timeseries"></div>
 </div>
 </div>
@@ -27,22 +32,24 @@
     <script src="{{ url_for('static', filename='js/minargon/add-timeseries.js') }}"></script>
     <script src="{{ url_for('static', filename='js/minargon/detector.js') }}"></script>
     <script src="{{ url_for('static', filename='js/minargon/card_views.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/minargon/histogram.js') }}"></script>
 {% include "card_views_script.html" %}
 <script>
 
 
 // setup cubism
 var context;
-var horizon;
+var histogram;
+var poll;
 $(document).ready(function() {
-    var initial_param = {
-      height: 40, 
-      threshold_lo: CHANNEL_DATA_TYPES[$("#data-type").val()].default_thresholds[0],
-      threshold_hi: CHANNEL_DATA_TYPES[$("#data-type").val()].default_thresholds[1]
-    };
-    Param(initial_param);
+    // setup histogram
+    histogram = new Histogram(16, "histogram");
+
+    // and cubism context
     context = create_cubism_context("#timeseries", $("#data-step").val());
-    horizon = add_metrics("#timeseries", context, fem_datum_list($("#data-type").val(), {{view_ind|safe}}, {{detector|safe}}), Param());
+    
+    // start polling for data
+    newDaqData($("#data-type").val(), "fem", {{view_ind|safe}}, {{detector|safe}}, false);
 });
 
 </script>

@@ -49,14 +49,19 @@ def channel_snapshot():
     }
     return render_template('channel_snapshot.html', **template_args)
 
+def crate_view_args(args):
+    return {
+        'steps': constants.REDIS_TIME_STEPS,
+        'detector': constants.detector,
+        'inital_datum': args.get('data', 'rms'),
+    }
+
 @app.route('/wires')
 def wires():
     fem = request.args.get('fem', 0, type=int)
     card = request.args.get('card', 0, type=int)
     initial_datum = request.args.get('data', 'rms')
-    n_channels_per_fem = constants.N_CHANNELS_PER_FEM
     data = constants.CHANNEL_DATA
-    steps = constants.REDIS_TIME_STEPS
 
     view_ind = {
       'fem': fem, 
@@ -65,13 +70,13 @@ def wires():
 
     render_args = {
         'data': data,
-        'steps': steps,
         'view_ind': view_ind,
-        'intial_datum': initial_datum,
-        'detector': constants.detector,
         'view_type': 'channel',
     }
-    return render_template('wire_view.html', **render_args)
+
+    render_args = dict(render_args, **crate_view_args(request.args))
+
+    return render_template('crate_view.html', **render_args)
 
 @app.route('/fem_view')
 def fem_view():
@@ -79,7 +84,6 @@ def fem_view():
     initial_datum = request.args.get('data', 'rms')
     n_channels_per_fem = constants.N_CHANNELS_PER_FEM
     data = constants.FEM_DATA
-    steps = constants.REDIS_TIME_STEPS
 
     view_ind = {
       'card': card
@@ -87,13 +91,29 @@ def fem_view():
 
     render_args = {
         'data': data,
-        'steps': steps,
         'view_ind': view_ind,
-        'intial_datum': initial_datum,
-        'detector': constants.detector,
         'view_type': 'fem',
     }
-    return render_template('fem_view.html', **render_args)
+    render_args = dict(render_args, **crate_view_args(request.args))
+
+    return render_template('crate_view.html', **render_args)
+
+@app.route('/board_view')
+def board_view():
+    initial_datum = request.args.get('data', 'rms')
+    n_channels_per_fem = constants.N_CHANNELS_PER_FEM
+    data = constants.BOARD_DATA
+
+    view_ind = {}
+
+    render_args = {
+        'data': data,
+        'view_ind': view_ind,
+        'view_type': 'board',
+    }
+    render_args = dict(render_args, **crate_view_args(request.args))
+
+    return render_template('crate_view.html', **render_args)
 
 @app.route('/power_supplies')
 def power_supplies():

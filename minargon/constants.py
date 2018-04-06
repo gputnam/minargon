@@ -20,6 +20,8 @@ CHANNEL_DATA = ["rms", "baseline", "hit_occupancy"]
 
 # same as for channel data
 FEM_DATA = CHANNEL_DATA + [] # other stuff to be included
+BOARD_DATA = CHANNEL_DATA + [] # other stuff to be included
+
 
 # and for power supplies stuff
 POWER_SUPPLY_DATA = ["output_voltage", "output_current", "max_output_current"]

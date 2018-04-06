@@ -34,11 +34,14 @@ def snapshot(data):
 
 def stream_data(base_key, stream, args, data_map):
     start = args.get('start',type=parseiso)
-    stop = args.get('stop',type=parseiso)
+    stop = args.get('stop',None,type=parseiso)
     now_client = args.get('now',type=parseiso)
     # convert ms -> sec
     step = args.get('step',type=int)//1000
     now = int(time.time())
+
+    if stop == None:
+        stop = int(start) + step
 
     # adjust for clock skew
     dt = now_client - now
@@ -46,7 +49,7 @@ def stream_data(base_key, stream, args, data_map):
     stop -= dt
     p = redis.pipeline()
     for i in range(int(start),int(stop),step):
-        key = ('stream/%i:%i:' % (stream, i//stream)) + base_key
+        key = 'stream/%i:%i:%s' % (stream, i//stream, base_key)
         p.get(key)
 
     def check_and_map(x):

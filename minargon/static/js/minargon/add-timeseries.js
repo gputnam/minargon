@@ -1,8 +1,14 @@
 // Requires cubism.js loaded
 
-function add_metrics(target, context, data_links, param) {
+function add_metrics(target, context, data_links, param, listener) {
     // add new metrics
-    var data = data_links.map(data_link => context.metric(data_link.get_data.bind(data_link), data_link.name()));
+    var data = data_links.map(function(data_link) { 
+        var metric = context.metric(data_link.get_data.bind(data_link), data_link.name());
+        if (!(listener === undefined)) {
+            metric.on("change", listener)
+        }
+        return metric;
+    });
     make_horizons(target, context, data, param);
 }
 
@@ -10,7 +16,8 @@ function delete_horizons(target, context) {
     // delete old metrics
     d3.select(target).selectAll('.horizon')
         .call(context.horizon().remove)
-        .remove();    
+        .remove();
+        //.call((x) => alert(x.data()));    
 }
 
 function make_horizons(target, context, data, param) {
@@ -91,8 +98,10 @@ function updateParam(target, context, param) {
     make_horizons(target, context, data, param);
 }
 
-function updateData(target, context, data_links, param) {
-    delete_horizons(target, context);
+function updateData(target, context, data_links, param, remove_old) {
+    if (remove_old === true) {
+        delete_horizons(target, context);
+    }
     add_metrics(target, context, data_links, param);
 }
 

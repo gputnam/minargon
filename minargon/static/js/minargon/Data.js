@@ -1,10 +1,49 @@
+class D3DataPoll {
+    // expects a D3DataLink or D3DataChain
+    constructor(data, timeout, listeners) {
+        this.data = data;
+        this.timeout = timeout;
+        this.listeners = listeners;
+        this.running = true;
+    }
+
+    run() {
+        if (!(this.running == true)) {
+            return;
+        }
+        var self = this;
+        var start = new Date();
+        this.data.get_data_promise(start, null, 10000)
+            .then(function(value) {
+                for (var i = 0; i < self.listeners.length; i++) {
+                    var func = self.listeners[i];
+                    func(value);
+                }
+            });
+        setTimeout(this.run.bind(this), this.timeout);
+    }
+
+    stop() {
+        this.running = false;
+    }
+
+    name() {
+        return this.data.name();
+    }
+}
+
 class D3DataChain {
   // expects a list of DataLinks and a final operation which 
   // composes the links into a final result
-  constructor(data_links, operation, name) {
-    this.operation = operation;
+  constructor(data_links, name, operation) {
     this.data_links = data_links;
     this.local_name = name;
+    if (operation === undefined) {
+      this.operation = function(x) { return x; }
+    }
+    else {
+      this.operation = operation;
+    }
   }
 
   // Same interface as D3DataLink
@@ -20,7 +59,7 @@ class D3DataChain {
       return Promise.all(this.data_links.map(function(iter_data_link) {
          return iter_data_link.get_data_promise(start, stop, step);
        }))
-          .then(values => resolve(values.map(v => this.operation(v))));
+          .then(values => Promise.resolve(values.map(v => this.operation(v))));
                // error => reject(error));
   }
 
@@ -156,6 +195,25 @@ class FEMLink {
     }
 }
 
+// pass to D3DataLink to get stuff
+class BoardLink {
+    constructor(script_root, data_name, card) {
+        this.data_name = data_name;
+        this.card = card;
+        this.root = script_root;
+    }
+
+    data_link(start, stop, step) {
+        var stream = getDaqStream(step);
+        var args = $.param(timeArgs(start, stop, step));
+
+        return this.root + '/stream/' + stream + '/' + this.data_name + '/' + this.card + '?' + args;
+    }
+    name() {
+        return this.data_name;
+    }
+}
+
 // Link to data on a power supply
 class PowerSupplyLink {
     constructor(script_root, data_name, supply_name) {
@@ -186,12 +244,16 @@ function getPowerStream(step) {
 }
 
 function timeArgs(start, stop, step) {
-  return {
+  var ret = {
    start: start.toISOString(),
-   stop: stop.toISOString(),
    step: step,
    now: new Date().toISOString()
  };
+  // stop can be null
+  if (stop != null) {
+    ret.stop = stop.toISOString();
+  }
+  return ret;
 
 }
 
@@ -228,6 +290,23 @@ FEM_DATA_TYPES["baseline"]  = {
 FEM_DATA_TYPES["hit_occupancy"] = {
   default_thresholds: [0, 1],
   data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "hit_occupancy", card, fem)) },
+};
+
+var BOARD_DATA_TYPES = {};
+
+BOARD_DATA_TYPES["rms"]  = {
+  default_thresholds: [0, 5],
+  data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "rms", card)) },
+};
+
+BOARD_DATA_TYPES["baseline"]  = {
+  default_thresholds: [700, 900],
+  data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "baseline", card)) },
+};
+
+BOARD_DATA_TYPES["hit_occupancy"] = {
+  default_thresholds: [0, 1],
+  data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "hit_occupancy", card)) },
 };
 
 var POWER_SUPPLY_DATA_TYPES = {}
