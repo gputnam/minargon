@@ -279,7 +279,19 @@ CHANNEL_DATA_TYPES["baseline"] = {
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "baseline", channel_no)) },
 };
 
+CHANNEL_DATA_TYPES["pulse_height"] = {
+  histo_x_range: [500, 1000],
+  default_thresholds: [500, 1000], 
+  data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "pulse_height", channel_no)) },
+};
+
 var FEM_DATA_TYPES = {};
+
+FEM_DATA_TYPES["pulse_height"]  = {
+  histo_x_range: [0, 200],
+  default_thresholds: [20, 60], 
+  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "pulse_height", card, fem)) },
+};
 
 FEM_DATA_TYPES["rms"]  = {
   histo_x_range: [0, 10],
@@ -318,6 +330,12 @@ FEM_DATA_TYPES["trigframe_no"] = {
 };
 
 var BOARD_DATA_TYPES = {};
+
+BOARD_DATA_TYPES["pulse_height"]  = {
+  histo_x_range: [0, 200],
+  default_thresholds: [20, 60], 
+  data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "pulse_height", card)) },
+};
 
 BOARD_DATA_TYPES["rms"]  = {
   histo_x_range: [0, 10],
