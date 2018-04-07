@@ -88,12 +88,18 @@ d3.json($SCRIPT_ROOT + "/snapshot/fft?" + $.param({wire: "{{channel}}"}), functi
 });
 // setup cubism
 var context;
+var data_links = [
+{% for d in data_types %}
+  CHANNEL_DATA_TYPES["{{d}}"].data_link($SCRIPT_ROOT, {{channel}}),
+{% endfor %}
+];
+
+function newData(datatype, context, param) {
+  updateData('#timeseries', context, data_links, param, true); 
+}
+
 $(document).ready(function() {
     context = create_cubism_context("#timeseries", $("#data-step").val());
-    var data_links = [
-	CHANNEL_DATA_TYPES["rms"].data_link($SCRIPT_ROOT, {{channel}}),
-	CHANNEL_DATA_TYPES["baseline"].data_link($SCRIPT_ROOT, {{channel}}),
-    ];
     add_metrics("#timeseries", context, data_links, 40);
 });
 </script> 

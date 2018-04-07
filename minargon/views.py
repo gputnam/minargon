@@ -45,7 +45,8 @@ def channel_snapshot():
     channel = request.args.get('channel', 0, type=int)
     template_args = {
         'channel': channel,
-        'steps': constants.REDIS_TIME_STEPS
+        'steps': constants.REDIS_TIME_STEPS,
+        'data_types': constants.CHANNEL_DATA,
     }
     return render_template('channel_snapshot.html', **template_args)
 
