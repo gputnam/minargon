@@ -8,10 +8,23 @@
 {% block body %}
 {{ super() }}
 <div class="container">
-<p>
-Snapshot taken at <span id="snapshot-time"></span>
-</p>
-<div id="correlation"></div>
+<div class="row">
+<div class="col-md-3 hcenter">
+<div class="card">
+    <div class="card-header">Noise Correlation Snapshot</div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">Taken at <span id="snapshot-time"></span></li>
+    </ul>
+</div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-12">
+    <div id="correlation"></div>
+</div>
+</div>
+
 </div>
 {%endblock%}
 {% block script %}

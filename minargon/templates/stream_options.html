@@ -1,54 +1,43 @@
-        <div class="card">
-            <div class="card-header">Stream Options</div>
-            <div class="card-body">
-                <form class="form" role="form">
-                <div class="form-group row">
-                    <label class="col-sm-4 control-form-label col-form-label">
-                    Step
-                    </label>
-                    <div class="col-sm-8">
-                    <select id="data-step" class="form-control" onchange="updateStep(this,$('#data-type').val(),context,Param())">
-                    {% for step in steps %}
-                        <option value="{{step}}">{{step}} seconds</option>
-                    {% endfor %}
-                    </select>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-sm-4 control-form-label col-form-label">
-                    Height
-                    </label>
-                    <div class="col-sm-8">
-                    <select id="data-height" class="form-control" onchange="updateParam('#timeseries', context, Param())">
-                    {% for height in [20, 40, 60, 80, 100] %}
-                        <option {%if height == 40 %}selected="true"{% endif %} value="{{height}}">{{height}}</option>
-                    {% endfor %}
-                    </select>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-sm-4 control-form-label col-form-label">Data</label>
-                    <div class="col-sm-8">
-                    <select id="data-type" class="form-control" onchange="newData(this.value, context, Param())">
-                    {% for datum in data %}
-                        <option {% if datum==inital_datum %}selected="true" {%endif%}value="{{datum}}">{{datum}}</option>
-                    {% endfor %}
-                    </select>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-sm-4 control-form-label col-form-label"> Threshold Hi</label>
-                    <div class="col-sm-8">
-                        <input type="text" id="threshold-hi" onkeydown="if (event.keyCode == 13) updateParam('#timeseries', context, Param())"/> 
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-sm-4 control-form-label col-form-label"> Threshold Lo</label>
-                    <div class="col-sm-8">
-                        <input type="text" id="threshold-lo" onkeydown="if (event.keyCode == 13) updateParam('#timeseries', context, Param())"/> 
-                    </div>
-                </div>
-                </form>
-            </div>
-        </div>
-
+<div class="card hcenter">
+    <div class="card-header">Stream Options</div>
+    <div class="card-body">
+        <form class="form" role="form">
+            <div class="form-group row">
+                <label class="col-sm-6 control-form-label col-form-label">
+		Step
+		</label>
+		<div class="col-sm-6">
+		    <select id="data-step" class="form-control" onchange="updateStep(this,$('#data-type').val(),context,Param())">
+			{% for step in steps %}
+			<option value="{{step}}">{{step}} seconds</option>
+			{% endfor %}
+		    </select>
+		</div>
+	    </div>
+		<div class="form-group row">
+		<label class="col-sm-6 control-form-label col-form-label">
+		    Height
+		</label>
+		<div class="col-sm-6">
+		    <select id="data-height" class="form-control" onchange="updateParam('#timeseries', context, Param())">
+			{% for height in [25, 40, 60, 80, 100] %}
+			<option {%if height == 25 %}selected="true"{% endif %} value="{{height}}">{{height}}</option>
+			{% endfor %}
+		    </select>
+		</div>
+	    </div>
+	    <div class="form-group row">
+		<label class="col-sm-6 control-form-label col-form-label"> Threshold Hi</label>
+		<div class="col-sm-6">
+		    <input type="text" size="12" id="threshold-hi" onkeydown="if (event.keyCode == 13) updateParam('#timeseries', context, Param())"/> 
+		</div>
+	    </div>
+	    <div class="form-group row">
+		<label class="col-sm-6 control-form-label col-form-label"> Threshold Lo</label>
+	        <div class="col-sm-6">
+		    <input type="text" size="12" id="threshold-lo" onkeydown="if (event.keyCode == 13) updateParam('#timeseries', context, Param())"/> 
+		</div>
+	    </div>
+	</form>
+    </div>
+</div>

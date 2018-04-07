@@ -9,17 +9,18 @@
 {{ super() }}
 <div class="container">
 <div class="row">
-    <div class="col-md-6 col-centered">
-        {% include 'stream_options.html' %}
-    </div>
-</div>
-<div class="row">
-    <div class="col-md-12" style="padding:0">
+    <div class="col-md-8 vcenter" style="padding:0">
         <div id="histogram"></div>
     </div>
+    <div class="col-md-4 vcenter">
+        {% include 'data_options.html' %}
+    </div>
 </div>
 <div class="row">
-    <div class="col-md-12" style="padding:0" id="timeseries"></div>
+    <div class="col-md-8" style="padding:0" id="timeseries"></div>
+    <div class="col-md-4 vcenter">
+        {% include 'stream_options.html' %}
+    </div>
 </div>
 </div>
 {%endblock%}
@@ -42,7 +43,7 @@ var context;
 var poll;
 $(document).ready(function() {
     // setup histogram
-    histogram = new Histogram(16, "histogram");
+    histogram = newHistogram($("#data-type").val(), "{{view_type}}", {{detector|safe}}, "histogram");
 
     // and cubism context
     context = create_cubism_context("#timeseries", $("#data-step").val());

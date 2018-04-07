@@ -9,7 +9,7 @@
 {{ super() }}
 <div class="container">
 <div class="row">
-<div class="col-md-3 col-centered">
+<div class="col-md-3 hcenter">
 <div class="card">
     <div class="card-header">Channel {{channel}} Snapshot</div>
     <ul class="list-group list-group-flush">
@@ -22,27 +22,9 @@
 </div>
 <div class="row">
     <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">Stream Options</div>
-            <div class="card-body">
-		<form class="form" role="form">
-		<div class="form-group row">
-		    <label class="col-sm-4 control-form-label col-form-label">
-		    Step
-		    </label>
-		    <div class="col-sm-8">
-		    <select id="data-step" class="form-control" onchange="updateStep(this,context)">
-                    {% for step in steps %}
-                        <option value="{{step}}">{{step}} seconds</option>
-                    {% endfor %}
-		    </select>
-                    </div>
-                </div>
-		</form>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-8" style="padding:0" id="timeseries"></div>
+        {% include 'multistream_options.html' %}
+    </div><!--
+    --><div class="col-md-8" style="padding:0" id="timeseries"></div>
 </div>
     <div class="row">
     <div class="col-md-12" style="padding:0" id="waveform-holder">

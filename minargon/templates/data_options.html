@@ -1,0 +1,22 @@
+<div class="card hcenter">
+    <div class="card-header">{{view_type}} view</div>
+    <div class="card-body">
+        <ul class="list-group list-group-flush">
+        {% for ident, val in view_ind.items() %}
+            <li class="list-group-item">{{ident}} {{val}}</li>
+        {% endfor %}
+            <li class="list-group-item">
+	    <div class="row">
+		<label class="col-sm-4 control-form-label col-form-label">Data</label>
+		<div class="col-sm-8">
+		    <select id="data-type" class="form-control" onchange="newData(this.value, context, Param())">
+			{% for datum in data %}
+			<option {% if datum==inital_datum %}selected="true" {%endif%}value="{{datum}}">{{datum}}</option>
+			{% endfor %}
+		    </select>
+		</div>
+	    </div>
+            </li>
+        </ul>
+    </div>
+</div>

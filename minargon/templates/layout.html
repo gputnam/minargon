@@ -12,9 +12,13 @@
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/toastr.min.css') }}" media="screen">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/minard.css') }}" media="screen">
         <style>
-        .col-centered{
+        .hcenter {
     		float: none;
     		margin: 0 auto;
+	}
+	.vcenter {
+		display: flex;
+		align-items: center;
 	}
         </style>
         {% endblock %}
