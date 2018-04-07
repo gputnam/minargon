@@ -28,6 +28,9 @@ function make_horizons(target, context, data, param) {
     if (!(param === undefined || param.threshold_lo === undefined || param.threshold_hi === undefined)) {
       horizon = horizon.extent([param.threshold_lo, param.threshold_hi]);
     }
+    if (!(param === undefined || param.format === undefined)) {
+      horizon = horizon.format(param.format);
+    }
     d3.select(target).selectAll('.horizon')
         .data(data)
       .enter().insert("div", ".bottom")
@@ -79,8 +82,20 @@ function Param(newParam) {
         };
     else {
         $("#data-height").val(newParam["height"]);
-        $("#threshold-lo").val(newParam["threshold_lo"]);
-        $("#threshold-hi").val(newParam["threshold_hi"]);
+
+        if (!(newParam.threshold_lo === undefined)) {
+          $("#threshold-lo").val(newParam["threshold_lo"]);
+        }
+        else {
+          $("#threshold-lo").val("");
+        }
+
+        if (!(newParam.threshold_hi === undefined)) {
+          $("#threshold-hi").val(newParam["threshold_hi"]);
+        }
+        else {
+          $("#threshold-hi").val("");
+        }
     } 
 }
 
@@ -105,4 +120,16 @@ function updateData(target, context, data_links, param, remove_old) {
     add_metrics(target, context, data_links, param);
 }
 
+// formatting for displaying numbers
+// taken from minard
+si_format = d3.format('.2s');
+float_format = d3.format('.2f');
+percent_format = d3.format('.2%');
+
+function clean_format(d, format) {
+  if (!$.isNumeric(d))
+    return '-';
+  else
+    return format(d);
+}
 

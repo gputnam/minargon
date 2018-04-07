@@ -1,33 +1,32 @@
 // requires pltoly loaded
 class Histogram {
-    constructor(n_data, target) {
+    constructor(n_data, target, layout) {
         this.data = new Array(n_data);
         this.target = target;
-        this.initialized = false;
+        this.draw(layout);
     }
 
-    draw() {
-        Plotly.newPlot(this.target, [this.trace()]);
+    draw(layout) {
+        Plotly.newPlot(this.target, [this.trace()], layout);
+    }
+
+    reLayout(layout) {
+        Plotly.relayout(this.target, layout);
     }
 
     trace() {
-        return {
+        var ret = {
             x: this.data,
             type: "histogram",
         };
+        return ret;
     }
 
     updateData(data) {
         for (var i = 0; i < this.data.length; i ++) {
             this.data[i] = data[i];
         }
-        if (this.initialized == true) {
-            this.redraw();
-        }
-        else {
-            this.draw();
-            this.initialized = true;
-        }
+        this.redraw();
     }
 
     redraw() {

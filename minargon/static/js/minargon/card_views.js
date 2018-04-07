@@ -16,18 +16,68 @@ function dispatchViewType(view_type) {
     return [datum_list, DATA_TYPES];
 }
 
+function layoutHisto(datatype, view_type, detector) {
+    var data_types = dispatchViewType(view_type)[1];
+
+    var n_data_points = 0;
+    if (view_type == "channel") {
+        n_data_points = detector.n_channel_per_fem;
+    }
+    else if (view_type == "fem") {
+        n_data_points = detector.n_fem_per_board;
+    }
+    else if (view_type == "board") {
+        n_data_points = detector.n_boards;
+    }
+
+    var layout = {
+        xaxis: {
+            title: datatype,
+        },
+        yaxis: {
+	    range: [0, n_data_points],
+	    title: "N " + view_type,
+        }
+    }
+
+    if (!(data_types[datatype].histo_x_range === undefined)) {
+        layout.xaxis.range = data_types[datatype].histo_x_range;
+    }
+
+    return [layout, n_data_points];
+}
+
+function newHistogram(datatype, view_type, detector, target) {
+    var layout = layoutHisto(datatype, view_type, detector);
+
+    return new Histogram(layout[1], target, layout[0]); 
+} 
+
 function newDaqData(datatype, view_type, view_ind, detector, initialized) {
     var view_info = dispatchViewType(view_type);
     var datum_list = view_info[0];
     var DATA_TYPES = view_info[1];
 
     var param = Param();
-    param["threshold_lo"] = DATA_TYPES[datatype]["default_thresholds"][0];
-    param["threshold_hi"] = DATA_TYPES[datatype]["default_thresholds"][1];
+    if (!(DATA_TYPES[datatype].default_thresholds === undefined)) {
+      param["threshold_lo"] = DATA_TYPES[datatype]["default_thresholds"][0];
+      param["threshold_hi"] = DATA_TYPES[datatype]["default_thresholds"][1];
+    }
+    else {
+     param.threshold_lo = undefined;
+     param.threshold_hi = undefined;
+    }
+    if (!(DATA_TYPES[datatype].horizon_format === undefined)) {
+        param.format = DATA_TYPES[datatype].horizon_format;
+    }
+
     Param(param);
 
     if (initialized == false || poll.name() != datatype) {
-        if (initialized == true) poll.stop();
+        if (initialized == true) {
+            poll.stop();
+            histogram.reLayout(layoutHisto(datatype, view_type, detector)[0]);
+        }
 
         poll = newPoll(datatype, view_type, histogram, view_ind, detector);
     }

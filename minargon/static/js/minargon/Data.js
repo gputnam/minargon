@@ -261,16 +261,20 @@ function timeArgs(start, stop, step) {
 var CHANNEL_DATA_TYPES = {}
 
 CHANNEL_DATA_TYPES["rms"] = {
+  histo_x_range: [0, 10],
   default_thresholds: [0, 5],
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "rms", channel_no)) },
 };
 
 CHANNEL_DATA_TYPES["hit_occupancy"] = {
+  histo_x_range: [0,1],
+  horizon_format: function(d) { return clean_format(d, percent_format); },
   default_thresholds: [0, 1],
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "hit_occupancy", channel_no)) },
 };
 
 CHANNEL_DATA_TYPES["baseline"] = {
+  histo_x_range: [600, 1000],
   default_thresholds: [700, 900], 
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "baseline", channel_no)) },
 };
@@ -278,33 +282,58 @@ CHANNEL_DATA_TYPES["baseline"] = {
 var FEM_DATA_TYPES = {};
 
 FEM_DATA_TYPES["rms"]  = {
+  histo_x_range: [0, 10],
   default_thresholds: [0, 5],
   data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "rms", card, fem)) },
 };
 
 FEM_DATA_TYPES["baseline"]  = {
+  histo_x_range: [600, 1000],
   default_thresholds: [700, 900],
   data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "baseline", card, fem)) },
 };
 
 FEM_DATA_TYPES["hit_occupancy"] = {
-  default_thresholds: [0, 1],
+  histo_x_range: [0,1],
+  horizon_format: function(d) { return clean_format(d, percent_format); },
+  default_thresholds: [0, 0.4],
   data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "hit_occupancy", card, fem)) },
+};
+
+FEM_DATA_TYPES["scaled_sum_rms"] = {
+  histo_x_range: [-1,1],
+  default_thresholds: [0, 0.4],
+  horizon_format: function(d) { return clean_format(d, float_format); },
+  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "scaled_sum_rms", card, fem)) },
+};
+
+FEM_DATA_TYPES["frame_no"] = {
+  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "frame_no", card, fem)) },
+};
+FEM_DATA_TYPES["event_no"] = {
+  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "event_no", card, fem)) },
+};
+FEM_DATA_TYPES["trigframe_no"] = {
+  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "trigframe_no", card, fem)) },
 };
 
 var BOARD_DATA_TYPES = {};
 
 BOARD_DATA_TYPES["rms"]  = {
+  histo_x_range: [0, 10],
   default_thresholds: [0, 5],
   data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "rms", card)) },
 };
 
 BOARD_DATA_TYPES["baseline"]  = {
+  histo_x_range: [600, 1000],
   default_thresholds: [700, 900],
   data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "baseline", card)) },
 };
 
 BOARD_DATA_TYPES["hit_occupancy"] = {
+  histo_x_range: [0,1],
+  horizon_format: function(d) { return clean_format(d, percent_format); },
   default_thresholds: [0, 1],
   data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "hit_occupancy", card)) },
 };

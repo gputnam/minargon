@@ -19,7 +19,7 @@ REDIS_TIME_STEPS = [1, 10]
 CHANNEL_DATA = ["rms", "baseline", "hit_occupancy"] 
 
 # same as for channel data
-FEM_DATA = CHANNEL_DATA + [] # other stuff to be included
+FEM_DATA = CHANNEL_DATA + ["frame_no", "event_no", "trigframe_no", "scaled_sum_rms"]
 BOARD_DATA = CHANNEL_DATA + [] # other stuff to be included
 
 
