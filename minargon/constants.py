@@ -1,8 +1,17 @@
 # Detector Stuff
+
+# FOR TESTING ON NEVIS DATA
+"""
 N_CHANNELS = 16
 N_CHANNELS_PER_FEM = 16
 N_FEM_PER_BOARD = 1
 N_BOARDS = 1
+"""
+# FOR TESTING ON LAriaT DATA
+N_CHANNELS = 480
+N_CHANNELS_PER_FEM = 16
+N_FEM_PER_BOARD = 4
+N_BOARDS = 8
 
 detector = {
   'n_channels': N_CHANNELS,
@@ -24,8 +33,8 @@ BOARD_DATA = CHANNEL_DATA + [] # other stuff to be included
 
 
 # and for power supplies stuff
-POWER_SUPPLY_DATA = ["output_voltage", "output_current", "max_output_current"]
+POWER_SUPPLY_DATA = ["measured_output_voltage", "measured_output_current", "output_voltage", "output_current", "max_output_current"]
 
 # different time steps for power supply data
-REDIS_POWER_SUPPLY_TIME_STEPS = [100]
+REDIS_POWER_SUPPLY_TIME_STEPS = [10]
 

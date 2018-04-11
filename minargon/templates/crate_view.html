@@ -34,11 +34,12 @@
     <script src="{{ url_for('static', filename='js/minargon/detector.js') }}"></script>
     <script src="{{ url_for('static', filename='js/minargon/card_views.js') }}"></script>
     <script src="{{ url_for('static', filename='js/minargon/histogram.js') }}"></script>
-{% include "card_views_script.html" %}
 <script>
 
 // setup cubism
 var context;
+// setup cubism options
+var metric_info;
 // setup our poll
 var poll;
 $(document).ready(function() {
@@ -48,8 +49,11 @@ $(document).ready(function() {
     // and cubism context
     context = create_cubism_context("#timeseries", $("#data-step").val());
     
-    // start polling for data
-    newDaqData($("#data-type").val(), "{{view_type}}", {{view_ind|safe}}, {{detector|safe}}, false);
+    // setup metric options
+    metric_info = new crate_view_metric_info("{{view_type}}", {{view_ind|safe}}, {{detector|safe}});
+
+    // startup data
+    updateData("#timeseries", context, Param(), $("#data-type").val(), metric_info, false, true);
 });
 
 </script>

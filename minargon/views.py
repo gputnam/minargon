@@ -54,7 +54,7 @@ def crate_view_args(args):
     return {
         'steps': constants.REDIS_TIME_STEPS,
         'detector': constants.detector,
-        'inital_datum': args.get('data', 'rms'),
+        'initial_datum': args.get('data', 'rms'),
     }
 
 @app.route('/wires')
@@ -73,6 +73,7 @@ def wires():
         'data': data,
         'view_ind': view_ind,
         'view_type': 'channel',
+        'initial_datum': initial_datum,
     }
 
     render_args = dict(render_args, **crate_view_args(request.args))
@@ -94,6 +95,7 @@ def fem_view():
         'data': data,
         'view_ind': view_ind,
         'view_type': 'fem',
+        'initial_datum': initial_datum,
     }
     render_args = dict(render_args, **crate_view_args(request.args))
 
@@ -111,6 +113,7 @@ def board_view():
         'data': data,
         'view_ind': view_ind,
         'view_type': 'board',
+        'initial_datum': initial_datum,
     }
     render_args = dict(render_args, **crate_view_args(request.args))
 
@@ -123,6 +126,7 @@ def power_supplies():
         'data': constants.POWER_SUPPLY_DATA,
         'supply_name': supply,
         'steps': constants.REDIS_POWER_SUPPLY_TIME_STEPS,
+        'view_ind': {'supply': supply },
     }
 
     return render_template('power_supplies.html', **render_args)

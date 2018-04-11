@@ -1,15 +1,31 @@
 // Requires cubism.js loaded
 
-function add_metrics(target, context, data_links, param, listener) {
+// The "metric_info" argument should be a class with the following functions:
+// data_list(data_type, context)
+//     provides a list of D3DataLink/D3DataChain objects to be used as metrics
+// param(param, data_type) (OPTIONAL)
+//     provides the default parameters for a new data type. If not defined, 
+//     param won't be updated on a data type update.
+// on_click(data_type, horizon_index) (OPTIONAL)
+//     function which will be called when a horizon chart is clicked
+//     (this is set as the class)
+// on_update(start, stop) (OPTIONAL)
+//     function which will be called when a metric updates 
+//     (this is set as the class)
+// on_finish(datatype, initialized)
+//     function which will be called after data is updated -- datatype name and
+//     whether this is the original initialization is provided
+
+function add_metrics(target, context, data_links, param, metric_info) {
     // add new metrics
     var data = data_links.map(function(data_link) { 
         var metric = context.metric(data_link.get_data.bind(data_link), data_link.name());
-        if (!(listener === undefined)) {
-            metric.on("change", listener)
+        if (!(metric_info.on_upadte === undefined)) {
+            metric.on("change", metric_info.on_update.bind(metric_info));
         }
         return metric;
     });
-    make_horizons(target, context, data, param);
+    return make_horizons(target, context, data, param, metric_info);
 }
 
 function delete_horizons(target, context) {
@@ -17,10 +33,9 @@ function delete_horizons(target, context) {
     d3.select(target).selectAll('.horizon')
         .call(context.horizon().remove)
         .remove();
-        //.call((x) => alert(x.data()));    
 }
 
-function make_horizons(target, context, data, param) {
+function make_horizons(target, context, data, param, metric_info) {
     var horizon = context.horizon();
     if (!(param === undefined || param.height === undefined)) {
       horizon = horizon.height(param.height);
@@ -31,12 +46,17 @@ function make_horizons(target, context, data, param) {
     if (!(param === undefined || param.format === undefined)) {
       horizon = horizon.format(param.format);
     }
-    d3.select(target).selectAll('.horizon')
+    var horizons = d3.select(target).selectAll('.horizon')
         .data(data)
       .enter().insert("div", ".bottom")
         .attr("class", "horizon")
       .call(horizon);
+    if (!(metric_info.on_click === undefined)) {
+         horizons.on("click", metric_info.on_click.bind(metric_info));
+    }
+    return horizons;
 }
+
 
 function create_cubism_context(target, step) {
     var size = $(target).width();
@@ -101,23 +121,34 @@ function Param(newParam) {
 
 
 // update cubism options 
-function updateStep(selector, datatype, context, param) { 
+function updateStep(selector, target, datatype, context, param, metric_info) { 
     context.step(selector.value*1000); 
     // re-make the data
-    newData(datatype, context, param);
+    updateData(target, context, param, datatype, metric_info, true, false);
 } 
 
-function updateParam(target, context, param) {
+function updateParam(target, context, param, metric_info) {
     var data = d3.select(target).selectAll('.horizon').data();
     delete_horizons(target, context);
-    make_horizons(target, context, data, param);
+    return make_horizons(target, context, data, param, metric_info);
 }
 
-function updateData(target, context, data_links, param, remove_old) {
+function updateData(target, context, param, data_type, metric_info, remove_old, is_new_data) {
     if (remove_old === true) {
         delete_horizons(target, context);
     }
-    add_metrics(target, context, data_links, param);
+    var data_links = metric_info.data_list(data_type, context); 
+
+    if (!(is_new_data === false) && !(metric_info.param === undefined)) {
+        param = metric_info.param(param, data_type);
+    }
+
+    var ret = add_metrics(target, context, data_links, param, metric_info);
+
+    if (!(is_new_data === false) && !(metric_info.on_finish === undefined)) {
+        metric_info.on_finish(data_type, remove_old);
+    }
+    return ret;
 }
 
 // formatting for displaying numbers

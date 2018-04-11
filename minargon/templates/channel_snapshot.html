@@ -94,13 +94,19 @@ var data_links = [
 {% endfor %}
 ];
 
-function newData(datatype, context, param) {
-  updateData('#timeseries', context, data_links, param, true); 
+class channel_snapshot_metric_info {
+    constructor() {}
+
+    data_list(_, context) {
+        return data_links;
+    }
 }
+
+var metric_info = new channel_snapshot_metric_info();
 
 $(document).ready(function() {
     context = create_cubism_context("#timeseries", $("#data-step").val());
-    add_metrics("#timeseries", context, data_links, 40);
+    updateData("#timeseries", context, Param(), null, metric_info);
 });
 </script> 
 {% endblock %}

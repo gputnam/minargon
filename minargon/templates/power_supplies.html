@@ -8,13 +8,27 @@
 {% block body %}
 {{ super() }}
 <div class="container">
+
 <div class="row">
-    <div class="col-md-6 col-centered">
-        {% include 'stream_options.html' %}
+    <div class="col-md-4 vcenter hcenter">
+        <div class="card">
+        <div class="card-header">Supply Info</div>
+        <ul class="list-group list-group-flush">
+            {% for d in data %}
+                <li class="list-group-item">{{d}}: <span id="stream-{{d}}"></span></li>
+            {% endfor %}
+        </ul>
+        </div>
+    </div>
+    <div class="col-md-4 vcenter hcenter">
+        {% include 'data_options.html' %}
     </div>
 </div>
-<div class="row">
-    <div class="col-md-12" style="padding:0" id="timeseries"></div>
+<div class="row" style="padding.top:10">
+    <div class="col-md-8" style="padding:0" id="timeseries"></div>
+    <div class="col-md-4">
+        {% include 'stream_options.html' %}
+    </div>
 </div>
 </div>
 {%endblock%}
@@ -39,12 +53,28 @@ $(document).ready(function() {
     };
     Param(initial_param);
     context = create_cubism_context("#timeseries", $("#data-step").val());
-    horizon = add_metrics("#timeseries", context, [POWER_SUPPLY_DATA_TYPES[$("#data-type").val()].data_link($SCRIPT_ROOT, '{{supply_name}}')], Param());
+    horizon = updateData("#timeseries", context, Param(), $("#data-type").val(), metric_info);
 });
 
-function newData(selector, context, param) {
-    return updateData('#timeseries', context, [POWER_SUPPLY_DATA_TYPES[$("#data-type").val()].data_link($SCRIPT_ROOT, '{{supply_name}}')], param);
+// setup polls for real time data
+{% for d in data %}
+{
+var poll = new D3DataPoll(POWER_SUPPLY_DATA_TYPES["{{d}}"].data_link($SCRIPT_ROOT, '{{supply_name}}'),
+    10000,
+    [function(value) { $("#stream-{{d}}").html(value); }]);
+poll.run();
 }
+{% endfor %}
+
+class power_supply_metric_info {
+    constructor() {}
+
+    data_list(data_type, context) {
+        return [POWER_SUPPLY_DATA_TYPES[$("#data-type").val()].data_link($SCRIPT_ROOT, '{{supply_name}}')];
+    }
+}
+
+var metric_info = new power_supply_metric_info();
 
 </script>
 {% endblock %}

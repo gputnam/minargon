@@ -7,7 +7,7 @@
 		Step
 		</label>
 		<div class="col-sm-8">
-		    <select id="data-step" class="form-control" onchange="updateStep(this,$('#data-type').val(),context,Param())">
+		    <select id="data-step" class="form-control" onchange="updateStep(this,$('#data-type').val(),context,Param(), metric_info)">
 			{% for step in steps %}
 			<option value="{{step}}">{{step}} seconds</option>
 			{% endfor %}
@@ -19,7 +19,7 @@
 		    Height
 		</label>
 		<div class="col-sm-8">
-		    <select id="data-height" class="form-control" onchange="updateParam('#timeseries', context, Param())">
+		    <select id="data-height" class="form-control" onchange="updateParam('#timeseries', context, Param(), metric_info)">
 			{% for height in [20, 40, 60, 80, 100] %}
 			<option {%if height == 40 %}selected="true"{% endif %} value="{{height}}">{{height}}</option>
 			{% endfor %}

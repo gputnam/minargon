@@ -13,6 +13,7 @@ class D3DataPoll {
         }
         var self = this;
         var start = new Date();
+        start.setSeconds(start.getSeconds() - 10);
         this.data.get_data_promise(start, null, 10000)
             .then(function(value) {
                 for (var i = 0; i < self.listeners.length; i++) {
@@ -358,9 +359,19 @@ BOARD_DATA_TYPES["hit_occupancy"] = {
 
 var POWER_SUPPLY_DATA_TYPES = {}
 
+POWER_SUPPLY_DATA_TYPES["measured_output_voltage"] = {
+  default_thresholds: [40, 50],
+  data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "measured_output_voltage", power_supply)) },
+};
+
 POWER_SUPPLY_DATA_TYPES["output_voltage"] = {
   default_thresholds: [40, 50],
   data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "output_voltage", power_supply)) },
+};
+
+POWER_SUPPLY_DATA_TYPES["measured_output_current"] = {
+  default_thresholds: [0, 8],
+  data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "measured_output_current", power_supply)) },
 };
 
 POWER_SUPPLY_DATA_TYPES["output_current"] = {
