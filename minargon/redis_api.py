@@ -18,11 +18,16 @@ PROGRAMS = []
 	Routes for getting stuff from Redis
 """
 
+# get a datum stored in a snapshot
 @app.route('/snapshot/<data>')
 def snapshot(data):
     redis_key = "snapshot:%s" % data
+    # args should be key-value pairs of specifiers in the redis keys
+    # e.g. /snapshot/waveform?wire=1
+    # decodes to the redis key snapshot:waveform:wire:1
     for (k, v) in request.args.iteritems():
         redis_key += ":%s:%s" % (k, v)
+    # stuff in snapshots may be individual values or lists
     key_type = redis.type(redis_key)
     if key_type == "list":
         redis_data = list(redis.lrange(redis_key, 0, -1))
@@ -38,6 +43,7 @@ def check_and_map(x, data_map):
     else:
         return data_map(x)
 
+# get the most recent data point from redis for a list of wires
 def query_data(data, stream_no, wire_range, data_map):
     # get the most recent data on the stream 
     # go back one time step to be safe
@@ -49,6 +55,8 @@ def query_data(data, stream_no, wire_range, data_map):
     result = [check_and_map(x, data_map) for x in p.execute()]
     return result
 
+# get all data points in args.start, args.stop for a single
+# base redis key
 def stream_data(base_key, stream, args, data_map):
     start = args.get('start',type=parseiso)
     stop = args.get('stop',None,type=parseiso)
@@ -80,8 +88,12 @@ def clean_float(x):
         ret = "NaN"
     return ret
 
+
+# getting data on a board
 @app.route('/stream/<stream_no>/<data>/<board>')
+# on an fem
 @app.route('/stream/<stream_no>/<data>/<board>/<fem>')
+# on a channel
 @app.route('/stream/<stream_no>/<data>/<board>/<fem>/<channel>')
 def stream(stream_no, data, board, fem=None, channel=None):
     stream_no = int(stream_no)
@@ -98,7 +110,10 @@ def stream(stream_no, data, board, fem=None, channel=None):
     data = stream_data(base_key, stream_no, args, clean_float)
     return jsonify(values=data)
 
+# querrying data points from the most recent timestamp from a list of wires
+# wire_list here is a comma separated list of wires
 @app.route('/wire_query/<stream_no>/<data>/<wire_list>')
+# wire_start, wire_end map to a wire_list = [wire_start, ... ,wire_end)
 @app.route('/wire_query/<stream_no>/<data>/<wire_start>/<wire_end>')
 def wire_query(stream_no, data, wire_start=None, wire_end=None, wire_list=None):
     if wire_list is not None:
@@ -111,15 +126,19 @@ def wire_query(stream_no, data, wire_start=None, wire_end=None, wire_list=None):
     data = query_data(data, stream_no, wire_range, clean_float)
     return jsonify(values=data)
 
-@app.route('/wire_stream/<stream_no>/<data>/<channel>')
-def wire_stream(stream_no, data, channel):
+# stream data for a wire 
+# pass in the wire id, as opposed to the board/fem/channel id as above
+@app.route('/wire_stream/<stream_no>/<data>/<wire>')
+def wire_stream(stream_no, data, wire):
     stream_no = int(stream_no)
-    base_key = "%s:wire:%s" % (data, channel)
+    base_key = "%s:wire:%s" % (data, wire)
  
     data = stream_data(base_key, stream_no, request.args, clean_float)
     return jsonify(values=data)
     
 
+# access stream data for a power supply
+# power supplies are identified by name instead of id's
 @app.route('/power_stream/<stream_no>/<data>/<supply_name>')
 def power_stream(stream_no, data, supply_name):
     stream_no = int(stream_no)

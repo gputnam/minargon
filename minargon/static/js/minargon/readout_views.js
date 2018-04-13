@@ -23,7 +23,7 @@ class crate_view_metric_info {
     on_click(horizon_name, horizon_index) {
         var base_link;
         var args;
-        // wires -> channel_snapshot
+        // channel_view -> channel_snapshot
         if (this.view_type == "channel") {
             base_link = "channel_snapshot";
             args = {
@@ -31,9 +31,9 @@ class crate_view_metric_info {
                 step: Param().step,
             };
         }
-        // fem_view -> wires
+        // fem_view -> channel_view
         else if (this.view_type == "fem") {
-            base_link = "wires";
+            base_link = "channel_view";
             args = {
                 card: this.view_ind.card,
                 fem: horizon_index,
