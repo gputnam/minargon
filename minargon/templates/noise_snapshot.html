@@ -70,12 +70,22 @@ d3.json($SCRIPT_ROOT + '/snapshot/correlation' , function(err, data) {
     { 
         z: matrix, 
         type: 'heatmap',
+        colorbar: {
+          title: 'Correlation Coeff', //set title
+          titleside:'top', //set postion
+        },
         zmax: 1,
         zmin: -1
     }
   ]; 
 
   var layout = {
+    xaxis: {
+      title: "Wire Number",
+    },
+    yaxis: {
+      title: "Wire Number",
+    }
   };
 
   Plotly.newPlot('correlation', plotly_data, layout);

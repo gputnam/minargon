@@ -54,7 +54,16 @@ d3.json($SCRIPT_ROOT + "/snapshot/waveform?" + $.param({wire: "{{channel}}"}), f
     type: 'scatter'
   };
 
-  Plotly.newPlot('waveform', [trace])
+  var layout = {
+    xaxis: {
+      title: "Time Step",
+    },
+    yaxis: {
+      title: "ADC Count",
+    },
+  };
+
+  Plotly.newPlot('waveform', [trace], layout)
 });
 
 d3.json($SCRIPT_ROOT + "/snapshot/fft?" + $.param({wire: "{{channel}}"}), function(err, data) {
@@ -66,7 +75,10 @@ d3.json($SCRIPT_ROOT + "/snapshot/fft?" + $.param({wire: "{{channel}}"}), functi
 
   // and scale the fft by its length
   // (version stored in redis is an unnormalized one, as calculated by fftw3)
-  var fft = fft_vals.slice(1, -1).map( (dat) => dat / fft_vals.length);
+  // var fft = fft_vals.slice(1, -1).map( (dat) => dat / fft_vals.length);
+
+  // don't normalize for now
+  var fft = fft_vals.slice(1, -1);
 
   var trace = {
     x: xrange,
@@ -74,7 +86,16 @@ d3.json($SCRIPT_ROOT + "/snapshot/fft?" + $.param({wire: "{{channel}}"}), functi
     type: 'scatter'
   };
 
-  Plotly.newPlot('FFT', [trace])
+  var layout = {
+    xaxis: {
+      title: "ADC frequency",
+    },
+    yaxis: {
+      title: "Transformed ADC Count (Non-Normalized)",
+    },
+  };
+
+  Plotly.newPlot('FFT', [trace], layout)
 });
 // simple metric_info implementation
 class channel_snapshot_metric_info {
