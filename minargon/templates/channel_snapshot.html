@@ -1,10 +1,5 @@
 {% extends "layout.html" %}
 {% block title %}Channel Snapshot{% endblock %}
-{% block head %}
-{{ super() }}
-  <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
-{% endblock %}
 {% block body %}
 {{ super() }}
 <div class="container">
@@ -39,15 +34,7 @@
 </div>
 {%endblock%}
 {% block script %}
-
-    <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/moment/moment.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/moment/moment-timezone-with-data.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/minargon/Data.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/minargon/add-timeseries.js') }}"></script>
-  
-<script>
+<script defer>
 // get snapshot time
 d3.json($SCRIPT_ROOT + "/snapshot/time", function(err, data) {
   var time = moment(new Date(data.value * 1000));
@@ -74,8 +61,11 @@ d3.json($SCRIPT_ROOT + "/snapshot/fft?" + $.param({wire: "{{channel}}"}), functi
   if (data == null || data.value == null) return;
   var fft_vals = data.value;
 
+  // ignore the first element of the fft, corresponding to the baseline
   var xrange = Array.apply(null, Array(fft_vals.length - 1)).map(function (_, i) {return i;});
 
+  // and scale the fft by its length
+  // (version stored in redis is an unnormalized one, as calculated by fftw3)
   var fft = fft_vals.slice(1, -1).map( (dat) => dat / fft_vals.length);
 
   var trace = {
@@ -86,14 +76,7 @@ d3.json($SCRIPT_ROOT + "/snapshot/fft?" + $.param({wire: "{{channel}}"}), functi
 
   Plotly.newPlot('FFT', [trace])
 });
-// setup cubism
-var context;
-var data_links = [
-{% for d in data_types %}
-  CHANNEL_DATA_TYPES["{{d}}"].data_link($SCRIPT_ROOT, {{channel}}),
-{% endfor %}
-];
-
+// simple metric_info implementation
 class channel_snapshot_metric_info {
     constructor() {}
 
@@ -101,12 +84,23 @@ class channel_snapshot_metric_info {
         return data_links;
     }
 }
-
-var metric_info = new channel_snapshot_metric_info();
-
+// global variables to be accessed by form fields, etc.
+var context;
+var data_links;
+var metric_info;
 $(document).ready(function() {
-    context = create_cubism_context("#timeseries", $("#data-step").val());
-    updateData("#timeseries", context, Param(), null, metric_info);
+data_links = [
+{% for d in data_types %}
+  CHANNEL_DATA_TYPES["{{d}}"].data_link($SCRIPT_ROOT, {{channel}}),
+{% endfor %}
+];
+
+metric_info = new channel_snapshot_metric_info();
+
+// setup cubism
+context = create_cubism_context("#timeseries", $("#data-step").val());
+// start polling for data
+updateData("#timeseries", context, Param(), null, metric_info);
 });
 </script> 
 {% endblock %}

@@ -11,17 +11,28 @@
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" media="screen">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/toastr.min.css') }}" media="screen">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/minard.css') }}" media="screen">
-        <style>
-        .hcenter {
-    		float: none;
-    		margin: 0 auto;
-	}
-	.vcenter {
-		display: flex;
-		align-items: center;
-	}
-        </style>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/minargon.css') }}" media="screen">
         {% endblock %}
+        <script src="{{ url_for('static', filename='js/library/jquery.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
+	<script src="{{ url_for('static', filename='js/moment/moment.min.js') }}"></script> 
+        <script src="{{ url_for('static', filename='js/library/toastr.min.js') }}" defer></script>
+        <script src="{{ url_for('static', filename='js/library/bootstrap.min.js') }}" defer></script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js" defer></script>
+	<script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}" defer></script> 
+	<script src="{{ url_for('static', filename='js/moment/moment-timezone-with-data.min.js') }}" defer></script> 
+	<script src="{{ url_for('static', filename='js/minargon/Data.js') }}" defer></script>
+	<script src="{{ url_for('static', filename='js/minargon/timeseries.js') }}" defer ></script>
+	<script src="{{ url_for('static', filename='js/minargon/detector.js') }}" defer></script>
+	<script src="{{ url_for('static', filename='js/minargon/charts.js') }}" defer></script>
+
+        <!-- $SCRIPT_ROOT for app location -->
+        <script type="text/javascript">
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        </script>
+
+        {% block script %}{% endblock %}
+
     </head>
     <body>
         {% block body %}
@@ -53,6 +64,7 @@
               {{ nav_link('noise_snapshot', 'Noise Snapshot') }}
               {{ nav_link('channel_snapshot', 'Channel Snapshot') }}
               {{ nav_link('board_view', 'Readout View') }}
+              {{ nav_link('wireplane_view', 'Wire Plane View') }}
               <!--{{ nav_link('power_supplies', 'Power Supplies') }}-->
             </ul>
             <ul class="nav navbar-nav navbar-right">
@@ -76,16 +88,6 @@
         {% endwith %}
 -->
         {% endblock %}
-        <script src="{{ url_for('static', filename='js/library/jquery.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/library/toastr.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/library/bootstrap.min.js') }}"></script>
-        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-        <!-- $SCRIPT_ROOT for app location -->
-        <script type="text/javascript">
-            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-        </script>
-        {% block script %}{% endblock %}
     </body>
 </html>
 

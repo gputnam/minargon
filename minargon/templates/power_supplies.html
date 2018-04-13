@@ -1,10 +1,5 @@
 {% extends "layout.html" %}
 {% block title %}Power Supplies{% endblock %}
-{% block head %}
-{{ super() }}
-  <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
-{% endblock %}
 {% block body %}
 {{ super() }}
 <div class="container">
@@ -33,18 +28,12 @@
 </div>
 {%endblock%}
 {% block script %}
-    <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/moment/moment.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/moment/moment-timezone-with-data.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/minargon/Data.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/minargon/add-timeseries.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/minargon/detector.js') }}"></script>
-<script>
+<script defer>
 
-// setup cubism
+// global variables to be used by html objects, etc.
 var context;
 var horizon;
+
 $(document).ready(function() {
     var initial_param = {
       height: 40, 
@@ -52,7 +41,9 @@ $(document).ready(function() {
       threshold_hi: POWER_SUPPLY_DATA_TYPES[$("#data-type").val()].default_thresholds[1]
     };
     Param(initial_param);
+    // setup cubism
     context = create_cubism_context("#timeseries", $("#data-step").val());
+    // start getting data
     horizon = updateData("#timeseries", context, Param(), $("#data-type").val(), metric_info);
 });
 
@@ -66,6 +57,7 @@ poll.run();
 }
 {% endfor %}
 
+// simple metric_info implementation
 class power_supply_metric_info {
     constructor() {}
 

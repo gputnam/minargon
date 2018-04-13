@@ -47,14 +47,16 @@ def channel_snapshot():
         'channel': channel,
         'steps': constants.REDIS_TIME_STEPS,
         'data_types': constants.CHANNEL_DATA,
+        'default_step': request.args.get('step', constants.REDIS_TIME_STEPS[0], type=int),
     }
     return render_template('channel_snapshot.html', **template_args)
 
-def crate_view_args(args):
+def readout_view_args(args):
     return {
         'steps': constants.REDIS_TIME_STEPS,
         'detector': constants.detector,
         'initial_datum': args.get('data', 'rms'),
+        'default_step': args.get('step', constants.REDIS_TIME_STEPS[0], type=int),
     }
 
 @app.route('/wires')
@@ -73,12 +75,11 @@ def wires():
         'data': data,
         'view_ind': view_ind,
         'view_type': 'channel',
-        'initial_datum': initial_datum,
     }
 
-    render_args = dict(render_args, **crate_view_args(request.args))
+    render_args = dict(render_args, **readout_view_args(request.args))
 
-    return render_template('crate_view.html', **render_args)
+    return render_template('readout_view.html', **render_args)
 
 @app.route('/fem_view')
 def fem_view():
@@ -95,11 +96,10 @@ def fem_view():
         'data': data,
         'view_ind': view_ind,
         'view_type': 'fem',
-        'initial_datum': initial_datum,
     }
-    render_args = dict(render_args, **crate_view_args(request.args))
+    render_args = dict(render_args, **readout_view_args(request.args))
 
-    return render_template('crate_view.html', **render_args)
+    return render_template('readout_view.html', **render_args)
 
 @app.route('/board_view')
 def board_view():
@@ -113,11 +113,32 @@ def board_view():
         'data': data,
         'view_ind': view_ind,
         'view_type': 'board',
+    }
+    render_args = dict(render_args, **readout_view_args(request.args))
+
+    return render_template('readout_view.html', **render_args)
+
+@app.route('/wireplane_view')
+def wireplane_view():
+    plane = request.args.get('plane', 'combined')
+    initial_datum = request.args.get('data', 'rms')
+    data = constants.CHANNEL_DATA
+ 
+    view_ind = {
+        'plane': plane
+    }
+
+    render_args = {
+        'data': data,
+        'view_ind': view_ind,
+        'view_type': 'wireplane',
         'initial_datum': initial_datum,
     }
-    render_args = dict(render_args, **crate_view_args(request.args))
 
-    return render_template('crate_view.html', **render_args)
+    render_args = dict(render_args, **readout_view_args(request.args))
+
+    return render_template('wireplane_view.html', **render_args)
+    
 
 @app.route('/power_supplies')
 def power_supplies():

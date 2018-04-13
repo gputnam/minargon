@@ -1,7 +1,21 @@
 // Requires cubism.js loaded
 
-// The "metric_info" argument should be a class with the following functions:
-// data_list(data_type, context)
+// Helper functions for using cubism horizon charts
+
+// Most functions below attempt to be independent of html.
+// One exception is the Param() function, which will assume you have fields
+// with the id's as specified below. More specifically, it assumes your page is 
+// using 'stream_options.html' or 'multistream_options.html' as defined in templates/
+// 
+// If you wish to use Param() without including either of those pages, then you should 
+// implement a page with you're own fields that have the same id's. Alternatively,
+// you can use this code with a 'metric_info' object (see below) that doesn't implement
+// 'param'. In that case, the Param() function will never be called internally by this
+// code, and you will be able to use it without errors. 
+
+// The variable "metric_info" in the code below always refers to an object 
+// implementing the "metric_info" interface, which has the following functions"
+// data_list(data_type, context) (REQUIRED)
 //     provides a list of D3DataLink/D3DataChain objects to be used as metrics
 // param(param, data_type) (OPTIONAL)
 //     provides the default parameters for a new data type. If not defined, 
@@ -16,6 +30,16 @@
 //     function which will be called after data is updated -- datatype name and
 //     whether this is the original initialization is provided
 
+// For an example of an implementation of the metric info interface, see 
+// readout_view_metric_info at the top of readout_views.js
+
+// Other variables are commonly used:
+// target: jquery-name (i.e. "#id" or ".class") of the div to be written to
+// context: the cubism context
+// data_links: a list of objects implementing the D3DataLink interface
+// param: a dictionary of horizon options as returned by Param()
+
+// add in metrics w/ a horizon chart to the provided target
 function add_metrics(target, context, data_links, param, metric_info) {
     // add new metrics
     var data = data_links.map(function(data_link) { 
@@ -28,13 +52,14 @@ function add_metrics(target, context, data_links, param, metric_info) {
     return make_horizons(target, context, data, param, metric_info);
 }
 
+// delete the horizons and the associated metrics
 function delete_horizons(target, context) {
-    // delete old metrics
     d3.select(target).selectAll('.horizon')
         .call(context.horizon().remove)
         .remove();
 }
 
+// make new horizon objects
 function make_horizons(target, context, data, param, metric_info) {
     var horizon = context.horizon();
     if (!(param === undefined || param.height === undefined)) {
@@ -57,7 +82,7 @@ function make_horizons(target, context, data, param, metric_info) {
     return horizons;
 }
 
-
+// make a new cubism context with the given time-step in seconds
 function create_cubism_context(target, step) {
     var size = $(target).width();
     var context = cubism.context()
@@ -93,12 +118,16 @@ function create_cubism_context(target, step) {
 
 }
 
+// If 'newParam' is not provided, will return the current horizon parameters
+// by looking in the appropriate fields. 
+// Otherwise will update those fields to the appropriate parameters.
 function Param(newParam) {
     if (newParam === undefined) 
         return {
 	    height: $("#data-height").val(),
 	    threshold_lo: $("#threshold-lo").val(),
-	    threshold_hi: $("#threshold-hi").val()
+	    threshold_hi: $("#threshold-hi").val(),
+            step: $("#data-step").val()
         };
     else {
         $("#data-height").val(newParam["height"]);
@@ -116,11 +145,17 @@ function Param(newParam) {
         else {
           $("#threshold-hi").val("");
         }
+        if (!(newParam.step === undefined)) {
+          $("#data-step").val(newParam.step);
+        }
     } 
 }
 
 
 // update cubism options 
+// selector: the html object that called this function
+// selector.step is the new context step in seconds
+// datatype: the current data type in cubism metrics
 function updateStep(selector, target, datatype, context, param, metric_info) { 
     context.step(selector.value*1000); 
     // re-make the data
@@ -133,14 +168,21 @@ function updateParam(target, context, param, metric_info) {
     return make_horizons(target, context, data, param, metric_info);
 }
 
+// data_type: the new data type to be used in cubism metrics
+// remove_old: boolean, whether to delete old horizon charts
+//      optional argument, will default to false
+// is_new_data: boolean, whether the given data_type is different than the 
+// current data_type in the horizon charts
+//      optional argument, will default to true
 function updateData(target, context, param, data_type, metric_info, remove_old, is_new_data) {
     if (remove_old === true) {
         delete_horizons(target, context);
     }
     var data_links = metric_info.data_list(data_type, context); 
 
-    if (!(is_new_data === false) && !(metric_info.param === undefined)) {
+    if (!(metric_info.param === undefined)) {
         param = metric_info.param(param, data_type);
+        Param(param);
     }
 
     var ret = add_metrics(target, context, data_links, param, metric_info);

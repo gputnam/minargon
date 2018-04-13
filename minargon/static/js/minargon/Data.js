@@ -234,6 +234,28 @@ class PowerSupplyLink {
     }
 }
 
+// link to query a single time stamp from a bunch of wires
+// Whereas the previous links are to query data over a bunch of time
+// values for 1 wire/board/power supply, this querries a bunch of wires
+// over 1 time value.
+class MultiWireLink {
+    constructor(script_root, data_name, wire_start, wire_end) {
+        this.root = script_root;
+        this.data_name = data_name;
+        this.wire_start = wire_start;
+        this.wire_end = wire_end;
+    }
+    data_link(start, stop, step) {
+        // this doesn't use stop, so it should be null
+        var stream = getDaqStream(step);
+        return this.root + '/wire_query/' + stream + '/' + this.data_name + '/' + this.wire_start + '/' + this.wire_end;
+    }
+ 
+    name() {
+        return this.data_name;
+    }
+}
+
 // what redis stream you should be subscribing to
 // TODO: implement
 function getDaqStream(step) {
@@ -262,60 +284,52 @@ function timeArgs(start, stop, step) {
 var CHANNEL_DATA_TYPES = {}
 
 CHANNEL_DATA_TYPES["rms"] = {
-  histo_x_range: [0, 10],
-  default_thresholds: [0, 5],
+  range: [0, 10],
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "rms", channel_no)) },
 };
 
 CHANNEL_DATA_TYPES["hit_occupancy"] = {
-  histo_x_range: [0,1],
+  range: [0, 1],
   horizon_format: function(d) { return clean_format(d, percent_format); },
-  default_thresholds: [0, 1],
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "hit_occupancy", channel_no)) },
 };
 
 CHANNEL_DATA_TYPES["baseline"] = {
-  histo_x_range: [600, 1000],
-  default_thresholds: [700, 900], 
+  range: [-10, 10],
+  horizon_format: function(d) { return clean_format(d, float_format); },
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "baseline", channel_no)) },
 };
 
 CHANNEL_DATA_TYPES["pulse_height"] = {
-  histo_x_range: [500, 1000],
-  default_thresholds: [500, 1000], 
+  range: [0, 50],
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "pulse_height", channel_no)) },
 };
 
 var FEM_DATA_TYPES = {};
 
 FEM_DATA_TYPES["pulse_height"]  = {
-  histo_x_range: [0, 200],
-  default_thresholds: [20, 60], 
+  range: CHANNEL_DATA_TYPES.pulse_height.range,
   data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "pulse_height", card, fem)) },
 };
 
 FEM_DATA_TYPES["rms"]  = {
-  histo_x_range: [0, 10],
-  default_thresholds: [0, 5],
+  range: CHANNEL_DATA_TYPES.rms.range,
   data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "rms", card, fem)) },
 };
 
 FEM_DATA_TYPES["baseline"]  = {
-  histo_x_range: [600, 1000],
-  default_thresholds: [700, 900],
+  range: CHANNEL_DATA_TYPES.baseline.range,
   data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "baseline", card, fem)) },
 };
 
 FEM_DATA_TYPES["hit_occupancy"] = {
-  histo_x_range: [0,1],
-  horizon_format: function(d) { return clean_format(d, percent_format); },
-  default_thresholds: [0, 0.4],
+  range: CHANNEL_DATA_TYPES.hit_occupancy.range,
+  horizon_format: CHANNEL_DATA_TYPES.hit_occupancy.horizon_format,
   data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "hit_occupancy", card, fem)) },
 };
 
 FEM_DATA_TYPES["scaled_sum_rms"] = {
-  histo_x_range: [-1,1],
-  default_thresholds: [0, 0.4],
+  range: [-1, 1],
   horizon_format: function(d) { return clean_format(d, float_format); },
   data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "scaled_sum_rms", card, fem)) },
 };
@@ -333,54 +347,50 @@ FEM_DATA_TYPES["trigframe_no"] = {
 var BOARD_DATA_TYPES = {};
 
 BOARD_DATA_TYPES["pulse_height"]  = {
-  histo_x_range: [0, 200],
-  default_thresholds: [20, 60], 
+  range: CHANNEL_DATA_TYPES.pulse_height.range,
   data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "pulse_height", card)) },
 };
 
 BOARD_DATA_TYPES["rms"]  = {
-  histo_x_range: [0, 10],
-  default_thresholds: [0, 5],
+  range: CHANNEL_DATA_TYPES.rms.range,
   data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "rms", card)) },
 };
 
 BOARD_DATA_TYPES["baseline"]  = {
-  histo_x_range: [600, 1000],
-  default_thresholds: [700, 900],
+  range: CHANNEL_DATA_TYPES.baseline.range,
   data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "baseline", card)) },
 };
 
 BOARD_DATA_TYPES["hit_occupancy"] = {
-  histo_x_range: [0,1],
-  horizon_format: function(d) { return clean_format(d, percent_format); },
-  default_thresholds: [0, 1],
+  range: CHANNEL_DATA_TYPES.hit_occupancy.range,
+  horizon_format: CHANNEL_DATA_TYPES.hit_occupancy.horizon_format,
   data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "hit_occupancy", card)) },
 };
 
 var POWER_SUPPLY_DATA_TYPES = {}
 
 POWER_SUPPLY_DATA_TYPES["measured_output_voltage"] = {
-  default_thresholds: [40, 50],
+  range: [40, 50],
   data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "measured_output_voltage", power_supply)) },
 };
 
 POWER_SUPPLY_DATA_TYPES["output_voltage"] = {
-  default_thresholds: [40, 50],
+  range: [40, 50],
   data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "output_voltage", power_supply)) },
 };
 
 POWER_SUPPLY_DATA_TYPES["measured_output_current"] = {
-  default_thresholds: [0, 8],
+  range: [0, 8],
   data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "measured_output_current", power_supply)) },
 };
 
 POWER_SUPPLY_DATA_TYPES["output_current"] = {
-  default_thresholds: [6, 8],
+  range: [6, 8],
   data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "output_current", power_supply)) },
 };
 
 POWER_SUPPLY_DATA_TYPES["max_output_current"] = {
-  default_thresholds: [12, 20],
+  range: [12, 20],
   data_link: function(script_root, power_supply) { return new D3DataLink(new PowerSupplyLink(script_root, "max_output_current", power_supply)) },
 };
 

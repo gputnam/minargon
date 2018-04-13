@@ -9,7 +9,7 @@
 		<div class="col-sm-6">
 		    <select id="data-step" class="form-control" onchange="updateStep(this,'#timeseries',$('#data-type').val(),context,Param(), metric_info)">
 			{% for step in steps %}
-			<option value="{{step}}">{{step}} seconds</option>
+			<option {% if step==default_step %}selected="true" {%endif%}value="{{step}}">{{step}} seconds</option>
 			{% endfor %}
 		    </select>
 		</div>

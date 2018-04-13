@@ -1,10 +1,5 @@
 {% extends "layout.html" %}
 {% block title %}Noise Snapshot{% endblock %}
-{% block head %}
-{{ super() }}
-  <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
-{% endblock %}
 {% block body %}
 {{ super() }}
 <div class="container">
@@ -28,22 +23,22 @@
 </div>
 {%endblock%}
 {% block script %}
-    <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/moment/moment.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/moment/moment-timezone-with-data.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/minargon/Data.js') }}"></script>
-  
-<script>
+<script defer>
+$(document).ready(function() {
 // get snapshot time
 d3.json($SCRIPT_ROOT + '/snapshot/time', function(err, data) {
   var time = moment(new Date(data.value * 1000));
   $("#snapshot-time").html(time.format("MM/DD hh:mm:ss"));
 });
 
+// helpful waiting message
+$('#correlation').html("LOADING CORRELATION MATRIX...");
+
 // draw the correlation matrix
 d3.json($SCRIPT_ROOT + '/snapshot/correlation' , function(err, data) {
   if (data.value == null) return;
+  // delete the waiting message
+  $('#correlation').html("");
   var n_channels = {{n_channels}};
   var correlation = data.value;
 
@@ -57,8 +52,9 @@ d3.json($SCRIPT_ROOT + '/snapshot/correlation' , function(err, data) {
   var matrix_i = 0;
   var matrix_j = 0;
 
+  // data for noise correlation matrix is stored in redis in column-major order
+  // with only the lower-half triangle stored
   for (i = 0; i < correlation.length; i++) {
-    // new row
     if (i - row_start_index == row_length) {
       row_start_index = i;
       row_length = row_length - 1;
@@ -70,11 +66,21 @@ d3.json($SCRIPT_ROOT + '/snapshot/correlation' , function(err, data) {
     matrix_i = matrix_i + 1;
   }
 
-  var plotly_data = [ { z: matrix, type: 'heatmap'}]; 
+  var plotly_data = [ 
+    { 
+        z: matrix, 
+        type: 'heatmap',
+        zmax: 1,
+        zmin: -1
+    }
+  ]; 
 
-  Plotly.newPlot('correlation', plotly_data);
+  var layout = {
+  };
+
+  Plotly.newPlot('correlation', plotly_data, layout);
 })
-
+});
 
 </script> 
 {% endblock %}

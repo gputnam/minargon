@@ -32,6 +32,23 @@ def snapshot(data):
         redis_data = 0 
     return jsonify(value=redis_data)
 
+def check_and_map(x, data_map):
+    if not x:
+        return 0
+    else:
+        return data_map(x)
+
+def query_data(data, stream_no, wire_range, data_map):
+    # get the most recent data on the stream 
+    # go back one time step to be safe
+    now = int(time.time())//stream_no - 1
+    p = redis.pipeline()
+    for wire in wire_range:
+        key = 'stream/%i:%i:%s:wire:%i' % (stream_no, now, data, wire)
+        p.get(key)
+    result = [check_and_map(x, data_map) for x in p.execute()]
+    return result
+
 def stream_data(base_key, stream, args, data_map):
     start = args.get('start',type=parseiso)
     stop = args.get('stop',None,type=parseiso)
@@ -52,13 +69,8 @@ def stream_data(base_key, stream, args, data_map):
         key = 'stream/%i:%i:%s' % (stream, i//stream, base_key)
         p.get(key)
 
-    def check_and_map(x):
-        if not x:
-            return 0
-        else:
-            return data_map(x)
 
-    result = [check_and_map(x) for x in p.execute()]
+    result = [check_and_map(x, data_map) for x in p.execute()]
         
     return result
 
@@ -84,6 +96,19 @@ def stream(stream_no, data, board, fem=None, channel=None):
     args = request.args
   
     data = stream_data(base_key, stream_no, args, clean_float)
+    return jsonify(values=data)
+
+@app.route('/wire_query/<stream_no>/<data>/<wire_list>')
+@app.route('/wire_query/<stream_no>/<data>/<wire_start>/<wire_end>')
+def wire_query(stream_no, data, wire_start=None, wire_end=None, wire_list=None):
+    if wire_list is not None:
+        wire_range = [int(x) for x in wire_list.split(",")]
+    else: 
+        wire_range = range(int(wire_start), int(wire_end))
+
+    stream_no = int(stream_no)
+ 
+    data = query_data(data, stream_no, wire_range, clean_float)
     return jsonify(values=data)
 
 @app.route('/wire_stream/<stream_no>/<data>/<channel>')
