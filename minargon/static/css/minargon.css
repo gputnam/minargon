@@ -1,0 +1,8 @@
+.hcenter {
+    float: none;
+    margin: 0 auto;
+}
+.vcenter {
+    display: flex;
+    align-items: center;
+}
