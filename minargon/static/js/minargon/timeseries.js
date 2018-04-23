@@ -14,7 +14,7 @@
 // code, and you will be able to use it without errors. 
 
 // The variable "metric_info" in the code below always refers to an object 
-// implementing the "metric_info" interface, which has the following functions"
+// implementing the "metric_info" interface, which has the following functions:
 // data_list(data_type, context) (REQUIRED)
 //     provides a list of D3DataLink/D3DataChain objects to be used as metrics
 // param(param, data_type) (OPTIONAL)
@@ -22,13 +22,13 @@
 //     param won't be updated on a data type update.
 // on_click(data_type, horizon_index) (OPTIONAL)
 //     function which will be called when a horizon chart is clicked
-//     (this is set as the class)
+//     (`this` is set as the class)
 // on_update(start, stop) (OPTIONAL)
 //     function which will be called when a metric updates 
-//     (this is set as the class)
+//     (`this` is set as the class)
 // on_finish(datatype, initialized)
 //     function which will be called after data is updated -- datatype name and
-//     whether this is the original initialization is provided
+//     whether this call is the original initialization is provided
 
 // For an example of an implementation of the metric info interface, see 
 // readout_view_metric_info at the top of readout_views.js

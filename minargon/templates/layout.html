@@ -16,9 +16,9 @@
         <script src="{{ url_for('static', filename='js/library/jquery.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
 	<script src="{{ url_for('static', filename='js/moment/moment.min.js') }}"></script> 
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <script src="{{ url_for('static', filename='js/library/toastr.min.js') }}" defer></script>
         <script src="{{ url_for('static', filename='js/library/bootstrap.min.js') }}" defer></script>
-        <script src="https://cdn.plot.ly/plotly-latest.min.js" defer></script>
 	<script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}" defer></script> 
 	<script src="{{ url_for('static', filename='js/moment/moment-timezone-with-data.min.js') }}" defer></script> 
 	<script src="{{ url_for('static', filename='js/minargon/Data.js') }}" defer></script>
@@ -63,6 +63,7 @@
             <ul class="navbar-nav mr-auto">
               {{ nav_link('noise_snapshot', 'Noise Snapshot') }}
               {{ nav_link('channel_snapshot', 'Channel Snapshot') }}
+              {{ nav_link('fem_snapshot', 'FEM Snapshot') }}
               {{ nav_link('board_view', 'Readout View') }}
               {{ nav_link('wireplane_view', 'Wire Plane View') }}
               <!--{{ nav_link('power_supplies', 'Power Supplies') }}-->

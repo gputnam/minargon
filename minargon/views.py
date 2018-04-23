@@ -42,6 +42,15 @@ def noise_snapshot():
     return render_template('noise_snapshot.html', **template_args)
 
 # snapshot of data on channel (fft and waveform)
+@app.route('/fem_snapshot')
+def fem_snapshot():
+    fem = request.args.get('fem', 0, type=int)
+    template_args = {
+        'fem': fem
+    }
+    return render_template('fem_snapshot.html', **template_args)
+
+# snapshot of data on channel (fft and waveform)
 @app.route('/channel_snapshot')
 def channel_snapshot():
     channel = request.args.get('channel', 0, type=int)
