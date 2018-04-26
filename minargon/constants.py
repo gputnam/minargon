@@ -49,7 +49,7 @@ REDIS_TIME_STEPS = [1, 10]
 CHANNEL_DATA = ["rms", "baseline", "hit_occupancy", "pulse_height", "next_channel_dnoise"] 
 
 # same as for channel data
-FEM_DATA = CHANNEL_DATA + ["frame_no", "event_no", "trigframe_no", "scaled_sum_rms"]
+FEM_DATA = CHANNEL_DATA + ["frame_no", "event_no", "trigframe_no"]
 CRATE_DATA = CHANNEL_DATA + [] # other stuff to be included
 
 # and for power supplies stuff
