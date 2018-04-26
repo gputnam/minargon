@@ -45,8 +45,14 @@ def noise_snapshot():
 @app.route('/fem_snapshot')
 def fem_snapshot():
     fem = request.args.get('fem', 0, type=int)
+
+    view_ind = {'fem': fem}
+    view_ind_opts = {'fem': range(constants.N_FEM)}
+
     template_args = {
-        'fem': fem
+        'fem': fem,
+        'view_ind_opts': view_ind_opts,
+        'view_ind': view_ind,
     }
     return render_template('fem_snapshot.html', **template_args)
 
@@ -54,11 +60,17 @@ def fem_snapshot():
 @app.route('/channel_snapshot')
 def channel_snapshot():
     channel = request.args.get('channel', 0, type=int)
+
+    view_ind = {'channel': channel}
+    view_ind_opts = {'channel': range(constants.N_CHANNELS)}
+
     template_args = {
         'channel': channel,
         'steps': constants.REDIS_TIME_STEPS,
         'data_types': constants.CHANNEL_DATA,
         'default_step': request.args.get('step', constants.REDIS_TIME_STEPS[0], type=int),
+        'view_ind_opts': view_ind_opts,
+        'view_ind': view_ind,
     }
     return render_template('channel_snapshot.html', **template_args)
 
@@ -72,66 +84,80 @@ def stream_metric_args(args):
     }
 
 # the view associated with a number of channels on an fem 
-@app.route('/channel_view')
-def channel_view():
+@app.route('/fem_view')
+def fem_view():
     fem = request.args.get('fem', 0, type=int)
-    card = request.args.get('card', 0, type=int)
+    crate = request.args.get('crate', 0, type=int)
     initial_datum = request.args.get('data', 'rms')
     data = constants.CHANNEL_DATA
 
     view_ind = {
-      'fem': fem, 
-      'card': card
+      'fem': fem,
+      'crate': crate,
+    }
+
+    view_ind_opts = {
+      'fem': range(constants.N_FEM_PER_CRATE), 
+      'crate': range(constants.N_CRATES)
     }
 
     render_args = {
         'data': data,
         'view_ind': view_ind,
-        'view_type': 'channel',
+        'view_ind_opts': view_ind_opts,
+        'view_type': 'fem',
     }
 
     render_args = dict(render_args, **stream_metric_args(request.args))
 
     return render_template('readout_view.html', **render_args)
 
-# view of a number of fem's on a readout board
-@app.route('/fem_view')
-def fem_view():
-    card = request.args.get('card', 0, type=int)
+# view of a number of fem's on a readout crate
+@app.route('/crate_view')
+def crate_view():
+    crate = request.args.get('crate', 0, type=int)
     initial_datum = request.args.get('data', 'rms')
     n_channels_per_fem = constants.N_CHANNELS_PER_FEM
     data = constants.FEM_DATA
 
     view_ind = {
-      'card': card
+      'crate': crate
+    }
+
+    view_ind_opts = {
+        'crate': range(constants.N_CRATES)
     }
 
     render_args = {
         'data': data,
         'view_ind': view_ind,
-        'view_type': 'fem',
+        'view_ind_opts': view_ind_opts,
+        'view_type': 'crate',
     }
     render_args = dict(render_args, **stream_metric_args(request.args))
 
     return render_template('readout_view.html', **render_args)
 
-# view of a number of readout boards
-@app.route('/board_view')
-def board_view():
+# view of a number of fem's on a readout crate
+@app.route('/readout_view')
+def readout_view():
     initial_datum = request.args.get('data', 'rms')
-    n_channels_per_fem = constants.N_CHANNELS_PER_FEM
-    data = constants.BOARD_DATA
+    data = constants.FEM_DATA
 
     view_ind = {}
 
+    view_ind_opts = {}
+
     render_args = {
         'data': data,
         'view_ind': view_ind,
-        'view_type': 'board',
+        'view_ind_opts': view_ind_opts,
+        'view_type': 'readout',
     }
     render_args = dict(render_args, **stream_metric_args(request.args))
 
     return render_template('readout_view.html', **render_args)
+
 
 # view of a number of wires on a wireplane
 @app.route('/wireplane_view')
@@ -143,10 +169,14 @@ def wireplane_view():
     view_ind = {
         'plane': plane
     }
+    view_ind_opts = {
+        'plane': constants.PLANES
+    }
 
     render_args = {
         'data': data,
         'view_ind': view_ind,
+        'view_ind_opts': view_ind_opts,
         'view_type': 'wireplane',
         'initial_datum': initial_datum,
     }
@@ -163,7 +193,8 @@ def power_supplies():
         'data': constants.POWER_SUPPLY_DATA,
         'supply_name': supply,
         'steps': constants.REDIS_POWER_SUPPLY_TIME_STEPS,
-        'view_ind': {'supply': supply },
+        'view_ind_opts': {'supply': constants.POWER_SUPPLIES},
+        'view_ind': {'supply': supply}, 
     }
 
     return render_template('power_supplies.html', **render_args)

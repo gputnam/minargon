@@ -4,16 +4,7 @@
 {{ super() }}
 <div class="container">
 <div class="row">
-<div class="col-md-3 hcenter">
-<div class="card">
-    <div class="card-header">Channel {{channel}} Snapshot</div>
-    <ul class="list-group list-group-flush">
-        <li class="list-group-item">FEM 0</li>
-        <li class="list-group-item">Board 0</li>
-        <li class="list-group-item">Taken at <span id="snapshot-time"></span></li>
-    </ul>
-</div>
-</div>
+    {% include 'data_header.html' %}
 </div>
 <div class="row">
     <div class="col-md-4">
@@ -38,7 +29,7 @@
 // get snapshot time
 d3.json($SCRIPT_ROOT + "/snapshot/time", function(err, data) {
   var time = moment(new Date(data.value * 1000));
-  $("#snapshot-time").html(time.format("MM/DD hh:mm:ss"));
+  $("#update-time").html("Snapshot At: " + time.format("MM/DD hh:mm:ss"));
 });
 
 // draw waveform and fft
@@ -123,5 +114,8 @@ context = create_cubism_context("#timeseries", $("#data-step").val());
 // start polling for data
 updateData("#timeseries", context, Param(), null, metric_info);
 });
+
+function link_param() { return {}; }
+
 </script> 
 {% endblock %}

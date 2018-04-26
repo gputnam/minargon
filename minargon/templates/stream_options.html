@@ -1,12 +1,23 @@
 <div class="card hcenter">
-    <div class="card-header">Stream Options</div>
+    <div class="card-header">Display Options</div>
     <div class="card-body">
         <form class="form" role="form">
+	    <div class="form-group row">
+		<label class="col-sm-4 control-form-label col-form-label">Data</label>
+		<div class="col-sm-8">
+		    <select id="data-type" class="form-control" onchange="updateData('#timeseries', context, Param(), this.value, metric_info, true)">
+			{% for datum in data %}
+			<option {% if datum==initial_datum %}selected="true" {%endif%}value="{{datum}}">{{datum}}</option>
+			{% endfor %}
+		    </select>
+		</div>
+	    </div>
+            {% block options %}{% endblock %}
             <div class="form-group row">
-                <label class="col-sm-6 control-form-label col-form-label">
+                <label class="col-sm-4 control-form-label col-form-label">
 		Step
 		</label>
-		<div class="col-sm-6">
+		<div class="col-sm-8">
 		    <select id="data-step" class="form-control" onchange="updateStep(this,'#timeseries',$('#data-type').val(),context,Param(), metric_info)">
 			{% for step in steps %}
 			<option {% if step==default_step %}selected="true" {%endif%}value="{{step}}">{{step}} seconds</option>
@@ -15,10 +26,10 @@
 		</div>
 	    </div>
 		<div class="form-group row">
-		<label class="col-sm-6 control-form-label col-form-label">
+		<label class="col-sm-4 control-form-label col-form-label">
 		    Height
 		</label>
-		<div class="col-sm-6">
+		<div class="col-sm-8">
 		    <select id="data-height" class="form-control" onchange="updateParam('#timeseries', context, Param(), metric_info)">
 			{% for height in [25, 40, 60, 80, 100] %}
 			<option {%if height == 25 %}selected="true"{% endif %} value="{{height}}">{{height}}</option>

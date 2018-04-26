@@ -1,16 +1,23 @@
 class D3DataPoll {
     // expects a D3DataLink or D3DataChain
-    constructor(data, timeout, listeners) {
+    constructor(data, timeout, listeners, update_function) {
         this.data = data;
         this.timeout = timeout;
         this.listeners = listeners;
         this.running = true;
+        this.update_function = update_function;
     }
 
     run() {
         if (!(this.running == true)) {
             return;
         }
+
+        if (!(this.update_function === undefined) && !this.update_function()) {
+            setTimeout(this.run.bind(this), this.timeout);
+            return;
+        }
+            
         var self = this;
         var start = new Date();
         start.setSeconds(start.getSeconds() - 10);
@@ -18,7 +25,7 @@ class D3DataPoll {
             .then(function(value) {
                 for (var i = 0; i < self.listeners.length; i++) {
                     var func = self.listeners[i];
-                    func(value);
+                    func(value, start);
                 }
             });
         setTimeout(this.run.bind(this), this.timeout);
@@ -178,9 +185,9 @@ class ChannelLink {
 
 // pass to D3DataLink to get stuff
 class FEMLink {
-    constructor(script_root, data_name, card, fem) {
+    constructor(script_root, data_name, crate, fem) {
         this.data_name = data_name;
-        this.card = card;
+        this.crate = crate;
         this.fem = fem;
         this.root = script_root;
     }
@@ -189,7 +196,7 @@ class FEMLink {
         var stream = getDaqStream(step);
         var args = $.param(timeArgs(start, stop, step));
 
-        return this.root + '/stream/' + stream + '/' + this.data_name + '/' + this.card + '/' + this.fem + '?' + args;
+        return this.root + '/stream/' + stream + '/' + this.data_name + '/' + this.crate + '/' + this.fem + '?' + args;
     }
     name() {
         return this.data_name;
@@ -197,10 +204,10 @@ class FEMLink {
 }
 
 // pass to D3DataLink to get stuff
-class BoardLink {
-    constructor(script_root, data_name, card) {
+class CrateLink {
+    constructor(script_root, data_name, crate) {
         this.data_name = data_name;
-        this.card = card;
+        this.crate = crate;
         this.root = script_root;
     }
 
@@ -208,7 +215,7 @@ class BoardLink {
         var stream = getDaqStream(step);
         var args = $.param(timeArgs(start, stop, step));
 
-        return this.root + '/stream/' + stream + '/' + this.data_name + '/' + this.card + '?' + args;
+        return this.root + '/stream/' + stream + '/' + this.data_name + '/' + this.crate + '?' + args;
     }
     name() {
         return this.data_name;
@@ -305,66 +312,81 @@ CHANNEL_DATA_TYPES["pulse_height"] = {
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "pulse_height", channel_no)) },
 };
 
+CHANNEL_DATA_TYPES["next_channel_dnoise"] = {
+  range: [0, 2],
+  data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "next_channel_dnoise", channel_no)) },
+};
+
 var FEM_DATA_TYPES = {};
 
 FEM_DATA_TYPES["pulse_height"]  = {
   range: CHANNEL_DATA_TYPES.pulse_height.range,
-  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "pulse_height", card, fem)) },
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "pulse_height", crate, fem)) },
 };
 
 FEM_DATA_TYPES["rms"]  = {
   range: CHANNEL_DATA_TYPES.rms.range,
-  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "rms", card, fem)) },
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "rms", crate, fem)) },
 };
 
 FEM_DATA_TYPES["baseline"]  = {
   range: CHANNEL_DATA_TYPES.baseline.range,
-  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "baseline", card, fem)) },
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "baseline", crate, fem)) },
 };
 
 FEM_DATA_TYPES["hit_occupancy"] = {
   range: CHANNEL_DATA_TYPES.hit_occupancy.range,
   horizon_format: CHANNEL_DATA_TYPES.hit_occupancy.horizon_format,
-  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "hit_occupancy", card, fem)) },
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "hit_occupancy", crate, fem)) },
 };
 
 FEM_DATA_TYPES["scaled_sum_rms"] = {
   range: [-1, 1],
   horizon_format: function(d) { return clean_format(d, float_format); },
-  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "scaled_sum_rms", card, fem)) },
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "scaled_sum_rms", crate, fem)) },
+};
+
+FEM_DATA_TYPES["next_channel_dnoise"] = {
+  range: CHANNEL_DATA_TYPES.next_channel_dnoise.range,
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "next_channel_dnoise", crate, fem)) },
 };
 
 FEM_DATA_TYPES["frame_no"] = {
-  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "frame_no", card, fem)) },
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "frame_no", crate, fem)) },
 };
 FEM_DATA_TYPES["event_no"] = {
-  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "event_no", card, fem)) },
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "event_no", crate, fem)) },
 };
 FEM_DATA_TYPES["trigframe_no"] = {
-  data_link: function(script_root, card, fem) { return new D3DataLink(new FEMLink(script_root, "trigframe_no", card, fem)) },
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "trigframe_no", crate, fem)) },
 };
 
-var BOARD_DATA_TYPES = {};
+var CRATE_DATA_TYPES = {};
 
-BOARD_DATA_TYPES["pulse_height"]  = {
+CRATE_DATA_TYPES["pulse_height"]  = {
   range: CHANNEL_DATA_TYPES.pulse_height.range,
-  data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "pulse_height", card)) },
+  data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "pulse_height", crate)) },
 };
 
-BOARD_DATA_TYPES["rms"]  = {
+CRATE_DATA_TYPES["rms"]  = {
   range: CHANNEL_DATA_TYPES.rms.range,
-  data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "rms", card)) },
+  data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "rms", crate)) },
 };
 
-BOARD_DATA_TYPES["baseline"]  = {
+CRATE_DATA_TYPES["baseline"]  = {
   range: CHANNEL_DATA_TYPES.baseline.range,
-  data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "baseline", card)) },
+  data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "baseline", crate)) },
 };
 
-BOARD_DATA_TYPES["hit_occupancy"] = {
+CRATE_DATA_TYPES["hit_occupancy"] = {
   range: CHANNEL_DATA_TYPES.hit_occupancy.range,
   horizon_format: CHANNEL_DATA_TYPES.hit_occupancy.horizon_format,
-  data_link: function(script_root, card) { return new D3DataLink(new BoardLink(script_root, "hit_occupancy", card)) },
+  data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "hit_occupancy", crate)) },
+};
+
+CRATE_DATA_TYPES["next_channel_dnoise"] = {
+  range: CHANNEL_DATA_TYPES.next_channel_dnoise.range,
+  data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "next_channel_dnoise", crate)) },
 };
 
 var POWER_SUPPLY_DATA_TYPES = {}

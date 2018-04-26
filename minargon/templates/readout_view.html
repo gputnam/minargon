@@ -6,6 +6,7 @@
 {%endblock%}
 {% block script %}
 <script src="{{ url_for('static', filename='js/minargon/readout_views.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/minargon/scatter_param.js') }}" defer></script>
 <script defer>
 // setup cubism
 var context;
@@ -17,22 +18,23 @@ var metric_info;
 // setup our poll
 var poll;
 $(document).ready(function() {
-    // setup histogram
-    histogram = newHistogram($("#data-type").val(), "{{view_type}}", {{detector|safe}}, "histogram");
-
-    // and scatter plot
-    scatter = newScatter($("#data-type").val(), "{{view_type}}", {{detector|safe}}, "scatter");
-
     // and cubism context
     context = create_cubism_context("#timeseries", $("#data-step").val());
     
     // setup metric options
     metric_info = new crate_view_metric_info("{{view_type}}", {{view_ind|safe}}, {{detector|safe}});
 
+    // setup histogram
+    histogram = newHistogram($("#data-type").val(), "{{view_type}}", {{detector|safe}}, "histogram", Param());
+
+    // and scatter plot
+    scatter = newScatter($("#data-type").val(), "{{view_type}}", {{detector|safe}}, "scatter", Param());
+
     // startup data
     updateData("#timeseries", context, Param(), $("#data-type").val(), metric_info, false, true);
-
 });
+
+function link_param() { return Param(); }
 
 </script>
 {% endblock %}

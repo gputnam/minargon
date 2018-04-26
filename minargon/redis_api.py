@@ -89,17 +89,17 @@ def clean_float(x):
     return ret
 
 
-# getting data on a board
-@app.route('/stream/<stream_no>/<data>/<board>')
+# getting data on a crate
+@app.route('/stream/<stream_no>/<data>/<crate>')
 # on an fem
-@app.route('/stream/<stream_no>/<data>/<board>/<fem>')
+@app.route('/stream/<stream_no>/<data>/<crate>/<fem>')
 # on a channel
-@app.route('/stream/<stream_no>/<data>/<board>/<fem>/<channel>')
-def stream(stream_no, data, board, fem=None, channel=None):
+@app.route('/stream/<stream_no>/<data>/<crate>/<fem>/<channel>')
+def stream(stream_no, data, crate, fem=None, channel=None):
     stream_no = int(stream_no)
     base_key = data
-    if board is not None:
-        base_key += ":board:%s" % board
+    if crate is not None:
+        base_key += ":crate:%s" % crate
     if fem is not None:
         base_key += ":fem:%s" % fem
     if channel is not None:
@@ -127,7 +127,7 @@ def wire_query(stream_no, data, wire_start=None, wire_end=None, wire_list=None):
     return jsonify(values=data)
 
 # stream data for a wire 
-# pass in the wire id, as opposed to the board/fem/channel id as above
+# pass in the wire id, as opposed to the crate/fem/channel id as above
 @app.route('/wire_stream/<stream_no>/<data>/<wire>')
 def wire_stream(stream_no, data, wire):
     stream_no = int(stream_no)

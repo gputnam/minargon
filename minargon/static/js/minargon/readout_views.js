@@ -1,9 +1,9 @@
 // Helper javascript for the "readout" view pages
-// (wires, fem_view, board_view)
+// (wires, fem_view, crate_view)
 
 // class implementing the "metric_info" interface as defined in timeseries.js
 class crate_view_metric_info {
-    // view_type: the string name of the view (wire/fem,board)
+    // view_type: the string name of the view (wire/fem,crate)
     // view_ind: dictionary defining the location of the object in the readout
     // detector: info on the detector. Should be taken from constants.py in flask
     constructor(view_type, view_ind, detector) {
@@ -16,7 +16,17 @@ class crate_view_metric_info {
         // get the proper data list based on the view type
         var view_info = dispatchViewType(this.view_type);
         var datum_list = view_info[0];
-        return datum_list(data_type, this.view_ind, this.detector);
+        var ret = datum_list(data_type, this.view_ind, this.detector);
+        // pair the list down if it is too big
+        if (ret.length > 16) {
+           var skip = Math.floor(ret.length / 16);
+           var small_ret = [];
+           for (var i = 0; i < ret.length; i+= skip) {
+               small_ret.push(ret[i]);
+           }
+           return small_ret;
+        }
+        return ret;
     }
 
     // on clicking on a strip chart, go to the page with the appropriate data
@@ -24,40 +34,39 @@ class crate_view_metric_info {
         var base_link;
         var args;
         // channel_view -> channel_snapshot
-        if (this.view_type == "channel") {
+        if (this.view_type == "fem") {
             base_link = "channel_snapshot";
             args = {
-                channel: get_wire(this.view_ind.card, this.view_ind.fem, horizon_index, this.detector),
+                channel: get_wire(this.view_ind.crate, this.view_ind.fem, horizon_index, this.detector),
                 step: Param().step,
             };
         }
         // fem_view -> channel_view
-        else if (this.view_type == "fem") {
-            base_link = "channel_view";
-            args = {
-                card: this.view_ind.card,
-                fem: horizon_index,
-                data: $("#data-type").val(),
-                step: Param().step,
-            }; 
-        }
-        // board_view -> fem_view
-        else if (this.view_type == "board") {
+        else if (this.view_type == "crate") {
             base_link = "fem_view";
             args = {
-                card: horizon_index,
-                data: $("#data-type").val(),
-                step: Param().step,
+                crate: this.view_ind.crate,
+                fem: horizon_index,
             }; 
+            args = Object.assign({}, args, Param());
+        }
+        // crate_view -> fem_view
+        else if (this.view_type == "readout") {
+            base_link = "crate_view";
+            args = {
+                crate: horizon_index,
+            }; 
+            args = Object.assign({}, args, Param());
         }
         window.location.href = $SCRIPT_ROOT + "/" + base_link + "?" + $.param(args);
     }
 
-    param(param, datatype) {
+    param(param) {
         // get the default thresholds/horizon format from the datatype
         var view_info = dispatchViewType(this.view_type);
         var datum_list = view_info[0];
         var DATA_TYPES = view_info[1];
+        var datatype = param.data;
 
         if (!(DATA_TYPES[datatype].range === undefined)) {
             param["threshold_lo"] = DATA_TYPES[datatype]["range"][0];
@@ -73,22 +82,22 @@ class crate_view_metric_info {
         return param;
     } 
 
-    on_finish(datatype, initialized) {
+    on_finish(param, is_new_data) {
         // sync the poll controlling the line chart/histogram with the new data
-        updatePoll(datatype, this.view_type, this.detector, this.view_ind, initialized);
+        updatePoll(param.data, this.view_type, this.detector, this.view_ind, param, is_new_data);
     }
 }
 
-function updatePoll(datatype, view_type, detector, view_ind, initialized) {
-    if (initialized == false || poll.name() != datatype) {
-        if (initialized == true) {
-            // if there's new data, re-layout the histograms
-            poll.stop();
-            histogram.reLayout(layoutHisto(datatype, view_type, detector));
-            scatter.reLayout(layoutScatter(datatype, view_type));
-        }
+function updatePoll(datatype, view_type, detector, view_ind, param, is_new_data) {
+    histogram.reLayout(layoutHisto(datatype, view_type, detector, param));
+    scatter.reLayout(layoutScatter(datatype, view_type, param));
 
-        poll = newPoll(datatype, view_type, histogram, scatter, view_ind, detector);
+    // if there's new data, stop the old poll
+    if (is_new_data == true) {
+        // if there is a poll, stop it
+        if (!(poll === undefined)) poll.stop();
+
+	poll = newPoll(datatype, view_type, histogram, scatter, view_ind, detector);
     }
 }
 
@@ -98,37 +107,42 @@ function updatePoll(datatype, view_type, detector, view_ind, initialized) {
 function dispatchViewType(view_type) {
     var datum_list;
     var DATA_TYPES;
-    if (view_type == "channel") {
+    var name;
+    if (view_type == "fem") {
+        name = "channel";
         datum_list = channel_datum_list;
         DATA_TYPES = CHANNEL_DATA_TYPES;
     }
-    else if (view_type == "fem") {
+    else if (view_type == "crate") {
+        name = "fem";
         datum_list = fem_datum_list;
         DATA_TYPES = FEM_DATA_TYPES;
     }
-    else if (view_type == "board") {
-        datum_list = board_datum_list;
-        DATA_TYPES = BOARD_DATA_TYPES;
+    else if (view_type == "readout") {
+        name = "crate";
+        datum_list = crate_datum_list;
+        DATA_TYPES = CRATE_DATA_TYPES;
     }
-    return [datum_list, DATA_TYPES];
+    return [datum_list, DATA_TYPES, name];
 }
 
 // get the number of data points on (e.g.) a histogram given the view type
 function getDataPoints(view_type, detector) {
-    if (view_type == "channel") {
+    if (view_type == "fem") {
         return detector.n_channel_per_fem;
     }
-    else if (view_type == "fem") {
-        return detector.n_fem_per_board;
+    else if (view_type == "crate") {
+        return detector.n_fem_per_crate;
     }
-    else if (view_type == "board") {
-        return detector.n_boards;
+    else if (view_type == "readout") {
+        return detector.n_crates;
     }
 }
 
 // default layout for histograms
-function layoutHisto(datatype, view_type, detector) {
+function layoutHisto(datatype, view_type, detector, param) {
     var data_types = dispatchViewType(view_type)[1];
+    var name = dispatchViewType(view_type)[2];
 
     var n_data_points = getDataPoints(view_type, detector);
 
@@ -138,42 +152,51 @@ function layoutHisto(datatype, view_type, detector) {
         },
         yaxis: {
 	    range: [0, n_data_points],
-	    title: "N " + view_type,
+	    title: "N " + name,
         }
     }
 
-    if (!(data_types[datatype].range === undefined)) {
-        layout.xaxis.range = data_types[datatype].range;
+    //for (field in param) { alert(param[field]); alert(field); }
+    if (!(param.threshold_lo === undefined)) {
+        layout.xaxis.range = [param.threshold_lo, param.threshold_hi];
+    }
+    if (param.log_scale === true) {
+        layout.xaxis.type = "log";
     }
 
     return layout;
 }
 
-function newHistogram(datatype, view_type, detector, target) {
-    var layout = layoutHisto(datatype, view_type, detector);
+function newHistogram(datatype, view_type, detector, target, param) {
+    var layout = layoutHisto(datatype, view_type, detector, param);
 
     return new Histogram(getDataPoints(view_type, detector), target, layout); 
 } 
 
 // default layout for scatter plots
-function layoutScatter(datatype, view_type) {
+function layoutScatter(datatype, view_type, param) {
     var data_types = dispatchViewType(view_type)[1];
+    var name = dispatchViewType(view_type)[2];
+
     var layout = {
         yaxis: {
             title: datatype,
         },
         xaxis: {
-	    title: view_type,
+	    title: name,
         }
     }
-    if (!(data_types[datatype].range === undefined)) {
-        layout.yaxis.range = data_types[datatype].range;
+    if (!(param.threshold_lo === undefined)) {
+        layout.yaxis.range = [param.threshold_lo, param.threshold_hi];
+    }
+    if (param.log_scale === true) {
+        layout.yaxis.type = "log";
     }
     return layout;
 } 
 
-function newScatter(datatype, view_type, detector, target) {
-    var layout = layoutScatter(datatype, view_type);
+function newScatter(datatype, view_type, detector, target, param) {
+    var layout = layoutScatter(datatype, view_type, param);
 
     return new LineChart(getDataPoints(view_type, detector), target, layout);
 }
@@ -188,28 +211,33 @@ function newPoll(datatype, view_type, histogram, scatter, view_ind, detector) {
     var data_chain = new D3DataChain(datum_list(datatype, view_ind, detector), datatype, flatten);
     // sleep for 10 seconds in between polling
     var timeout = 10000;
+
+    // a listener to update the time
+    var update_time = function(val, time) {
+        $("#update-time").html("last update: " + moment(time).format("hh:mm:ss"));
+    }; 
     // tell the poll to update the histogram and the scatter plot
-    var listeners = [histogram.updateData.bind(histogram), scatter.updateData.bind(scatter)];
+    var listeners = [histogram.updateData.bind(histogram), scatter.updateData.bind(scatter), update_time];
     
 
-    poll = new D3DataPoll(data_chain, timeout, listeners);
+    poll = new D3DataPoll(data_chain, timeout, listeners, check_update_state);
     poll.run();
     return poll;
 }
 
 // datum_lists for each of the three view_types
-function board_datum_list(name, view_ind, detector) {
+function crate_datum_list(name, view_ind, detector) {
     var datums = [];
-    for (var i = 0; i < detector.n_boards; i++) {
-        datums.push(BOARD_DATA_TYPES[name].data_link($SCRIPT_ROOT, i).name("board " + i));
+    for (var i = 0; i < detector.n_crates; i++) {
+        datums.push(CRATE_DATA_TYPES[name].data_link($SCRIPT_ROOT, i).name("crate " + i));
     }
     return datums;
 }
 
 function fem_datum_list(name, view_ind, detector) {
     var datums = [];
-    for (var i = 0; i < detector.n_fem_per_board; i++) {
-        datums.push(FEM_DATA_TYPES[name].data_link($SCRIPT_ROOT, view_ind.card, i).name("fem " + i));
+    for (var i = 0; i < detector.n_fem_per_crate; i++) {
+        datums.push(FEM_DATA_TYPES[name].data_link($SCRIPT_ROOT, view_ind.crate, i).name("fem " + i));
     }
     return datums;
 }
@@ -217,7 +245,7 @@ function fem_datum_list(name, view_ind, detector) {
 function channel_datum_list(name, view_ind, detector) {
     var datums = [];
     for (var i = 0; i < detector.n_channel_per_fem; i++) {
-        datums.push(CHANNEL_DATA_TYPES[name].data_link($SCRIPT_ROOT, get_wire(view_ind.card, view_ind.fem, i, detector)).name("channel " + i));
+        datums.push(CHANNEL_DATA_TYPES[name].data_link($SCRIPT_ROOT, get_wire(view_ind.crate, view_ind.fem, i, detector)).name("channel " + i));
     }
     return datums;
 }

@@ -9,9 +9,12 @@ N_BOARDS = 1
 """
 # FOR TESTING ON LAriaT DATA
 N_CHANNELS = 480
-N_CHANNELS_PER_FEM = 16
-N_FEM_PER_BOARD = 4
-N_BOARDS = 8
+N_CHANNELS_PER_FEM = 64
+N_FEM_PER_CRATE = 8
+N_CRATES = 1
+N_FEM = N_CHANNELS / N_CHANNELS_PER_FEM 
+if N_CHANNELS % N_CHANNELS_PER_FEM != 0:
+    N_FEM += 1
 
 # For Lariat
 N_WIRES_PER_PLANE = 240
@@ -19,8 +22,8 @@ N_WIRES_PER_PLANE = 240
 detector = {
   'n_channels': N_CHANNELS,
   'n_channel_per_fem': N_CHANNELS_PER_FEM,
-  'n_fem_per_board': N_FEM_PER_BOARD,
-  'n_boards': N_BOARDS,
+  'n_fem_per_crate': N_FEM_PER_CRATE,
+  'n_crates': N_CRATES,
   'induction': {
      'offset': 0,
      'n_wires': N_WIRES_PER_PLANE,
@@ -35,16 +38,19 @@ detector = {
    }
 }
 
+PLANES = ["combined", "induction", "collection"] 
+POWER_SUPPLIES = ["PL506"]
+
 # Redis Stuff
 REDIS_TIME_STEPS = [1, 10]
 # Each entry in this list should have a corresponding entry in 
 # static/js/minargon/Data.js 'var DATA_TYPES' describing how the datum is 
 # presented on the front-end
-CHANNEL_DATA = ["rms", "baseline", "hit_occupancy", "pulse_height"] 
+CHANNEL_DATA = ["rms", "baseline", "hit_occupancy", "pulse_height", "next_channel_dnoise"] 
 
 # same as for channel data
 FEM_DATA = CHANNEL_DATA + ["frame_no", "event_no", "trigframe_no", "scaled_sum_rms"]
-BOARD_DATA = CHANNEL_DATA + [] # other stuff to be included
+CRATE_DATA = CHANNEL_DATA + [] # other stuff to be included
 
 # and for power supplies stuff
 POWER_SUPPLY_DATA = ["measured_output_voltage", "measured_output_current", "output_voltage", "output_current", "max_output_current"]

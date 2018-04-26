@@ -3,17 +3,9 @@
 {% block body %}
 {{ super() }}
 <div class="container">
-<div class="row">
-<div class="col-md-3 hcenter">
-<div class="card">
-    <div class="card-header">FEM {{fem}} Snapshot</div>
-    <ul class="list-group list-group-flush">
-        <li class="list-group-item">Board 0</li>
-        <li class="list-group-item">Taken at <span id="snapshot-time"></span></li>
-    </ul>
-</div>
-</div>
-</div>
+    <div class="row">
+        {% include 'data_header.html' %}
+    </div>
     <div class="row">
     <div class="col-md-12" style="padding:0" id="waveform-holder">
         <div id="waveform"></div>
@@ -27,11 +19,14 @@
 // get snapshot time
 d3.json($SCRIPT_ROOT + "/snapshot/time", function(err, data) {
   var time = moment(new Date(data.value * 1000));
-  $("#snapshot-time").html(time.format("MM/DD hh:mm:ss"));
+  $("#update-time").html("Snapshot At: " + time.format("MM/DD hh:mm:ss"));
 });
 $(document).ready(function() {
   // draw waveform
   draw_waveform('waveform', {fem: {{fem}} });
 });
+
+function link_param() { return {}; }
+
 </script> 
 {% endblock %}

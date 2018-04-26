@@ -1,0 +1,36 @@
+{% extends "stream_options.html" %}
+{% block options %}
+<div class="form-group row">
+    <label class="col-sm-6 control-form-label col-form-label">
+        Update Plots
+    </label>
+    <div class="col-sm-6">
+    <div class="btn-group btn-group-toggle" id="opt-update" data-toggle="buttons">
+        <label class="btn btn-secondary active" id="on">
+	    <input type="radio" name="options" value="on" autocomplete="off" checked> On
+        </label>
+	<label class="btn btn-secondary" id="off">
+	    <input type="radio" name="options" value="off" autocomplete="off"> Off
+	</label>
+    </div>
+    </div>
+</div>
+
+<!--
+<div class="form-group row">
+    <label class="col-sm-4 control-form-label col-form-label">
+        Scale
+    </label>
+    <div class="col-sm-8">
+    <div class="btn-group btn-group-toggle" id="opt-scale" data-toggle="buttons">
+        <label class="btn btn-secondary active">
+	    <input type="radio" name="options" value="linear" autocomplete="off" checked> Lin
+        </label>
+	<label class="btn btn-secondary">
+	    <input type="radio" name="options" value="log" autocomplete="off"> Log
+	</label>
+    </div>
+    </div>
+</div>
+-->
+{% endblock %}

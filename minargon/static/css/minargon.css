@@ -6,3 +6,30 @@
     display: flex;
     align-items: center;
 }
+
+.list-inline-horizontal {
+    text-align: center;
+    display: table-row;
+    float: none;
+}
+
+.list-inline-horizontal .list-inline-item {
+    display: table-cell;
+	margin-bottom: 0;
+	margin-left:-2px;
+	margin-right: 0;
+	border: 1px solid rgba(0, 0, 0, 0.125);
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        text-align: center;
+}
+.list-inline-horizontal .list-inline-item:first-child {
+	border-top-right-radius:0;
+	border-bottom-left-radius:4px;
+}
+.list-inline-horizontal .list-inline-item:last-child {
+	border-top-right-radius:4px;
+	border-bottom-left-radius:0;
+}

@@ -29,6 +29,16 @@
         <!-- $SCRIPT_ROOT for app location -->
         <script type="text/javascript">
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+	    function update_page(args) {
+		var url_root = [location.protocol, '//', location.host, location.pathname].join('');
+		
+		var selectors = $("#data-header-parent").find("select");
+		selectors.each(function(index) {
+		    args[$(this).attr("id")] = $(this).val();
+		});
+		
+		window.location.href = url_root + "?" + $.param(args);
+	    }
         </script>
 
         {% block script %}{% endblock %}
@@ -64,7 +74,7 @@
               {{ nav_link('noise_snapshot', 'Noise Snapshot') }}
               {{ nav_link('channel_snapshot', 'Channel Snapshot') }}
               {{ nav_link('fem_snapshot', 'FEM Snapshot') }}
-              {{ nav_link('board_view', 'Readout View') }}
+              {{ nav_link('crate_view', 'Readout View') }}
               {{ nav_link('wireplane_view', 'Wire Plane View') }}
               <!--{{ nav_link('power_supplies', 'Power Supplies') }}-->
             </ul>

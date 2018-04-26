@@ -17,7 +17,7 @@
 // implementing the "metric_info" interface, which has the following functions:
 // data_list(data_type, context) (REQUIRED)
 //     provides a list of D3DataLink/D3DataChain objects to be used as metrics
-// param(param, data_type) (OPTIONAL)
+// param(param) (OPTIONAL)
 //     provides the default parameters for a new data type. If not defined, 
 //     param won't be updated on a data type update.
 // on_click(data_type, horizon_index) (OPTIONAL)
@@ -26,8 +26,8 @@
 // on_update(start, stop) (OPTIONAL)
 //     function which will be called when a metric updates 
 //     (`this` is set as the class)
-// on_finish(datatype, initialized)
-//     function which will be called after data is updated -- datatype name and
+// on_finish(param, is_new_data)
+//     function which will be called after data or parameters are updated -- datatype name and
 //     whether this call is the original initialization is provided
 
 // For an example of an implementation of the metric info interface, see 
@@ -118,20 +118,35 @@ function create_cubism_context(target, step) {
 
 }
 
+// helper function: get GET parameters from url as a dictionary
+function GETParam() {
+
+
+}
+
 // If 'newParam' is not provided, will return the current horizon parameters
 // by looking in the appropriate fields. 
 // Otherwise will update those fields to the appropriate parameters.
 function Param(newParam) {
     if (newParam === undefined) 
         return {
+            data: $("#data-type").val(),
 	    height: $("#data-height").val(),
 	    threshold_lo: $("#threshold-lo").val(),
 	    threshold_hi: $("#threshold-hi").val(),
             step: $("#data-step").val()
         };
     else {
+        /*// also update the link
+        var url_root = [location.protocol, '//', location.host, location.pathname].join('');
+        var title = document.title;
+        window.history.replaceState({}, title, url_root + "?" + $.param(newParam));*/
+
         $("#data-height").val(newParam["height"]);
 
+        if (!(newParam.data == undefined)) {
+          $("#data-type").val(newParam.data);
+        }
         if (!(newParam.threshold_lo === undefined)) {
           $("#threshold-lo").val(newParam["threshold_lo"]);
         }
@@ -165,7 +180,13 @@ function updateStep(selector, target, datatype, context, param, metric_info) {
 function updateParam(target, context, param, metric_info) {
     var data = d3.select(target).selectAll('.horizon').data();
     delete_horizons(target, context);
-    return make_horizons(target, context, data, param, metric_info);
+
+    var ret = make_horizons(target, context, data, param, metric_info);
+    if (!(metric_info.on_finish === undefined)) {
+        metric_info.on_finish(param, false);
+    }
+
+    return ret;
 }
 
 // data_type: the new data type to be used in cubism metrics
@@ -181,14 +202,15 @@ function updateData(target, context, param, data_type, metric_info, remove_old, 
     var data_links = metric_info.data_list(data_type, context); 
 
     if (!(metric_info.param === undefined)) {
-        param = metric_info.param(param, data_type);
+        param = metric_info.param(param);
         Param(param);
     }
 
     var ret = add_metrics(target, context, data_links, param, metric_info);
 
     if (!(is_new_data === false) && !(metric_info.on_finish === undefined)) {
-        metric_info.on_finish(data_type, remove_old);
+        var new_data = !(is_new_data === false) || remove_old;
+        metric_info.on_finish(param, new_data);
     }
     return ret;
 }
