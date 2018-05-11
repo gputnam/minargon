@@ -31,7 +31,11 @@ def hello():
 
 @app.route('/')
 def index():
-    return redirect(url_for('hello'))
+    return redirect(url_for('introduction'))
+
+@app.route('/introduction')
+def introduction():
+    return render_template('introduction.html')
 
 @app.route('/docs/')
 @app.route('/docs/<filename>')
