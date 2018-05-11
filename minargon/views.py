@@ -1,7 +1,6 @@
 from . import app
 from flask import render_template, jsonify, request, redirect, url_for, flash
 import time
-from redis import Redis
 from os.path import join
 import json
 import os
@@ -9,21 +8,30 @@ import sys
 import random
 import constants
 from tools import parseiso
+import sys
 
-redis = Redis()
 PROGRAMS = []
 
 """
 	Routes intented to be seen by the user	
 """
 
+@app.route('/test_error')
+def test_error():
+    sys.stderr.write("Flask error logging test")
+    raise Exception("Flask exception logging test")
+
+@app.route('/test_static')
+def test_static():
+    return render_template('test_static.html')
+
 @app.route('/hello')
 def hello():
-    return 'Hello!'
+    return 'Hello 2!'
 
 @app.route('/')
 def index():
-    return redirect(url_for('wireplane_view'))
+    return redirect(url_for('hello'))
 
 @app.route('/docs/')
 @app.route('/docs/<filename>')

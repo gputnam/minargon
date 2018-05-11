@@ -11,12 +11,22 @@ import constants
 from tools import parseiso
 import math
 
-redis = Redis()
+# redis = Redis(host=minargon.app.config["REDIS_HOST"], port=int(minargon.app.config["REDIS_PORT"]))
+redis = Redis(host="lariat-daq01.fnal.gov", port=6379)
 PROGRAMS = []
 
 """
 	Routes for getting stuff from Redis
 """
+
+@app.route('/test_redis')
+def test_redis():
+    try:
+        x = redis.get("foo")
+    except Exception, err:
+        sys.stderr.write('ERROR: %sn' % str(err))
+        raise Exception("Redis cannot get foo")
+    return str(x)
 
 # get a datum stored in a snapshot
 @app.route('/snapshot/<data>')

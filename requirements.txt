@@ -6,8 +6,8 @@ redis>=2.10
 #argparse
 sphinx
 requests
-sqlalchemy
-psycopg2
+#sqlalchemy
+#psycopg2
 #alabaster
 couchdb
 wtforms

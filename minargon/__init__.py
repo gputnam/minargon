@@ -1,4 +1,4 @@
-from flask import Flask
+from flask.app import Flask
 
 class ReverseProxied(object):
     '''Wrap the application in this middleware and configure the 
@@ -21,7 +21,7 @@ class ReverseProxied(object):
         self.app = app
 
     def __call__(self, environ, start_response):
-        script_name = '/monitoring'
+        script_name = '/cgi-bin/minargon/minargon.wsgi'
         if script_name:
             environ['SCRIPT_NAME'] = script_name
             path_info = environ['PATH_INFO']
@@ -35,7 +35,7 @@ class ReverseProxied(object):
 
 app = Flask(__name__)
 
-app.config.from_envvar('MINARD_SETTINGS', silent=False)
+#app.config.from_envvar('MINARD_SETTINGS', silent=False)
 
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
