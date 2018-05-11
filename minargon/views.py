@@ -10,7 +10,6 @@ import random
 import constants
 from tools import parseiso
 
-redis = Redis()
 PROGRAMS = []
 
 """
@@ -23,7 +22,11 @@ def hello():
 
 @app.route('/')
 def index():
-    return redirect(url_for('wireplane_view'))
+    return redirect(url_for('introduction'))
+
+@app.route('/introduction')
+def introduction():
+    return render_template('introduction.html')
 
 @app.route('/docs/')
 @app.route('/docs/<filename>')
