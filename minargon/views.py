@@ -37,6 +37,10 @@ def index():
 def introduction():
     return render_template('introduction.html')
 
+@app.route('/nevis_readout')
+def nevis_readout():
+    return "I'm a stub!"
+
 @app.route('/docs/')
 @app.route('/docs/<filename>')
 @app.route('/docs/<dir>/<filename>')
