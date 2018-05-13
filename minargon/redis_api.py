@@ -12,7 +12,6 @@ from tools import parseiso
 import math
 
 redis = Redis(host=app.config["REDIS_HOST"], port=int(app.config["REDIS_PORT"]))
-# redis = Redis(host="lariat-daq01.fnal.gov", port=6379)
 PROGRAMS = []
 
 """
