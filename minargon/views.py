@@ -39,7 +39,11 @@ def introduction():
 
 @app.route('/nevis_readout')
 def nevis_readout():
-    return "I'm a stub!"
+    render_args = {
+      'n_fem': constants.N_FEM,
+      'header_metrics': constants.HEADER_DATA,
+    }
+    return render_template('nevis_readout.html', **render_args) 
 
 @app.route('/docs/')
 @app.route('/docs/<filename>')

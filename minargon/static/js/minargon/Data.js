@@ -340,25 +340,24 @@ FEM_DATA_TYPES["hit_occupancy"] = {
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "hit_occupancy", crate, fem)) },
 };
 
-FEM_DATA_TYPES["scaled_sum_rms"] = {
-  range: [-1, 1],
-  horizon_format: function(d) { return clean_format(d, float_format); },
-  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "scaled_sum_rms", crate, fem)) },
-};
-
 FEM_DATA_TYPES["next_channel_dnoise"] = {
   range: CHANNEL_DATA_TYPES.next_channel_dnoise.range,
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "next_channel_dnoise", crate, fem)) },
 };
 
-FEM_DATA_TYPES["frame_no"] = {
+var NEVIS_HEADER_DATA_TYPES = {};
+
+NEVIS_HEADER_DATA_TYPES["frame_no"] = {
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "frame_no", crate, fem)) },
 };
-FEM_DATA_TYPES["event_no"] = {
+NEVIS_HEADER_DATA_TYPES["event_no"] = {
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "event_no", crate, fem)) },
 };
-FEM_DATA_TYPES["trigframe_no"] = {
+NEVIS_HEADER_DATA_TYPES["trig_frame_no"] = {
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "trigframe_no", crate, fem)) },
+};
+NEVIS_HEADER_DATA_TYPES["blocks"] = {
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "blocks", crate, fem)) },
 };
 
 var CRATE_DATA_TYPES = {};

@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block title %}Nevis Readout Headers{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">FEM #</th>
+      <th scope="col">Time</th>
+      {% for metric in header_metrics %}
+      <th scope="col">{{metric}}</th>
+      {% endfor %}
+   </tr>
+  </thead>
+  <tbody>
+    {% for i in range(n_fem) %}
+    <tr>
+      <th scope="col">{{i}}</th>
+      <th scope="col"><span id="time_{{i}}"></span></th>
+      {% for metric in header_metrics %}
+      <th scope="col"><span id="{{metric}}_{{i}}"></span></th>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{%endblock%}
+{% block script %}
+<script defer>
+$(document).ready(function() {
+  // set up each metric and a poll for each metric
+  {% for i in range(n_fem) %}
+  {% for metric in header_metrics %}
+  {
+    var data_link = NEVIS_HEADER_DATA_TYPES["{{metric}}"].data_link($SCRIPT_ROOT, 0 /* OK bc only 1 crate in VST */, {{i}});
+    var listener = function(value) { $("#{{metric}}_{{i}}").html(value); } 
+    {% if loop.index == 1 %}
+     var timer = function(_, time) { $("#time_{{i}}").html(moment(time).format("hh:mm:ss"));}
+     var poll = new D3DataPoll(data_link, 10000, [listener, timer], () => true);
+    {% else %}
+      var poll = new D3DataPoll(data_link, 10000, [listener] , () => true);
+    {% endif %}
+    poll.run();
+  }
+  {% endfor %}
+  {% endfor %}
+});
+</script>
+{% endblock %}
