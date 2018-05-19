@@ -10,3 +10,11 @@ def parseiso(timestr):
     """Convert an iso time string -> unix timestamp."""
     dt = datetime.strptime(timestr,'%Y-%m-%dT%H:%M:%S.%fZ')
     return calendar.timegm(dt.timetuple()) + dt.microsecond/1e6
+
+# try parsing as int, falling back to parseiso
+def parseiso_or_int(inp_str):
+    try:
+        return int(inp_str)
+    except ValueError:
+        return parseiso(inp_str)
+

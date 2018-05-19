@@ -19,12 +19,13 @@
     </div>
     <div class="row">
     <div class="col-md-12" style="padding:0" id="FFT-holder">
-        <div id="FFT"></div>
+        <div id="fft"></div>
     </div>
     </div>
 </div>
 {%endblock%}
 {% block script %}
+<script src="{{ url_for('static', filename='js/minargon/draw_waveform.js') }}" defer></script>
 <script defer>
 // get snapshot time
 d3.json($SCRIPT_ROOT + "/snapshot/time", function(err, data) {
@@ -32,62 +33,10 @@ d3.json($SCRIPT_ROOT + "/snapshot/time", function(err, data) {
   $("#update-time").html("Snapshot At: " + time.format("MM/DD hh:mm:ss"));
 });
 
-// draw waveform and fft
-d3.json($SCRIPT_ROOT + "/snapshot/waveform?" + $.param({wire: "{{channel}}"}), function(err, data) {
-  if (data == null || data.value == null) return;
-  var waveform = data.value;
-
-  var xrange = Array.apply(null, Array(waveform.length)).map(function (_, i) {return i;});
-
-  var trace = {
-    x: xrange,
-    y: waveform,
-    type: 'scatter'
-  };
-
-  var layout = {
-    xaxis: {
-      title: "Time Step",
-    },
-    yaxis: {
-      title: "ADC Count",
-    },
-  };
-
-  Plotly.newPlot('waveform', [trace], layout)
+d3.json($SCRIPT_ROOT + "/snapshot/sub_run", function(err, data) {
+  $("#update-subrun").html("SubRun: "  + data.value);
 });
 
-d3.json($SCRIPT_ROOT + "/snapshot/fft?" + $.param({wire: "{{channel}}"}), function(err, data) {
-  if (data == null || data.value == null) return;
-  var fft_vals = data.value;
-
-  // ignore the first element of the fft, corresponding to the baseline
-  var xrange = Array.apply(null, Array(fft_vals.length - 1)).map(function (_, i) {return i;});
-
-  // and scale the fft by its length
-  // (version stored in redis is an unnormalized one, as calculated by fftw3)
-  // var fft = fft_vals.slice(1, -1).map( (dat) => dat / fft_vals.length);
-
-  // don't normalize for now
-  var fft = fft_vals.slice(1, -1);
-
-  var trace = {
-    x: xrange,
-    y: fft,
-    type: 'scatter'
-  };
-
-  var layout = {
-    xaxis: {
-      title: "ADC frequency",
-    },
-    yaxis: {
-      title: "Transformed ADC Count (Non-Normalized)",
-    },
-  };
-
-  Plotly.newPlot('FFT', [trace], layout)
-});
 // simple metric_info implementation
 class channel_snapshot_metric_info {
     constructor() {}
@@ -101,18 +50,23 @@ var context;
 var data_links;
 var metric_info;
 $(document).ready(function() {
-data_links = [
-{% for d in data_types %}
-  CHANNEL_DATA_TYPES["{{d}}"].data_link($SCRIPT_ROOT, {{channel}}),
-{% endfor %}
-];
+  // draw waveform
+  draw_waveform('waveform', {wire: {{channel}} });
+  draw_fft('fft', {wire: {{channel}} });
+  
+  // setup data links
+  data_links = [
+  {% for d in data_types %}
+    CHANNEL_DATA_TYPES["{{d}}"].data_link($SCRIPT_ROOT, {{channel}}),
+  {% endfor %}
+  ];
 
-metric_info = new channel_snapshot_metric_info();
+  metric_info = new channel_snapshot_metric_info();
 
-// setup cubism
-context = create_cubism_context("#timeseries", $("#data-step").val());
-// start polling for data
-updateData("#timeseries", context, Param(), null, metric_info);
+  // setup cubism
+  context = create_cubism_context("#timeseries", $("#data-step").val());
+  // start polling for data
+  updateData("#timeseries", context, Param(), null, metric_info);
 });
 
 function link_param() { return {}; }

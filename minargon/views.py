@@ -37,6 +37,10 @@ def index():
 def introduction():
     return render_template('introduction.html')
 
+@app.route('/recent_warnings')
+def recent_warnings():
+    return render_template('recent_warnings.html')
+
 @app.route('/nevis_readout')
 def nevis_readout():
     render_args = {

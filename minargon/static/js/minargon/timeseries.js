@@ -43,7 +43,7 @@
 function add_metrics(target, context, data_links, param, metric_info) {
     // add new metrics
     var data = data_links.map(function(data_link) { 
-        var metric = context.metric(data_link.get_data.bind(data_link), data_link.name());
+        var metric = context.metric(data_link.get_values.bind(data_link), data_link.name());
         if (!(metric_info.on_upadte === undefined)) {
             metric.on("change", metric_info.on_update.bind(metric_info));
         }
@@ -102,7 +102,7 @@ function create_cubism_context(target, step) {
         .each(function(d) {
             var axis = context.axis()
                 .ticks(12)
-                .orient(d)
+                .orient(d);
                 //.focusFormat(focus_format);
             d3.select(this).call(axis);
         });
@@ -118,12 +118,6 @@ function create_cubism_context(target, step) {
 
 }
 
-// helper function: get GET parameters from url as a dictionary
-function GETParam() {
-
-
-}
-
 // If 'newParam' is not provided, will return the current horizon parameters
 // by looking in the appropriate fields. 
 // Otherwise will update those fields to the appropriate parameters.
@@ -134,7 +128,8 @@ function Param(newParam) {
 	    height: $("#data-height").val(),
 	    threshold_lo: $("#threshold-lo").val(),
 	    threshold_hi: $("#threshold-hi").val(),
-            step: $("#data-step").val()
+            step: $("#data-step").val(),
+            warning_range: [$("#warning-lo").val(), $("#warning-hi").val()],
         };
     else {
         /*// also update the link
@@ -162,6 +157,14 @@ function Param(newParam) {
         }
         if (!(newParam.step === undefined)) {
           $("#data-step").val(newParam.step);
+        }
+        if (!(newParam.warning_range === undefined)) {
+          $("#warning-lo").val(newParam.warning_range[0]);
+          $("#warning-hi").val(newParam.warning_range[1]);
+        }
+        else {
+          $("#warning-lo").val("");
+          $("#warning-hi").val("");
         }
     } 
 }

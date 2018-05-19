@@ -20,8 +20,8 @@ class D3DataPoll {
             
         var self = this;
         var start = new Date();
-        start.setSeconds(start.getSeconds() - 10);
-        this.data.get_data_promise(start, null, 10000)
+        //start.setSeconds(start.getSeconds() - 10);
+        this.data.get_data_promise(null, null, "sub_run")
             .then(function(value) {
                 for (var i = 0; i < self.listeners.length; i++) {
                     var func = self.listeners[i];
@@ -59,37 +59,40 @@ class D3DataChain {
     return Promise.all(this.data_links.map(function(iter_data_link) {
        return iter_data_link.get_data_promise(start, stop, step);
     }))
-      .then(values => d3_callback(null, this.operation(values)));
+      .then(values => d3_callback(null, this.map_operation(values)));
 //            error => d3_callback(new Error("unable to load data")));
+  }
+
+  get_values(start, stop, step, d3_callback)  {
+    return Promise.all(this.data_links.map(function(iter_data_link) {
+       return iter_data_link.get_data_promise(start, stop, step);
+    }))
+      .then(values => d3_callback(null, redisValues(this.map_operation(values))));
   }
   
   get_data_promise(start, stop, step) {
       return Promise.all(this.data_links.map(function(iter_data_link) {
          return iter_data_link.get_data_promise(start, stop, step);
        }))
-          .then(values => Promise.resolve(values.map(v => this.operation(v))));
+          .then(values => Promise.resolve(this.map_operation(values)));
                // error => reject(error));
   }
 
-  map_operation(values) {
-    var n_streams = values.length;
-    var n_data_points = values[0].length;
-    var ret = [];
-    for (var i = 0; i < n_data_points; i++) { 
-      var fail = false;
-      var data_at_point = [];
-      for (var j = 0; j < n_streams; j++) {
-        if (values[j][i] === 0) { 
-          ret.push(0);
-          fail = true;
-          break;
-        }
-        data_at_point.push(values[j][i]);
-      }
-      if (!fail) {
-        ret.push(this.operation(data_at_point));
-      }
+  map_operation(data) {
+    var n_streams = data.length;
+
+    var ret_data = [];
+    var indexes = [];
+
+    for (var i = 0; i < n_streams; i++) { 
+      ret_data.push(this.operation(data[i].values));
+      indexes.push(data[i].index);
     }
+
+    var ret = {}
+    ret.index = indexes;
+    ret.values = ret_data;
+    return ret;
   }
  
   name() {
@@ -125,7 +128,20 @@ class D3DataLink {
                 console.log(err);
                 return d3_callback(new Error('unable to load data'));
             }
-	    return d3_callback(null,self.map_operation(data.values));
+	    return d3_callback(null,self.map_operation(data));
+	});
+  }
+
+  get_values(start, stop, step, d3_callback) {
+     var self = this;
+     return d3.json(self.link_builder.data_link(start, stop, step),
+	function(err, data) {
+	    if (!data) {
+                console.log(data);
+                console.log(err);
+                return d3_callback(new Error('unable to load data'));
+            }
+	    return d3_callback(null, redisValues(self.map_operation(data)));
 	});
   }
   
@@ -134,7 +150,7 @@ class D3DataLink {
     var self = this;
     return new Promise(function(resolve, reject) {
       d3.json(self.link_builder.data_link(start, stop, step), function(data) {
-        resolve(self.map_operation(data.values));
+        resolve(self.map_operation(data));
      });
      });
   }
@@ -154,13 +170,13 @@ class D3DataLink {
     }
   }
 
-  map_operation(values) {
+  map_operation(data) {
     var self = this;
-    return values.map(function(v) {
+    data.values = data.values.map(function(v) {
       if (v == 0) return 0;
       return self.operation(v);
     }); 
-
+    return data;
   }
 }
 
@@ -172,11 +188,9 @@ class ChannelLink {
     this.root = script_root;
   }
 
-  data_link(start, stop, step) {
-    var args = $.param(timeArgs(start, stop, step));
-    var stream = getDaqStream(step); 
-
-    return this.root + '/wire_stream/' + stream + '/' + this.data_name + '/' + this.channel_no +'?' + args;
+  data_link(start, stop, stream) {
+    var args = $.param(timeArgs(start, stop, stream));
+    return this.root + '/wire_stream/' + this.data_name + '/' + this.channel_no +'?' + args;
   }
   name() {
     return this.data_name;
@@ -192,11 +206,9 @@ class FEMLink {
         this.root = script_root;
     }
 
-    data_link(start, stop, step) {
-        var stream = getDaqStream(step);
-        var args = $.param(timeArgs(start, stop, step));
-
-        return this.root + '/stream/' + stream + '/' + this.data_name + '/' + this.crate + '/' + this.fem + '?' + args;
+    data_link(start, stop, stream) {
+        var args = $.param(timeArgs(start, stop, stream));
+        return this.root + '/stream/' + this.data_name + '/' + this.crate + '/' + this.fem + '?' + args;
     }
     name() {
         return this.data_name;
@@ -211,11 +223,9 @@ class CrateLink {
         this.root = script_root;
     }
 
-    data_link(start, stop, step) {
-        var stream = getDaqStream(step);
-        var args = $.param(timeArgs(start, stop, step));
-
-        return this.root + '/stream/' + stream + '/' + this.data_name + '/' + this.crate + '?' + args;
+    data_link(start, stop, stream) {
+        var args = $.param(timeArgs(start, stop, stream));
+        return this.root + '/stream/' + this.data_name + '/' + this.crate + '?' + args;
     }
     name() {
         return this.data_name;
@@ -230,10 +240,9 @@ class PowerSupplyLink {
         this.supply_name = supply_name;
     }
 
-    data_link(start, stop, step) {
-        var stream = getPowerStream(step);
-        var args = $.param(timeArgs(start, stop, step));
-        return this.root + '/power_stream/' + stream + '/' + this.data_name + '/' + this.supply_name + '?' + args;
+    data_link(start, stop, stream) {
+        var args = $.param(timeArgs(start, stop, stream));
+        return this.root + '/power_stream/' + this.data_name + '/' + this.supply_name + '?' + args;
     }
  
     name() {
@@ -252,15 +261,19 @@ class MultiWireLink {
         this.wire_start = wire_start;
         this.wire_end = wire_end;
     }
-    data_link(start, stop, step) {
-        // this doesn't use stop, so it should be null
-        var stream = getDaqStream(step);
-        return this.root + '/wire_query/' + stream + '/' + this.data_name + '/' + this.wire_start + '/' + this.wire_end;
+    data_link(start, stop, stream) {
+        var args = $.param(timeArgs(start, stop, stream));
+        return this.root + '/wire_query/' + this.data_name + '/' + this.wire_start + '/' + this.wire_end + '?' + args;
     }
  
     name() {
         return this.data_name;
     }
+}
+
+// gets the actual values out of a data object returned by the redis api
+function redisValues(data) {
+  return data.values
 }
 
 // what redis stream you should be subscribing to
@@ -273,15 +286,23 @@ function getPowerStream(step) {
     return step / 1000;
 }
 
-function timeArgs(start, stop, step) {
+function timeArgs(start, stop, stream_name) {
   var ret = {
-   start: start.toISOString(),
-   step: step,
-   now: new Date().toISOString()
- };
-  // stop can be null
+   now: new Date().toISOString(),
+   stream_name: stream_name,
+  };
+  // start can be null
+  if (start != null) {
+    ret.start = start.toISOString();
+  }
+
   if (stop != null) {
     ret.stop = stop.toISOString();
+  }
+  // set step if using a time stream
+  if (!isNaN(stream_name)) {
+    ret.step = stream_name;
+    ret.stream_name = stream_name / 1000;
   }
   return ret;
 
@@ -292,17 +313,20 @@ var CHANNEL_DATA_TYPES = {}
 
 CHANNEL_DATA_TYPES["rms"] = {
   range: [0, 10],
+  warning_range: [1, 7],
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "rms", channel_no)) },
 };
 
 CHANNEL_DATA_TYPES["hit_occupancy"] = {
   range: [0, 1],
+  warning_range: [0.01, 0.9],
   horizon_format: function(d) { return clean_format(d, percent_format); },
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "hit_occupancy", channel_no)) },
 };
 
 CHANNEL_DATA_TYPES["baseline"] = {
   range: [-10, 10],
+  warning_range: [-7,7],
   horizon_format: function(d) { return clean_format(d, float_format); },
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "baseline", channel_no)) },
 };
@@ -326,17 +350,20 @@ FEM_DATA_TYPES["pulse_height"]  = {
 
 FEM_DATA_TYPES["rms"]  = {
   range: CHANNEL_DATA_TYPES.rms.range,
+  warning_range: CHANNEL_DATA_TYPES.rms.warning_range,
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "rms", crate, fem)) },
 };
 
 FEM_DATA_TYPES["baseline"]  = {
   range: CHANNEL_DATA_TYPES.baseline.range,
+  warning_range: CHANNEL_DATA_TYPES.baseline.warning_range,
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "baseline", crate, fem)) },
 };
 
 FEM_DATA_TYPES["hit_occupancy"] = {
   range: CHANNEL_DATA_TYPES.hit_occupancy.range,
   horizon_format: CHANNEL_DATA_TYPES.hit_occupancy.horizon_format,
+  warning_range: CHANNEL_DATA_TYPES.hit_occupancy.warning_range,
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "hit_occupancy", crate, fem)) },
 };
 
@@ -369,17 +396,20 @@ CRATE_DATA_TYPES["pulse_height"]  = {
 
 CRATE_DATA_TYPES["rms"]  = {
   range: CHANNEL_DATA_TYPES.rms.range,
+  warning_range: CHANNEL_DATA_TYPES.rms.warning_range,
   data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "rms", crate)) },
 };
 
 CRATE_DATA_TYPES["baseline"]  = {
   range: CHANNEL_DATA_TYPES.baseline.range,
+  warning_range: CHANNEL_DATA_TYPES.baseline.warning_range,
   data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "baseline", crate)) },
 };
 
 CRATE_DATA_TYPES["hit_occupancy"] = {
   range: CHANNEL_DATA_TYPES.hit_occupancy.range,
   horizon_format: CHANNEL_DATA_TYPES.hit_occupancy.horizon_format,
+  warning_range: CHANNEL_DATA_TYPES.hit_occupancy.warning_range,
   data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "hit_occupancy", crate)) },
 };
 

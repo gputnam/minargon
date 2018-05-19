@@ -8,7 +8,7 @@ import os
 import sys
 import random
 import constants
-from tools import parseiso
+from tools import parseiso, parseiso_or_int
 import math
 
 redis = Redis(host=app.config["REDIS_HOST"], port=int(app.config["REDIS_PORT"]))
@@ -52,44 +52,83 @@ def check_and_map(x, data_map):
     else:
         return data_map(x)
 
+def get_time_index(skip):
+    return int(time.time())//skip - 1
+
+def get_subrun_index():
+    value = redis.get("last_subrun_no")
+    if value is None:
+        return 0
+    else:
+        return int(value)
+
 # get the most recent data point from redis for a list of wires
-def query_data(data, stream_no, wire_range, data_map):
+def query_data(data, args, wire_range, data_map):
+    stream_name = args.get('stream_name')
+    index = args.get('start', None, type=parseiso_or_int)
+    skip = args.get('skip', None, type=int)
+    # backup if index is none
+    if index is None:
+        # case for sub_run stream
+        if stream_name == "sub_run":
+            index = get_subrun_index()
+        # case for time stream
+        elif skip is not None:
+            index = get_time_index(skip)
+        # neither sub_run nor time stream -- bad
+        else:
+            raise Exception("Bad Redis Request")
+        
     # get the most recent data on the stream 
     # go back one time step to be safe
-    now = int(time.time())//stream_no - 1
     p = redis.pipeline()
     for wire in wire_range:
-        key = 'stream/%i:%i:%s:wire:%i' % (stream_no, now, data, wire)
+        key = 'stream/%s:%i:%s:wire:%i' % (stream_name, index, data, wire)
         p.get(key)
     result = [check_and_map(x, data_map) for x in p.execute()]
-    return result
+    return result, index
 
 # get all data points in args.start, args.stop for a single
 # base redis key
-def stream_data(base_key, stream, args, data_map):
-    start = args.get('start',type=parseiso)
-    stop = args.get('stop',None,type=parseiso)
-    now_client = args.get('now',type=parseiso)
+def stream_data(base_key, args, data_map):
+    stream_name = args.get('stream_name')
+    start = args.get('start',None,type=parseiso_or_int)
+    stop = args.get('stop',None,type=parseiso_or_int)
+    now_client = args.get('now',type=parseiso_or_int)
     # convert ms -> sec
-    step = args.get('step',type=int)//1000
+    step = args.get('step',1000,type=int)//1000
     now = int(time.time())
 
-    if stop == None:
+    if start is None: 
+        # case for sub_run stream
+        if stream_name == "sub_run":
+            start = get_subrun_index()
+        # case for time stream
+        elif skip is not None:
+            start = get_time_index(skip)
+        # neither sub_run nor time stream -- bad
+        else:
+            raise Exception("Bad Redis Request")
+        
+    if stop is None:
         stop = int(start) + step
 
     # adjust for clock skew
-    dt = now_client - now
-    start -= dt
-    stop -= dt
+    # if not sub_run stream
+    if stream_name != "sub_run":
+	dt = now_client - now
+	start -= dt
+	stop -= dt
+
     p = redis.pipeline()
     for i in range(int(start),int(stop),step):
-        key = 'stream/%i:%i:%s' % (stream, i//stream, base_key)
+        key = 'stream/%s:%i:%s' % (stream_name, i//step, base_key)
         p.get(key)
 
 
     result = [check_and_map(x, data_map) for x in p.execute()]
         
-    return result
+    return result, start
 
 def clean_float(x):
     ret = float(x)
@@ -99,13 +138,12 @@ def clean_float(x):
 
 
 # getting data on a crate
-@app.route('/stream/<stream_no>/<data>/<crate>')
+@app.route('/stream/<data>/<crate>')
 # on an fem
-@app.route('/stream/<stream_no>/<data>/<crate>/<fem>')
+@app.route('/stream/<data>/<crate>/<fem>')
 # on a channel
-@app.route('/stream/<stream_no>/<data>/<crate>/<fem>/<channel>')
-def stream(stream_no, data, crate, fem=None, channel=None):
-    stream_no = int(stream_no)
+@app.route('/stream/<data>/<crate>/<fem>/<channel>')
+def stream(data, crate, fem=None, channel=None):
     base_key = data
     if crate is not None:
         base_key += ":crate:%s" % crate
@@ -116,45 +154,57 @@ def stream(stream_no, data, crate, fem=None, channel=None):
  
     args = request.args
   
-    data = stream_data(base_key, stream_no, args, clean_float)
-    return jsonify(values=data)
+    data, start = stream_data(base_key, args, clean_float)
+    return jsonify(values=data, index=start)
 
 # querrying data points from the most recent timestamp from a list of wires
 # wire_list here is a comma separated list of wires
-@app.route('/wire_query/<stream_no>/<data>/<wire_list>')
+@app.route('/wire_query/<data>/<wire_list>')
 # wire_start, wire_end map to a wire_list = [wire_start, ... ,wire_end)
-@app.route('/wire_query/<stream_no>/<data>/<wire_start>/<wire_end>')
-def wire_query(stream_no, data, wire_start=None, wire_end=None, wire_list=None):
+@app.route('/wire_query/<data>/<wire_start>/<wire_end>')
+def wire_query(data, wire_start=None, wire_end=None, wire_list=None):
     if wire_list is not None:
         wire_range = [int(x) for x in wire_list.split(",")]
     else: 
         wire_range = range(int(wire_start), int(wire_end))
 
-    stream_no = int(stream_no)
- 
-    data = query_data(data, stream_no, wire_range, clean_float)
-    return jsonify(values=data)
+    data, index = query_data(data, request.args, wire_range, clean_float)
+    return jsonify(values=data, index=index)
 
 # stream data for a wire 
 # pass in the wire id, as opposed to the crate/fem/channel id as above
-@app.route('/wire_stream/<stream_no>/<data>/<wire>')
-def wire_stream(stream_no, data, wire):
-    stream_no = int(stream_no)
+@app.route('/wire_stream/<data>/<wire>')
+def wire_stream(data, wire):
     base_key = "%s:wire:%s" % (data, wire)
  
-    data = stream_data(base_key, stream_no, request.args, clean_float)
-    return jsonify(values=data)
+    data, start = stream_data(base_key, request.args, clean_float)
+    return jsonify(values=data, index=start)
     
 
 # access stream data for a power supply
 # power supplies are identified by name instead of id's
-@app.route('/power_stream/<stream_no>/<data>/<supply_name>')
-def power_stream(stream_no, data, supply_name):
-    stream_no = int(stream_no)
+@app.route('/power_stream/<data>/<supply_name>')
+def power_stream(data, supply_name):
     base_key = "%s:%s" % (data , supply_name)
  
     args = request.args
 
-    data = stream_data(base_key, stream_no, args, clean_float)
-    return jsonify(values=data)
+    data, start = stream_data(base_key, args, clean_float)
+    return jsonify(values=data, index=start)
+
+# get a list of recent warnings
+@app.route('/get_warnings')
+@app.route('/get_warnings/<start>')
+@app.route('/get_warnings/<start>/<stop>')
+def get_warnings(start=None, stop=None):
+    if start is None:
+        start = 0
+    if stop is None:
+        stop = get_time_index(1)
+    warnings = redis.zrangebyscore("WARNINGS", int(start), int(stop))
+    json_data = [json.loads(w) for w in warnings]
+    return jsonify(warnings=json_data)
+
+
+
 

@@ -8,6 +8,7 @@
     <tr>
       <th scope="col">FEM #</th>
       <th scope="col">Time</th>
+      <th scope="col">SubRun</th>
       {% for metric in header_metrics %}
       <th scope="col">{{metric}}</th>
       {% endfor %}
@@ -18,6 +19,7 @@
     <tr>
       <th scope="col">{{i}}</th>
       <th scope="col"><span id="time_{{i}}"></span></th>
+      <th scope="col"><span id="subrun_{{i}}"></span></th>
       {% for metric in header_metrics %}
       <th scope="col"><span id="{{metric}}_{{i}}"></span></th>
       {% endfor %}
@@ -34,9 +36,12 @@ $(document).ready(function() {
   {% for metric in header_metrics %}
   {
     var data_link = NEVIS_HEADER_DATA_TYPES["{{metric}}"].data_link($SCRIPT_ROOT, 0 /* OK bc only 1 crate in VST */, {{i}});
-    var listener = function(value) { $("#{{metric}}_{{i}}").html(value); } 
+    var listener = function(data) { $("#{{metric}}_{{i}}").html(redisValues(data)); } 
     {% if loop.index == 1 %}
-     var timer = function(_, time) { $("#time_{{i}}").html(moment(time).format("hh:mm:ss"));}
+     var timer = function(data, time) { 
+       $("#time_{{i}}").html(moment(time).format("hh:mm:ss"));
+       $("#subrun_{{i}}").html(data.index);
+     }
      var poll = new D3DataPoll(data_link, 10000, [listener, timer], () => true);
     {% else %}
       var poll = new D3DataPoll(data_link, 10000, [listener] , () => true);

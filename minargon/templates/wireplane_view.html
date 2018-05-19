@@ -18,19 +18,19 @@ var metric_info;
 // setup our poll
 var poll;
 $(document).ready(function() {
+    // setup metric options
+    metric_info = new wireplane_metric_info({{detector|safe}}, "{{view_ind.plane}}", $SCRIPT_ROOT);
+
     // setup histogram
     histogram = newHistogram($("#data-type").val(), Param(), {{detector|safe}}, "{{view_ind.plane}}", "histogram");
     // and the line chart
     scatter = newScatter($("#data-type").val(), Param(), {{detector|safe}}, "{{view_ind.plane}}", "scatter"); 
-
     // and cubism context
     context = create_cubism_context("#timeseries", $("#data-step").val());
-    
-    // setup metric options
-    metric_info = new wireplane_metric_info({{detector|safe}}, "{{view_ind.plane}}", $SCRIPT_ROOT);
 
     // startup data
     updateData("#timeseries", context, Param(), $("#data-type").val(), metric_info, false, true);
+
 });
 
 function link_param() { return Param(); }

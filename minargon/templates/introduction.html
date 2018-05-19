@@ -96,8 +96,27 @@ that wire.
 </p>
 <h4>Nevis Readout</h4>
 <p>
-Displays information to do with the Nevis Readout board headers. To be
-implemented.
+Displays information to do with the Nevis Readout board headers. For
+each FEM (each of which sends one header per event) it displays the
+time of the last subrun, the last subrun number, the highest frame
+number in the last subrun, the highest event number in the last subrun,
+the highest trigger frame number in the last subrun, and the total
+number of blocks (readouts) in the last subrun.
+</p>
+<h4>Warnings</h4>
+<p>
+Displays recent warnings (from the last day) from the Online Monitoring
+process. There are two main types of errors:
+<ul>
+<li>A Bad Header error indicates something was wrong with a header from
+a Nevis Readout Board. It indicates some issue with the data sent by the
+readout boards</li>
+<li>A NAN Metric error indicates that the Online Monitoring analysis
+code has calculated a value of NAN for some metric (most likely the
+noise RMS or dnoise). It indicates that there may be some issue with the
+waveforms of individual channels, or that the parameters of the online
+analysis need to be tuned.</li>
+</ul>
 </p>
 </div>
 {%endblock%}

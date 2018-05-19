@@ -11,6 +11,11 @@
         <div id="waveform"></div>
     </div>
     </div>
+    <div class="row">
+    <div class="col-md-12" style="padding:0" id="fft-holder">
+        <div id="fft"></div>
+    </div>
+    </div>
 </div>
 {%endblock%}
 {% block script %}
@@ -21,9 +26,15 @@ d3.json($SCRIPT_ROOT + "/snapshot/time", function(err, data) {
   var time = moment(new Date(data.value * 1000));
   $("#update-time").html("Snapshot At: " + time.format("MM/DD hh:mm:ss"));
 });
+
+d3.json($SCRIPT_ROOT + "/snapshot/sub_run", function(err, data) {
+  $("#update-subrun").html("SubRun: "  + data.value);
+});
+
 $(document).ready(function() {
-  // draw waveform
+  // draw waveform and fft
   draw_waveform('waveform', {fem: {{fem}} });
+  draw_fft('fft', {fem: {{fem}} });
 });
 
 function link_param() { return {}; }

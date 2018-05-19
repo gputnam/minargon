@@ -40,6 +40,15 @@ class wireplane_metric_info {
             param.threshold_lo = undefined;
             param.threshold_hi = undefined;
         }
+        if (!(CHANNEL_DATA_TYPES[datatype].warning_range === undefined)) {
+            param.warning_range = [ 
+              CHANNEL_DATA_TYPES[datatype]["warning_range"][0],
+              CHANNEL_DATA_TYPES[datatype]["warning_range"][1]
+            ];
+        }
+        else {
+            param.range = undefined;
+        }
         if (!(CHANNEL_DATA_TYPES[datatype].horizon_format === undefined)) {
             param.format = CHANNEL_DATA_TYPES[datatype].horizon_format;
         }
@@ -49,6 +58,8 @@ class wireplane_metric_info {
     on_finish(param, is_new_data) {
         // sync the poll controlling the line chart/histogram with the new data
         updatePoll(param.data, this.plane, this.detector, param, is_new_data);
+        // update the scatter plot warning ranges if need be
+        scatter.updateRange(param.warning_range);
     }
 }
 
@@ -124,8 +135,9 @@ function newPoll(datatype, histogram, scatter, detector, plane) {
     // sleep for 10 seconds in between polling
     var timeout = 10000;
 
-    var update_time = function(val, time) {
-        $("#update-time").html("last update: " + moment(time).format("hh:mm:ss"));
+    var update_time = function(data, start) {
+        $("#update-time").html("Update Time: " + moment(start).format("hh:mm:ss"));
+        $("#update-subrun").html("Update SubRun: " + data.index);
     }; 
 
     // tell the poll to update the histogram and the scatter plot

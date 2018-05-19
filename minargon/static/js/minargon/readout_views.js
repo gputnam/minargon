@@ -76,6 +76,15 @@ class crate_view_metric_info {
             param.threshold_lo = undefined;
             param.threshold_hi = undefined;
         }
+        if (!(DATA_TYPES[datatype].warning_range === undefined)) {
+            param.warning_range = [ 
+              DATA_TYPES[datatype]["warning_range"][0],
+              DATA_TYPES[datatype]["warning_range"][1]
+            ];
+        }
+        else {
+            param.warning_range = undefined;
+        }
         if (!(DATA_TYPES[datatype].horizon_format === undefined)) {
             param.format = DATA_TYPES[datatype].horizon_format;
         }
@@ -85,6 +94,8 @@ class crate_view_metric_info {
     on_finish(param, is_new_data) {
         // sync the poll controlling the line chart/histogram with the new data
         updatePoll(param.data, this.view_type, this.detector, this.view_ind, param, is_new_data);
+        // update the scatter plot warning ranges if need be
+        scatter.updateRange(param.warning_range);
     }
 }
 
@@ -213,12 +224,12 @@ function newPoll(datatype, view_type, histogram, scatter, view_ind, detector) {
     var timeout = 10000;
 
     // a listener to update the time
-    var update_time = function(val, time) {
-        $("#update-time").html("last update: " + moment(time).format("hh:mm:ss"));
+    var update_time = function(data, start) {
+        $("#update-time").html("Update Time: " + moment(start).format("hh:mm:ss"));
+        $("#update-subrun").html("Update SubRun: " + data.index[0]);
     }; 
     // tell the poll to update the histogram and the scatter plot
     var listeners = [histogram.updateData.bind(histogram), scatter.updateData.bind(scatter), update_time];
-    
 
     poll = new D3DataPoll(data_chain, timeout, listeners, check_update_state);
     poll.run();
