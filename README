@@ -23,9 +23,7 @@ the Redis Database is located. An example settings file is given in
 `example_settigns.conf`. Either use those settings, or make a new
 settings file (if your database in a different location). Then set:
 
-    $ export MINARD_SETTINGS=your_settings_file.conf
-
-    $ export MINARD_SETTINGS=`pwd`/settings.conf
+    $ export MINARD_SETTINGS=`pwd`/your_settings_file.conf
 
 Now, you can start up the webserver:
 
