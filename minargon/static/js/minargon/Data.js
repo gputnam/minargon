@@ -324,6 +324,13 @@ CHANNEL_DATA_TYPES["hit_occupancy"] = {
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "hit_occupancy", channel_no)) },
 };
 
+CHANNEL_DATA_TYPES["rawhit_occupancy"] = {
+  range: [0, 1],
+  warning_range: [0.01, 0.9],
+  horizon_format: function(d) { return clean_format(d, percent_format); },
+  data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "rawhit_occupancy", channel_no)) },
+};
+
 CHANNEL_DATA_TYPES["baseline"] = {
   range: [-10, 10],
   warning_range: [-7,7],
@@ -336,6 +343,11 @@ CHANNEL_DATA_TYPES["pulse_height"] = {
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "pulse_height", channel_no)) },
 };
 
+CHANNEL_DATA_TYPES["rawhit_pulse_height"] = {
+  range: [0, 50],
+  data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "rawhit_pulse_height", channel_no)) },
+};
+
 CHANNEL_DATA_TYPES["next_channel_dnoise"] = {
   range: [0, 2],
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "next_channel_dnoise", channel_no)) },
@@ -346,6 +358,11 @@ var FEM_DATA_TYPES = {};
 FEM_DATA_TYPES["pulse_height"]  = {
   range: CHANNEL_DATA_TYPES.pulse_height.range,
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "pulse_height", crate, fem)) },
+};
+
+FEM_DATA_TYPES["rawhit_pulse_height"]  = {
+  range: CHANNEL_DATA_TYPES.rawhit_pulse_height.range,
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "rawhit_pulse_height", crate, fem)) },
 };
 
 FEM_DATA_TYPES["rms"]  = {
@@ -365,6 +382,14 @@ FEM_DATA_TYPES["hit_occupancy"] = {
   horizon_format: CHANNEL_DATA_TYPES.hit_occupancy.horizon_format,
   warning_range: CHANNEL_DATA_TYPES.hit_occupancy.warning_range,
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "hit_occupancy", crate, fem)) },
+};
+
+
+FEM_DATA_TYPES["rawhit_occupancy"] = {
+  range: CHANNEL_DATA_TYPES.rawhit_occupancy.range,
+  horizon_format: CHANNEL_DATA_TYPES.rawhit_occupancy.horizon_format,
+  warning_range: CHANNEL_DATA_TYPES.rawhit_occupancy.warning_range,
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "rawhit_occupancy", crate, fem)) },
 };
 
 FEM_DATA_TYPES["next_channel_dnoise"] = {
@@ -394,6 +419,11 @@ CRATE_DATA_TYPES["pulse_height"]  = {
   data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "pulse_height", crate)) },
 };
 
+CRATE_DATA_TYPES["rawhit_pulse_height"]  = {
+  range: CHANNEL_DATA_TYPES.rawhit_pulse_height.range,
+  data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "rawhit_pulse_height", crate)) },
+};
+
 CRATE_DATA_TYPES["rms"]  = {
   range: CHANNEL_DATA_TYPES.rms.range,
   warning_range: CHANNEL_DATA_TYPES.rms.warning_range,
@@ -411,6 +441,13 @@ CRATE_DATA_TYPES["hit_occupancy"] = {
   horizon_format: CHANNEL_DATA_TYPES.hit_occupancy.horizon_format,
   warning_range: CHANNEL_DATA_TYPES.hit_occupancy.warning_range,
   data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "hit_occupancy", crate)) },
+};
+
+CRATE_DATA_TYPES["rawhit_occupancy"] = {
+  range: CHANNEL_DATA_TYPES.rawhit_occupancy.range,
+  horizon_format: CHANNEL_DATA_TYPES.rawhit_occupancy.horizon_format,
+  warning_range: CHANNEL_DATA_TYPES.rawhit_occupancy.warning_range,
+  data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "rawhit_occupancy", crate)) },
 };
 
 CRATE_DATA_TYPES["next_channel_dnoise"] = {
