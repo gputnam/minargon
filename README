@@ -1,10 +1,12 @@
-Minard - Detector Monitoring from the Future
+Minargon - Detector Monitoring for VST
 ============================================
+
+Minargon is a fork of Minard for SBND/the VST.
 
 Quickstart
 ----------
 
-To run a local copy of minard, first create a virtual environment and activate
+To run a local copy of minargon, first create a virtual environment and activate
 it.
 
     $ virtualenv venv
@@ -12,34 +14,16 @@ it.
 
 Now, clone the minard repository, and install the prerequisites:
 
-    $ git clone https://github.com/snoplus/minard
-    $ cd minard
+    $ git clone https://github.com/gputnam/minargon.git
+    $ cd minargon
     $ pip install -r requirements.txt
 
-Create a configuration file called settings.conf with the following values:
+Minargon needs a configuration file to run with the settings of where
+the Redis Database is located. An example settings file is given in
+`example_settigns.conf`. Either use those settings, or make a new
+settings file (if your database in a different location). Then set:
 
-    DB_HOST='dbug'
-    DB_PASS=[password]
-    DB_USER='snoplus'
-    DB_NAME='detector'
-    DB_PORT=5432
-
-    DB_HOST_NEARLINE='dbus'
-    DB_NAME_NEARLINE='nearline'
-    DB_PORT_NEARLINE=5433
-
-If you are testing the detector state check page you will also need to add:
-
-    DAQ_LOG_DIR=[path to log files]
-
-And if you are testing anything that requires CouchDB access you will need to
-add:
-
-    COUCHDB_HOSTNAME=[hostname]
-    COUCHDB_PASSWORD=[password]
-
-Now, export the environment variable MINARD_SETTINGS to point to the
-configuration file:
+    $ export MINARD_SETTINGS=your_settings_file.conf
 
     $ export MINARD_SETTINGS=`pwd`/settings.conf
 
@@ -49,13 +33,14 @@ Now, you can start up the webserver:
 
 And you should be able to open your web browser to localhost:5000 and see it.
 
-Note that you will probably see lots of errors since the flask app isn't able
-to connect to the redis server. To install and run the redis server see
-http://redis.io/topics/quickstart.
+Note that if you are running on a remote server, you will have to
+forward port 5000 back to your laptop in order to view the website. To
+do this, when ssh-ing into the remote server, add in the parameter: `-L
+5000:localhost:5000`.
 
 Authors
 -------
 Minard was originally written for the SNO+ experiment by T. LaTorre.
 
-This is the SBND variant, ported by A. Mastbaum.
+This is the SBND variant, ported by A. Mastbaum and Gray Putnam.
 
