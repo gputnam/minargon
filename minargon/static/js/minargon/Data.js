@@ -338,6 +338,13 @@ CHANNEL_DATA_TYPES["baseline"] = {
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "baseline", channel_no)) },
 };
 
+CHANNEL_DATA_TYPES["baseline_rms"] = {
+  range: [0, 10],
+  warning_range: [0,5],
+  horizon_format: function(d) { return clean_format(d, float_format); },
+  data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "baseline_rms", channel_no)) },
+};
+
 CHANNEL_DATA_TYPES["pulse_height"] = {
   range: [0, 50],
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "pulse_height", channel_no)) },
@@ -375,6 +382,12 @@ FEM_DATA_TYPES["baseline"]  = {
   range: CHANNEL_DATA_TYPES.baseline.range,
   warning_range: CHANNEL_DATA_TYPES.baseline.warning_range,
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "baseline", crate, fem)) },
+};
+
+FEM_DATA_TYPES["baseline_rms"]  = {
+  range: CHANNEL_DATA_TYPES.baseline_rms.range,
+  warning_range: CHANNEL_DATA_TYPES.baseline_rms.warning_range,
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "baseline_rms", crate, fem)) },
 };
 
 FEM_DATA_TYPES["hit_occupancy"] = {
@@ -434,6 +447,12 @@ CRATE_DATA_TYPES["baseline"]  = {
   range: CHANNEL_DATA_TYPES.baseline.range,
   warning_range: CHANNEL_DATA_TYPES.baseline.warning_range,
   data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "baseline", crate)) },
+};
+
+CRATE_DATA_TYPES["baseline_rms"]  = {
+  range: CHANNEL_DATA_TYPES.baseline_rms.range,
+  warning_range: CHANNEL_DATA_TYPES.baseline_rms.warning_range,
+  data_link: function(script_root, crate) { return new D3DataLink(new CrateLink(script_root, "baseline_rms", crate)) },
 };
 
 CRATE_DATA_TYPES["hit_occupancy"] = {
