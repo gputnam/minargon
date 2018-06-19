@@ -25,10 +25,10 @@ $(document).ready(function() {
     metric_info = new crate_view_metric_info("{{view_type}}", {{view_ind|safe}}, {{detector|safe}});
 
     // setup histogram
-    histogram = newHistogram($("#data-type").val(), "{{view_type}}", {{detector|safe}}, "histogram", Param());
+    histogram = newHistogram($("#data-type").val(), "{{view_type}}", {{view_ind|safe}}, {{detector|safe}}, "histogram", Param());
 
     // and scatter plot
-    scatter = newScatter($("#data-type").val(), "{{view_type}}", {{detector|safe}}, "scatter", Param());
+    scatter = newScatter($("#data-type").val(), "{{view_type}}", {{view_ind|safe}}, {{detector|safe}}, "scatter", Param());
 
     // startup data
     updateData("#timeseries", context, Param(), $("#data-type").val(), metric_info, false, true);

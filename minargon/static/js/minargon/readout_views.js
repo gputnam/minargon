@@ -100,8 +100,8 @@ class crate_view_metric_info {
 }
 
 function updatePoll(datatype, view_type, detector, view_ind, param, is_new_data) {
-    histogram.reLayout(layoutHisto(datatype, view_type, detector, param));
-    scatter.reLayout(layoutScatter(datatype, view_type, param));
+    histogram.reLayout(layoutHisto(datatype, view_type, view_ind, detector, param));
+    scatter.reLayout(layoutScatter(datatype, view_type, view_ind, param));
 
     // if there's new data, stop the old poll
     if (is_new_data == true) {
@@ -138,9 +138,9 @@ function dispatchViewType(view_type) {
 }
 
 // get the number of data points on (e.g.) a histogram given the view type
-function getDataPoints(view_type, detector) {
+function getDataPoints(view_type, view_ind, detector) {
     if (view_type == "fem") {
-        return detector.n_channel_per_fem;
+        return detector.n_channel_per_fem[view_ind.fem];
     }
     else if (view_type == "crate") {
         return detector.n_fem_per_crate;
@@ -151,11 +151,11 @@ function getDataPoints(view_type, detector) {
 }
 
 // default layout for histograms
-function layoutHisto(datatype, view_type, detector, param) {
+function layoutHisto(datatype, view_type, view_ind, detector, param) {
     var data_types = dispatchViewType(view_type)[1];
     var name = dispatchViewType(view_type)[2];
 
-    var n_data_points = getDataPoints(view_type, detector);
+    var n_data_points = getDataPoints(view_type, view_ind, detector);
 
     var layout = {
         xaxis: {
@@ -178,14 +178,14 @@ function layoutHisto(datatype, view_type, detector, param) {
     return layout;
 }
 
-function newHistogram(datatype, view_type, detector, target, param) {
-    var layout = layoutHisto(datatype, view_type, detector, param);
+function newHistogram(datatype, view_type, view_ind, detector, target, param) {
+    var layout = layoutHisto(datatype, view_type, view_ind, detector, param);
 
-    return new Histogram(getDataPoints(view_type, detector), target, layout); 
+    return new Histogram(getDataPoints(view_type, view_ind, detector), target, layout); 
 } 
 
 // default layout for scatter plots
-function layoutScatter(datatype, view_type, param) {
+function layoutScatter(datatype, view_type, view_ind, param) {
     var data_types = dispatchViewType(view_type)[1];
     var name = dispatchViewType(view_type)[2];
 
@@ -206,10 +206,10 @@ function layoutScatter(datatype, view_type, param) {
     return layout;
 } 
 
-function newScatter(datatype, view_type, detector, target, param) {
-    var layout = layoutScatter(datatype, view_type, param);
+function newScatter(datatype, view_type, view_ind, detector, target, param) {
+    var layout = layoutScatter(datatype, view_type, view_ind, param);
 
-    return new LineChart(getDataPoints(view_type, detector), target, layout);
+    return new LineChart(getDataPoints(view_type, view_ind, detector), target, layout);
 }
 
 
@@ -255,7 +255,7 @@ function fem_datum_list(name, view_ind, detector) {
 
 function channel_datum_list(name, view_ind, detector) {
     var datums = [];
-    for (var i = 0; i < detector.n_channel_per_fem; i++) {
+    for (var i = 0; i < detector.n_channel_per_fem[view_ind.fem]; i++) {
         datums.push(CHANNEL_DATA_TYPES[name].data_link($SCRIPT_ROOT, get_wire(view_ind.crate, view_ind.fem, i, detector)).name("channel " + i));
     }
     return datums;

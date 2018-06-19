@@ -1,3 +1,5 @@
+import tools
+
 # Detector Stuff
 
 # FOR TESTING ON NEVIS DATA
@@ -7,17 +9,22 @@ N_CHANNELS_PER_FEM = 16
 N_FEM_PER_BOARD = 1
 N_BOARDS = 1
 """
-# FOR TESTING ON LAriaT DATA
+# FOR VST
 N_CHANNELS = 480
-N_CHANNELS_PER_FEM = 64
+N_CHANNELS_PER_FEM = [64, 64, 64, 64, 64, 64, 48, 48]
 N_FEM_PER_CRATE = 8
 N_CRATES = 1
-N_FEM = N_CHANNELS / N_CHANNELS_PER_FEM 
-if N_CHANNELS % N_CHANNELS_PER_FEM != 0:
-    N_FEM += 1
+# only one crate of readout electronics
+N_FEM = N_FEM_PER_CRATE
 
-# For Lariat
+# For Lariat TPC
 N_WIRES_PER_PLANE = 240
+
+# channel mapping
+# CHANNEL_MAP_FNAME = ""
+# (channel_to_wire, wire_to_channel) = tools.parse_channel_map_file(CHANNEL_MAP_FNAME, N_CHANNELS)
+
+(channel_to_wire, wire_to_channel) = tools.default_channel_map(N_CHANNELS)
 
 detector = {
   'n_channels': N_CHANNELS,
@@ -35,7 +42,9 @@ detector = {
    'combined': {
      'offset': 0,
      'n_wires': N_WIRES_PER_PLANE * 2,
-   }
+   },
+   'channel_to_wire': channel_to_wire,
+   'wire_to_channel': wire_to_channel,
 }
 
 PLANES = ["combined", "induction", "collection"] 
