@@ -225,8 +225,8 @@ function newPoll(datatype, view_type, histogram, scatter, view_ind, detector) {
 
     // a listener to update the time
     var update_time = function(data, start) {
-        $("#update-time").html("Update Time: " + moment(start).format("hh:mm:ss"));
-        $("#update-subrun").html("Update SubRun: " + data.index[0]);
+        $("#update-time").html("Poll Time: " + moment(start).format("hh:mm:ss"));
+        $("#update-subrun").html("Data SubRun: " + data.index[0]);
     }; 
     // tell the poll to update the histogram and the scatter plot
     var listeners = [histogram.updateData.bind(histogram), scatter.updateData.bind(scatter), update_time];

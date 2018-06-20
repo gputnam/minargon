@@ -205,6 +205,14 @@ def get_warnings(start=None, stop=None):
     json_data = [json.loads(w) for w in warnings]
     return jsonify(warnings=json_data)
 
-
+# get last time online analysis ran
+@app.route("/analysis_alive_time")
+def analysis_alive_time():
+    timestamp = redis.get("ONLINE_ANALYSIS_ALIVE")
+    try:
+        time = int(timestamp)
+    except:
+        time = 0
+    return jsonify(value=time)
 
 
