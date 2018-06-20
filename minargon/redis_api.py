@@ -206,13 +206,13 @@ def get_warnings(start=None, stop=None):
     return jsonify(warnings=json_data)
 
 # get last time online analysis ran
-@app.route("/analysis_alive_time")
-def analysis_alive_time():
-    timestamp = redis.get("ONLINE_ANALYSIS_ALIVE")
+@app.route("/key/<keyname>")
+def key(keyname):
+    keystr = redis.get(keyname)
     try:
-        time = int(timestamp)
+        keyint = int(keystr)
     except:
-        time = 0
-    return jsonify(value=time)
+        keyint = 0
+    return jsonify(value=keyint)
 
 
