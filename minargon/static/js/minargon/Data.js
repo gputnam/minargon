@@ -22,11 +22,11 @@ class D3DataPoll {
         var start = new Date();
         start.setSeconds(start.getSeconds() - 10);
         var now = new Date();
-        this.data.get_data_promise(start, null, 10000)
+        this.data.get_data_promise(null, null, "sub_run")
             .then(function(value) {
                 for (var i = 0; i < self.listeners.length; i++) {
                     var func = self.listeners[i];
-                    func(value, now);
+                    func(value, start);
                 }
             });
         setTimeout(this.run.bind(this), this.timeout);
