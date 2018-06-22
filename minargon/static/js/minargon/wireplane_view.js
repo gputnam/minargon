@@ -137,7 +137,7 @@ function newPoll(datatype, histogram, scatter, detector, plane) {
 
     var update_time = function(data, start) {
         $("#update-time").html("Poll Time: " + moment(start).format("hh:mm:ss"));
-        $("#update-subrun").html("Data SubRun: " + data.index[0]);
+        $("#update-subrun").html("Data SubRun: " + data.index);
     }; 
 
     // tell the poll to update the histogram and the scatter plot
