@@ -1,8 +1,4 @@
-function get_wire(card_id, fem_id, channel_id, detector) {
-    var channel_base = 0;
-    for (var i = 0; i < fem_id; i++) {
-        channel_base += detector.n_channel_per_fem[i];
-    }
-    var channel = channel_base + channel_id;
-    return detector.channel_to_wire[channel]; 
+function get_wire(crate_id, slot_id, channel_id, detector) {
+    var channel = slot_id * detector.n_channel_per_fem + channel_id;
+    return dector.channel_to_wire[channel];
 }
