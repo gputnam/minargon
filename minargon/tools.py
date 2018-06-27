@@ -48,7 +48,8 @@ def default_channel_map(n_channels, n_fem):
     wire_to_channel = [i for i in range(n_channels)]
     assert(n_channels % n_fem == 0)
     wire_per_fem = [n_channels / n_fem for i in range(n_fem)]
-    return (channel_to_wire, wire_to_channel, wire_per_fem)
+    fem_active_channels = [range(wire_per_fem[i]) for i in range(n_fem)]
+    return (channel_to_wire, wire_to_channel, wire_per_fem, fem_active_channels)
 
     
 
