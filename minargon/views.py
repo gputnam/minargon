@@ -61,8 +61,7 @@ def docs(dir='', subdir='', filename='index.html'):
 @app.route('/noise_snapshot')
 def noise_snapshot():
     template_args = {
-        'n_channels': 640 # ONLY FOR nevis integration data 
-        # 'n_channels': 640 constants.N_CHANNELS
+        'n_channels': constants.N_CHANNELS
     }
     return render_template('noise_snapshot.html', **template_args)
 
