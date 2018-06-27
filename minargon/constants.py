@@ -24,7 +24,7 @@ SLOT_OFFSET = 4
 N_WIRES_PER_PLANE = 240
 
 # channel mapping
-CHANNEL_MAP_FNAME = "/sbnd/data/users/gputnam/VST/channelMap_Run20180620160433_output_NevisTPCCALIB_generator_LArIAT_Pin_Mapping_06262018_v2.txt"
+CHANNEL_MAP_FNAME = "/sbnd/data/users/sbnd/VST_CHANNEL_MAP/channel_map.txt"
 (channel_to_wire, wire_to_channel, N_CHANNELS_PER_FEM, FEM_ACTIVE_CHANNELS) = tools.parse_channel_map_file(CHANNEL_MAP_FNAME, N_CHANNELS_PER_FEM, N_FEM, SLOT_OFFSET)
 
 # (channel_to_wire, wire_to_channel, N_CHANNELS_PER_FEM) = tools.default_channel_map(N_CHANNELS, N_FEM)
