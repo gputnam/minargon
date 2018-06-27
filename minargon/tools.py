@@ -23,19 +23,24 @@ def parse_channel_map_file(fname, n_channel_per_fem, n_fem, slot_offset):
     channel_to_wire = {}
     wire_to_channel = {}
     wire_per_fem = [0 for i in range(n_fem)]
+    fem_active_channels = [ [] for i in range(n_fem)]
     with open(fname) as f:
         for i,line in enumerate(f):
-            dat = line.split(" ")
+            dat = [x for x in line.rstrip("\r\n").split(" ") if x is not '']
             slot = int(dat[-2])
             slot_ch = int(dat[-1])
-            channel = slot * n_channel_per_fem + slot_ch
+            channel = (slot - slot_offset) * n_channel_per_fem + slot_ch
             wire = int(dat[0])
+            if wire == -1:
+                continue
             channel_to_wire[channel] = wire
             wire_to_channel[wire] = channel
             wire_per_fem[slot - slot_offset] += 1
+            fem_active_channels[slot - slot_offset].append(slot_ch)
 
+    _ = [x.sort() for x in fem_active_channels]
 
-    return (channel_to_wire, wire_to_channel, wire_per_fem)
+    return (channel_to_wire, wire_to_channel, wire_per_fem, fem_active_channels)
 
 # 1-1 mapping for debugging purposes
 def default_channel_map(n_channels, n_fem):

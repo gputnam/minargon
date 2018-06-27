@@ -36,8 +36,9 @@ class crate_view_metric_info {
         // channel_view -> channel_snapshot
         if (this.view_type == "fem") {
             base_link = "channel_snapshot";
+            var readout_channel = Number(String(horizon_name).split(" ")[1]);
             args = {
-                channel: get_wire(this.view_ind.crate, this.view_ind.fem, horizon_index, this.detector),
+                channel: get_wire(this.view_ind.crate, this.view_ind.fem, readout_channel, this.detector),
                 step: Param().step,
             };
         }
@@ -256,7 +257,8 @@ function fem_datum_list(name, view_ind, detector) {
 function channel_datum_list(name, view_ind, detector) {
     var datums = [];
     for (var i = 0; i < detector.n_channel_per_fem[view_ind.fem]; i++) {
-        datums.push(CHANNEL_DATA_TYPES[name].data_link($SCRIPT_ROOT, get_wire(view_ind.crate, view_ind.fem, i, detector)).name("channel " + i));
+        datums.push(CHANNEL_DATA_TYPES[name].data_link($SCRIPT_ROOT, get_wire(view_ind.crate, view_ind.fem, detector.fem_active_channels[view_ind.fem][i], detector))
+            .name("channel " + detector.fem_active_channels[view_ind.fem][i]));
     }
     return datums;
 }

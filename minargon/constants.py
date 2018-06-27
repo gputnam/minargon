@@ -24,10 +24,10 @@ SLOT_OFFSET = 4
 N_WIRES_PER_PLANE = 240
 
 # channel mapping
-# CHANNEL_MAP_FNAME = ""
-# (channel_to_wire, wire_to_channel, N_CHANNELS_PER_FEM) = tools.parse_channel_map_file(CHANNEL_MAP_FNAME, N_CHANNELS_PER_FEM, N_FEM, SLOT_OFFSET)
+CHANNEL_MAP_FNAME = "/sbnd/data/users/gputnam/VST/channelMap_Run20180620160433_output_NevisTPCCALIB_generator_LArIAT_Pin_Mapping_06262018_v2.txt"
+(channel_to_wire, wire_to_channel, N_CHANNELS_PER_FEM, FEM_ACTIVE_CHANNELS) = tools.parse_channel_map_file(CHANNEL_MAP_FNAME, N_CHANNELS_PER_FEM, N_FEM, SLOT_OFFSET)
 
-(channel_to_wire, wire_to_channel, N_CHANNELS_PER_FEM) = tools.default_channel_map(N_CHANNELS, N_FEM)
+# (channel_to_wire, wire_to_channel, N_CHANNELS_PER_FEM) = tools.default_channel_map(N_CHANNELS, N_FEM)
 
 detector = {
   'n_channels': N_CHANNELS,
@@ -48,6 +48,7 @@ detector = {
    },
    'channel_to_wire': channel_to_wire,
    'wire_to_channel': wire_to_channel,
+   'fem_active_channels': FEM_ACTIVE_CHANNELS,
 }
 
 PLANES = ["combined", "induction", "collection"] 
