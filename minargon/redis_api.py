@@ -62,6 +62,13 @@ def get_subrun_index():
     else:
         return int(value)
 
+def get_run_index():
+    value = redis.get("this_run_no")
+    if value is None:
+        return 0
+    else:
+        return int(value)
+
 # get the most recent data point from redis for a list of wires
 def query_data(data, args, wire_range, data_map):
     stream_name = args.get('stream_name')
@@ -99,10 +106,18 @@ def stream_data(base_key, args, data_map):
     step = args.get('step',1000,type=int)//1000
     now = int(time.time())
 
+    # adjust for clock skew
+    # if not sub_run stream
+    if stream_name != "sub_run":
+	dt = now_client - now
+	start -= dt
+	stop -= dt
+
     if start is None: 
         # case for sub_run stream
         if stream_name == "sub_run":
             start = get_subrun_index()
+            stream_name = "%s_%i" % (stream_name, get_run_index())
         # case for time stream
         elif skip is not None:
             start = get_time_index(skip)
@@ -113,16 +128,10 @@ def stream_data(base_key, args, data_map):
     if stop is None:
         stop = int(start) + step
 
-    # adjust for clock skew
-    # if not sub_run stream
-    if stream_name != "sub_run":
-	dt = now_client - now
-	start -= dt
-	stop -= dt
-
     p = redis.pipeline()
     for i in range(int(start),int(stop),step):
         key = 'stream/%s:%i:%s' % (stream_name, i//step, base_key)
+        print key
         p.get(key)
 
 
