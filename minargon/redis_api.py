@@ -209,8 +209,8 @@ def get_warnings(max_n, start=None, stop=None):
         start = 0
     if stop is None:
         stop = get_time_index(1)
-    warnings = redis.zrevrangebyscore("WARNINGS", int(start), int(stop), num=int(max_n), start=-1)
-    json_data = [json.loads(w) for w in warnings]
+    warnings = redis.zrevrangebyscore("WARNINGS", int(stop), int(start))
+    json_data = [json.loads(w) for i,w in enumerate(warnings) if i < int(max_n)]
     return jsonify(warnings=json_data)
 
 # get last time online analysis ran
