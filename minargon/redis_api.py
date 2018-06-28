@@ -210,7 +210,7 @@ def get_warnings(max_n, start=None, stop=None):
         start = 0
     if stop is None:
         stop = get_time_index(1)
-    warnings = redis.zrevrangebyscore("WARNINGS", int(start), int(stop), num=int(max_n))
+    warnings = redis.zrevrangebyscore("WARNINGS", int(start), int(stop), num=int(max_n), start=-1)
     json_data = [json.loads(w) for w in warnings]
     return jsonify(warnings=json_data)
 
