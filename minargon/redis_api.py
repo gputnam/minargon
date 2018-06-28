@@ -202,15 +202,15 @@ def power_stream(data, supply_name):
     return jsonify(values=data, index=start)
 
 # get a list of recent warnings
-@app.route('/get_warnings')
-@app.route('/get_warnings/<start>')
-@app.route('/get_warnings/<start>/<stop>')
-def get_warnings(start=None, stop=None):
+@app.route('/get_warnings/<max_n>/')
+@app.route('/get_warnings/<max_n>/<start>')
+@app.route('/get_warnings/<max_n>/<start>/<stop>')
+def get_warnings(max_n, start=None, stop=None):
     if start is None:
         start = 0
     if stop is None:
         stop = get_time_index(1)
-    warnings = redis.zrangebyscore("WARNINGS", int(start), int(stop))
+    warnings = redis.zrevrangebyscore("WARNINGS", int(start), int(stop), num=int(max_n))
     json_data = [json.loads(w) for w in warnings]
     return jsonify(warnings=json_data)
 
