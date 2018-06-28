@@ -131,7 +131,6 @@ def stream_data(base_key, args, data_map):
     p = redis.pipeline()
     for i in range(int(start),int(stop),step):
         key = 'stream/%s:%i:%s' % (stream_name, i//step, base_key)
-        print key
         p.get(key)
 
 
