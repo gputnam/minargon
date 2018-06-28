@@ -30,11 +30,12 @@ function get_warning_color(type) {
 
 $(document).ready(function() {
 var start = moment().subtract(1, 'd').unix();
-d3.json($SCRIPT_ROOT + "/get_warnings/" + start, function(err, data) {
+var n_warnings = 100;
+d3.json($SCRIPT_ROOT + "/get_warnings/" + n_warnings + "/" + start, function(err, data) {
   if (data===undefined || data.warnings===undefined || data.warnings.length===undefined) return;
 
   // iterate over warnings in descending order
-  for (var i = data.warnings.length - 1; i >= 0; i--) {
+  for (var i = 0; i < data.warnings.lengthl i++) {
     var span_id = "warning_" + i;
     var span_start = "<span id='" + span_id + "'>";
     $("#warnings").append( `
