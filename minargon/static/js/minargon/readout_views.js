@@ -232,7 +232,7 @@ function newPoll(datatype, view_type, histogram, scatter, view_ind, detector) {
     // tell the poll to update the histogram and the scatter plot
     var listeners = [histogram.updateData.bind(histogram), scatter.updateData.bind(scatter), update_time];
 
-    poll = new D3DataPoll(data_chain, timeout, listeners, check_update_state);
+    poll = new D3DataPoll(data_chain, timeout, listeners, check_update_state, get_run, get_subrun);
     poll.run();
     return poll;
 }

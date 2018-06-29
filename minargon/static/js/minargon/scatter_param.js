@@ -19,6 +19,18 @@ function check_update_state() {
     return ret;
 }
 
+function get_run() {
+    var run = $("#set-run").val();
+    if (run == "") return null; 
+    return Number(run);
+}
+
+function get_subrun() {
+    var subrun = $("#set-subrun").val();
+    if (subrun == "") return null; 
+    return Number(subrun);
+}
+
 function update_page(args) {
     var url_root = [location.protocol, '//', location.host, location.pathname].join('');
 

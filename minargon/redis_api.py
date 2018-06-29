@@ -109,7 +109,7 @@ def stream_data(base_key, args, data_map):
 
     # adjust for clock skew
     # if not sub_run stream
-    if stream_name != "sub_run":
+    if "sub_run" not in stream_name:
 	dt = now_client - now
 	start -= dt
 	stop -= dt
