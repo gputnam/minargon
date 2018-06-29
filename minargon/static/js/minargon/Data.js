@@ -24,11 +24,12 @@ class D3DataPoll {
         var stream;
         if (!(this.run_function === undefined)) {
             run = this.run_function();
-            stream = "sub_run_" + run;
+            if (run != null) stream = "sub_run_" + run;
+            else stream = "sub_run";
         }
         else {
             run = null;
-            stream = "sub_run"
+            stream = "sub_run";
         }
         var subrun;
         if (!(this.subrun_function === undefined)) {
