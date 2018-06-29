@@ -1,11 +1,13 @@
 class D3DataPoll {
     // expects a D3DataLink or D3DataChain
-    constructor(data, timeout, listeners, update_function) {
+    constructor(data, timeout, listeners, update_function, run_function, subrun_function) {
         this.data = data;
         this.timeout = timeout;
         this.listeners = listeners;
         this.running = true;
         this.update_function = update_function;
+        this.run_function = run_function;
+        this.subrun_function = subrun_function;
     }
 
     run() {
@@ -17,12 +19,30 @@ class D3DataPoll {
             setTimeout(this.run.bind(this), this.timeout);
             return;
         }
+
+        var run;
+        var stream;
+        if (!(this.run_function === undefined)) {
+            run = this.run_function();
+            stream = "sub_run_" + run;
+        }
+        else {
+            run = null;
+            stream = "sub_run"
+        }
+        var subrun;
+        if (!(this.subrun_function === undefined)) {
+            subrun = this.subrun_function();
+        }
+        else {
+            subrun = null;
+        }
             
         var self = this;
         var start = new Date();
         start.setSeconds(start.getSeconds() - 10);
         var now = new Date();
-        this.data.get_data_promise(null, null, "sub_run")
+        this.data.get_data_promise(subrun, null, stream)
             .then(function(value) {
                 for (var i = 0; i < self.listeners.length; i++) {
                     var func = self.listeners[i];

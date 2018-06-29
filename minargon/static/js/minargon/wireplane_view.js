@@ -143,7 +143,7 @@ function newPoll(datatype, histogram, scatter, detector, plane) {
     // tell the poll to update the histogram and the scatter plot
     var listeners = [histogram.updateData.bind(histogram), scatter.updateData.bind(scatter), update_time];
 
-    poll = new D3DataPoll(data_link, timeout, listeners, check_update_state);
+    poll = new D3DataPoll(data_link, timeout, listeners, check_update_state, get_run, get_subrun);
     poll.run();
     return poll;
 }
