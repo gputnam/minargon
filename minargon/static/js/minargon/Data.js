@@ -333,8 +333,8 @@ CHANNEL_DATA_TYPES["rawhit_occupancy"] = {
 };
 
 CHANNEL_DATA_TYPES["baseline"] = {
-  range: [-10, 10],
-  warning_range: [-7,7],
+  range: [500, 1500],
+  warning_range: [550,1300],
   horizon_format: function(d) { return clean_format(d, float_format); },
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "baseline", channel_no)) },
 };
@@ -347,7 +347,7 @@ CHANNEL_DATA_TYPES["baseline_rms"] = {
 };
 
 CHANNEL_DATA_TYPES["pulse_height"] = {
-  range: [0, 50],
+  range: [0, 600],
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "pulse_height", channel_no)) },
 };
 
