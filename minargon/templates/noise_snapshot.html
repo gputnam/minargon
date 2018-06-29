@@ -28,7 +28,7 @@ $(document).ready(function() {
 // get snapshot time
 d3.json($SCRIPT_ROOT + '/snapshot/time', function(err, data) {
   var time = moment(new Date(data.value * 1000));
-  $("#snapshot-time").html(time.format("MM/DD hh:mm:ss"));
+  $("#snapshot-time").html(time.format("MM/DD HH:mm:ss"));
 });
 
 // helpful waiting message
