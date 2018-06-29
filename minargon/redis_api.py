@@ -79,6 +79,7 @@ def query_data(data, args, wire_range, data_map):
         # case for sub_run stream
         if stream_name == "sub_run":
             index = get_subrun_index()
+            stream_name = "%s_%i" % (stream_name, get_run_index())
         # case for time stream
         elif skip is not None:
             index = get_time_index(skip)
