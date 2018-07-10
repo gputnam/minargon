@@ -86,8 +86,8 @@ function make_horizons(target, context, data, param, metric_info) {
 function create_cubism_context(target, step) {
     var size = $(target).width();
     var context = cubism.context()
-        .serverDelay(1e3)
-        .clientDelay(1e3)
+        .serverDelay(1000 * 60 /* 1 minute when running offline */)
+        .clientDelay(1000 * 60)
         .step(step*1000)
         .size(size);    
 
