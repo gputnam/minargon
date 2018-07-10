@@ -55,7 +55,7 @@ PLANES = ["combined", "induction", "collection"]
 POWER_SUPPLIES = ["PL506"]
 
 # Redis Stuff
-REDIS_TIME_STEPS = [5, 30, 600, 3600]
+REDIS_TIME_STEPS = [5, 30, 60]
 # Each entry in this list should have a corresponding entry in 
 # static/js/minargon/Data.js 'var DATA_TYPES' describing how the datum is 
 # presented on the front-end
