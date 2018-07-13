@@ -333,7 +333,7 @@ CHANNEL_DATA_TYPES["rawhit_occupancy"] = {
 };
 
 CHANNEL_DATA_TYPES["baseline"] = {
-  range: [500, 1500],
+  range: [500, 2000],
   warning_range: [550,1300],
   horizon_format: function(d) { return clean_format(d, float_format); },
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "baseline", channel_no)) },
