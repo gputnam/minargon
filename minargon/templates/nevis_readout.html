@@ -40,7 +40,7 @@ $(document).ready(function() {
     {% if loop.index == 1 %}
      var timer = function(data, time) { 
        $("#time_{{i}}").html(moment(time).format("HH:mm:ss"));
-       $("#subrun_{{i}}").html(data.index);
+       $("#subrun_{{i}}").html(data.index.subrun);
      }
      var poll = new D3DataPoll(data_link, 10000, [listener, timer], () => true);
     {% else %}

@@ -16,10 +16,3 @@ window.setInterval(function() {
 
 }, 5000);
 
-window.setInterval(function() {
-  d3.json($SCRIPT_ROOT + "/key/this_run_no", function(result) {
-    var run = result.value;
-   $("#this-run").html("Run: " + run);
-  });
-}, 5000);
-

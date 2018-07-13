@@ -102,14 +102,14 @@ class crate_view_metric_info {
 
 function updatePoll(datatype, view_type, detector, view_ind, param, is_new_data) {
     histogram.reLayout(layoutHisto(datatype, view_type, view_ind, detector, param));
-    scatter.reLayout(layoutScatter(datatype, view_type, view_ind, param));
+    scatter.reLayout(layoutScatter(datatype, view_type, view_ind, detector, param));
 
     // if there's new data, stop the old poll
     if (is_new_data == true) {
         // if there is a poll, stop it
         if (!(poll === undefined)) poll.stop();
 
-	poll = newPoll(datatype, view_type, histogram, scatter, view_ind, detector);
+	poll = newPoll(datatype, view_type, histogram, scatter, view_ind, detector, param);
     }
 }
 
@@ -151,14 +151,26 @@ function getDataPoints(view_type, view_ind, detector) {
     }
 }
 
+function titleize(str) {
+    return str.replace(/_/g, ' ').replace(/\w\S*/g, function(txt){
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+}
+
 // default layout for histograms
-function layoutHisto(datatype, view_type, view_ind, detector, param) {
+function layoutHisto(datatype, view_type, view_ind, detector, param, run, subrun) {
     var data_types = dispatchViewType(view_type)[1];
     var name = dispatchViewType(view_type)[2];
 
     var n_data_points = getDataPoints(view_type, view_ind, detector);
 
+    var title = name + " " + datatype;
+    if (!(run === undefined) && !(subrun === undefined)) {
+        title = title + " run " + run + " subrun " + subrun;
+    }
+
     var layout = {
+        title: titleize(title),
         xaxis: {
             title: datatype,
         },
@@ -168,7 +180,6 @@ function layoutHisto(datatype, view_type, view_ind, detector, param) {
         }
     }
 
-    //for (field in param) { alert(param[field]); alert(field); }
     if (!(param.threshold_lo === undefined)) {
         layout.xaxis.range = [param.threshold_lo, param.threshold_hi];
     }
@@ -186,11 +197,17 @@ function newHistogram(datatype, view_type, view_ind, detector, target, param) {
 } 
 
 // default layout for scatter plots
-function layoutScatter(datatype, view_type, view_ind, param) {
+function layoutScatter(datatype, view_type, view_ind, detector, param, run, subrun) {
     var data_types = dispatchViewType(view_type)[1];
     var name = dispatchViewType(view_type)[2];
 
+    var title = name + " " + datatype;
+    if (!(run === undefined) && !(subrun === undefined)) {
+        title = title + " run " + run + " subrun " + subrun;
+    }
+
     var layout = {
+        title: titleize(title),
         yaxis: {
             title: datatype,
         },
@@ -208,13 +225,13 @@ function layoutScatter(datatype, view_type, view_ind, param) {
 } 
 
 function newScatter(datatype, view_type, view_ind, detector, target, param) {
-    var layout = layoutScatter(datatype, view_type, view_ind, param);
+    var layout = layoutScatter(datatype, view_type, view_ind, detector, param);
 
     return new LineChart(getDataPoints(view_type, view_ind, detector), target, layout);
 }
 
 
-function newPoll(datatype, view_type, histogram, scatter, view_ind, detector) {
+function newPoll(datatype, view_type, histogram, scatter, view_ind, detector, param) {
     var view_info = dispatchViewType(view_type);
     var datum_list = view_info[0];
     var DATA_TYPES = view_info[1];
@@ -227,10 +244,15 @@ function newPoll(datatype, view_type, histogram, scatter, view_ind, detector) {
     // a listener to update the time
     var update_time = function(data, start) {
         $("#update-time").html("Poll Time: " + moment(start).format("HH:mm:ss"));
-        $("#update-subrun").html("Data SubRun: " + data.index[0]);
     }; 
+
+    var re_title = function(data, start) {
+        histogram.reLayout(layoutHisto(datatype, view_type, view_ind, detector, Param(), data.index[0].run, data.index[0].subrun));
+        scatter.reLayout(layoutScatter(datatype, view_type, view_ind, detector, Param(), data.index[0].run, data.index[0].subrun));
+    }
+
     // tell the poll to update the histogram and the scatter plot
-    var listeners = [histogram.updateData.bind(histogram), scatter.updateData.bind(scatter), update_time];
+    var listeners = [histogram.updateData.bind(histogram), scatter.updateData.bind(scatter), update_time, re_title];
 
     poll = new D3DataPoll(data_chain, timeout, listeners, check_update_state);
     poll.run();
