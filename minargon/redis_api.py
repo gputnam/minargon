@@ -74,12 +74,18 @@ def query_data(data, args, wire_range, data_map):
     stream_name = args.get('stream_name')
     index = args.get('start', None, type=parseiso_or_int)
     skip = args.get('skip', None, type=int)
+
+    sub_run_stream = "sub_run" in stream_name
+
     # backup if index is none
     if index is None:
         # case for sub_run stream
-        if stream_name == "sub_run":
-            index = get_subrun_index()
-            stream_name = "%s_%i" % (stream_name, get_run_index())
+        if sub_run_stream:
+            subrun = get_subrun_index()
+            run = get_run_index()
+
+            index = subrun
+            stream_name = "%s_%i" % (stream_name, run)
         # case for time stream
         elif skip is not None:
             index = get_time_index(skip)
@@ -94,6 +100,11 @@ def query_data(data, args, wire_range, data_map):
         key = 'stream/%s:%i:%s:wire:%i' % (stream_name, index, data, wire)
         p.get(key)
     result = [check_and_map(x, data_map) for x in p.execute()]
+
+    # send back sub run and run no for sub run stream
+    if sub_run_stream:
+        index = {"run": run, "subrun": subrun}
+
     return result, index
 
 # get all data points in args.start, args.stop for a single
@@ -107,18 +118,24 @@ def stream_data(base_key, args, data_map):
     step = args.get('step',1000,type=int)//1000
     now = int(time.time())
 
+    sub_run_stream = "sub_run" in stream_name
+
     # adjust for clock skew
     # if not sub_run stream
-    if "sub_run" not in stream_name:
+    if not sub_run_stream:
 	dt = now_client - now
 	start -= dt
 	stop -= dt
 
     if start is None: 
         # case for sub_run stream
-        if stream_name == "sub_run":
-            start = get_subrun_index()
-            stream_name = "%s_%i" % (stream_name, get_run_index())
+        if sub_run_stream:
+            run = get_run_index()
+            subrun = get_subrun_index()
+
+            start = subrun
+            stream_name = "%s_%i" % (stream_name, run)
+
         # case for time stream
         elif skip is not None:
             start = get_time_index(skip)
@@ -136,6 +153,10 @@ def stream_data(base_key, args, data_map):
 
 
     result = [check_and_map(x, data_map) for x in p.execute()]
+
+    # send back sub run and run no for sub run stream
+    if sub_run_stream:
+        start = {"run": run, "subrun": subrun}
         
     return result, start
 

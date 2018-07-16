@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+{% block title %}Noise Snapshot{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+<div class="row">
+<div class="col-md-3 hcenter">
+<div class="card">
+    <div class="card-header">Noise Correlation Snapshot</div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">Taken at <span id="snapshot-time"></span></li>
+    </ul>
+</div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-12">
+    <div id="display"></div>
+</div>
+</div>
+
+</div>
+{%endblock%}
+{% block script %}
+<script defer>
+$(document).ready(function() {
+// get snapshot time
+d3.json($SCRIPT_ROOT + '/snapshot/time', function(err, data) {
+  var time = moment(new Date(data.value * 1000));
+  $("#snapshot-time").html(time.format("MM/DD hh:mm:ss"));
+});
+
+// helpful waiting message
+$('#display').html("LOADING EVENT DISPLAY...");
+
+{% if plane == "induction" %}
+
+{% endif %}
+
+for 
+
+// draw the correlation matrix
+d3.json($SCRIPT_ROOT + '/snapshot/correlation' , function(err, data) {
+  if (data.value == null) return;
+  // delete the waiting message
+  $('#correlation').html("");
+  var n_channels = {{n_channels}};
+  var correlation = data.value;
+
+  var matrix = [];
+  for (var i = 0; i < n_channels; i++) {
+    matrix.push(new Array(n_channels));
+  }
+  var row_start_index = 0;
+  var row_length = n_channels;
+
+  var matrix_i = 0;
+  var matrix_j = 0;
+
+  // data for noise correlation matrix is stored in redis in column-major order
+  // with only the lower-half triangle stored
+  for (i = 0; i < correlation.length; i++) {
+    if (i - row_start_index == row_length) {
+      row_start_index = i;
+      row_length = row_length - 1;
+      matrix_i = n_channels - row_length;
+      matrix_j = matrix_j + 1;
+    }
+    matrix[matrix_i][matrix_j] = correlation[i];
+    matrix[matrix_j][matrix_i] = correlation[i];
+    matrix_i = matrix_i + 1;
+  }
+
+  var plotly_data = [ 
+    { 
+        z: matrix, 
+        type: 'heatmap',
+        colorbar: {
+          title: 'Correlation Coeff', //set title
+          titleside:'top', //set postion
+        },
+        zmax: 1,
+        zmin: -1
+    }
+  ]; 
+
+  var layout = {
+    xaxis: {
+      title: "Wire Number",
+    },
+    yaxis: {
+      title: "Wire Number",
+    }
+  };
+
+  Plotly.newPlot('correlation', plotly_data, layout);
+})
+});
+
+</script> 
+{% endblock %}
