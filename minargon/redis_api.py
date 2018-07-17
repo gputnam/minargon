@@ -76,22 +76,35 @@ def query_data(data, args, wire_range, data_map):
     skip = args.get('skip', None, type=int)
 
     sub_run_stream = "sub_run" in stream_name
-
-    # backup if index is none
-    if index is None:
-        # case for sub_run stream
-        if sub_run_stream:
+    
+    # case for sub_run stream
+    if sub_run_stream:
+        # set subrun if necessary
+        if index is None:
             subrun = get_subrun_index()
-            run = get_run_index()
-
             index = subrun
-            stream_name = "%s_%i" % (stream_name, run)
-        # case for time stream
-        elif skip is not None:
-            index = get_time_index(skip)
-        # neither sub_run nor time stream -- bad
         else:
-            raise Exception("Bad Redis Request")
+            subrun = index
+
+        # set run if necessary
+        if stream_name == "sub_run":
+            run = get_run_index()
+        else:
+            try:
+                run = int(stream_name.split("_")[-1])
+            except:
+                raise Exception("Bad Redis Request")
+
+        stream_name = "sub_run_%i" % run
+    # case for time stream
+    else:
+        # backup if index is none
+        if index is None:
+            if skip is not None:
+                index = get_time_index(skip)
+            # neither sub_run nor time stream -- bad
+            else:
+                raise Exception("Bad Redis Request")
         
     # get the most recent data on the stream 
     # go back one time step to be safe
@@ -127,21 +140,33 @@ def stream_data(base_key, args, data_map):
 	start -= dt
 	stop -= dt
 
-    if start is None: 
-        # case for sub_run stream
-        if sub_run_stream:
-            run = get_run_index()
+    if sub_run_stream:
+        # set subrun if necessary
+        if start is None:
             subrun = get_subrun_index()
-
             start = subrun
-            stream_name = "%s_%i" % (stream_name, run)
-
-        # case for time stream
-        elif skip is not None:
-            start = get_time_index(skip)
-        # neither sub_run nor time stream -- bad
         else:
-            raise Exception("Bad Redis Request")
+            subrun = start
+
+        # set run if necessary
+        if stream_name == "sub_run":
+            run = get_run_index()
+        else:
+            try:
+                run = int(stream_name.split("_")[-1])
+            except:
+                raise Exception("Bad Redis Request")
+
+        stream_name = "sub_run_%i" % run
+
+    # case for time stream
+    else:
+        if start is None: 
+            if skip is not None:
+                start = get_time_index(skip)
+            # time stream must set skip
+            else:
+                raise Exception("Bad Redis Request")
         
     if stop is None:
         stop = int(start) + step
