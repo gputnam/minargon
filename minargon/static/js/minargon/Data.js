@@ -315,11 +315,21 @@ function timeArgs(start, stop, stream_name) {
   };
   // start can be null
   if (start != null) {
-    ret.start = start.toISOString();
+    if (!isNaN(stream_name)) {
+      ret.start = start.toISOString();
+    }
+    else {
+      ret.start = start;
+    }
   }
 
-  if (stop != null) {
-    ret.stop = stop.toISOString();
+  if (stop != null && !isNaN(stream_name)) {
+    if (!isNaN(stream_name)) {
+      ret.stop = stop.toISOString();
+    }
+    else {
+      ret.stop = stop;
+    }
   }
   // set step if using a time stream
   if (!isNaN(stream_name)) {
