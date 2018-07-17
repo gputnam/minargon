@@ -452,7 +452,7 @@ NEVIS_HEADER_DATA_TYPES["event_no"] = {
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "event_no", crate, fem)) },
 };
 NEVIS_HEADER_DATA_TYPES["trig_frame_no"] = {
-  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "trigframe_no", crate, fem)) },
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "trig_frame_no", crate, fem)) },
 };
 NEVIS_HEADER_DATA_TYPES["blocks"] = {
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "blocks", crate, fem)) },
