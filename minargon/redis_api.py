@@ -145,6 +145,104 @@ def clean_float(x):
         ret = "NaN"
     return ret
 
+def stream_eventinfo_data(base_key, args, data_map):
+
+    start = args.get('start',None,type=parseiso_or_int)
+    stop = args.get('stop',None,type=parseiso_or_int)
+    minard_step = args.get('step',1000,type=int)//1000
+    now_client = args.get('now',type=parseiso_or_int)
+
+    l = len(constants.REDIS_TIME_STEPS)
+    redis_step = int(constants.REDIS_TIME_STEPS[0])
+    stream_name = constants.REDIS_TIME_STEPS[0]
+
+    now = int(time.time())
+
+    print("start: %s stop: %s minard_step: %i" % (start,stop,minard_step) )
+
+    # adjust for clock skew
+    # if not sub_run stream
+    if stream_name != "sub_run":
+	dt = now_client - now
+	start -= dt
+	stop -= dt
+
+    if start is None: 
+        # case for sub_run stream
+        if stream_name == "sub_run":
+            start = get_subrun_index()
+            stream_name = "%s_%i" % (stream_name, get_run_index())
+        # case for time stream
+        elif skip is not None:
+            start = get_time_index(skip)
+        # neither sub_run nor time stream -- bad
+        else:
+            raise Exception("Bad Redis Request")
+        
+    if stop is None:
+        stop = int(start) + minard_step
+
+    p = redis.pipeline()
+    # Some how need to change this to 7 for 10 seconds. There are 7 between the start and the end and it iterates up every ten seconds for something reason. 
+
+    update_len = int(start+minard_step)
+    if float(stop-start)/float(minard_step) == 460: 
+        update_len = int(stop) 
+    #print ("update_len:",  update_len) 
+
+
+#    while (redis_len <= start+minard_step):
+
+    for i in range(int(start),update_len,redis_step):
+       # print ("i: %i i//step: %i" % (i,i//step))
+        key = 'stream/%s:%i:%s' % (stream_name, i//redis_step, base_key)
+        #print key
+        p.get(key)
+
+    result = []    
+    j=1
+    i=0
+    length=0
+    total=0
+    for x in p.execute():
+        
+        i+=1
+
+        if check_and_map(x, data_map) != 0:
+            length+=1
+           # print ("sum: %f" , check_and_map(x, data_map))
+            total += check_and_map(x, data_map)
+        
+        if i*redis_step >= j*minard_step:
+
+            if length!=0: 
+                result.append(float(float(total)/float(length)))
+                #print("result: %f step: %f" % (float(total)/float(length),j*minard_step))
+            else:
+                result.append(0.0)
+                
+            j+=1
+            length=0
+            total=0
+            
+
+    #result = [check_and_map(x, data_map) for x in p.execute()]
+
+    return result, start
+
+
+
+@app.route('/stream_eventinfo/<data>/')
+def stream_eventinfo(data):
+    
+    #base key is stream ( the word purity) 
+    base_key = data + ":"
+    args = request.args
+
+    data, start = stream_eventinfo_data(base_key, args, clean_float)
+
+    print("data:  %s start: %s" % (data, start))
+    return jsonify(values=data, index=start)
 
 # getting data on a crate
 @app.route('/stream/<data>/<crate>')
@@ -223,5 +321,4 @@ def key(keyname):
     except:
         keyint = 0
     return jsonify(value=keyint)
-
 

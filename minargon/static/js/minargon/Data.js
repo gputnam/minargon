@@ -272,6 +272,25 @@ class MultiWireLink {
     }
 }
 
+// Link to data on Event Info 
+class EventInfoLink {
+    constructor(script_root, data_name) {
+	this.root = script_root;
+        this.data_name = data_name;
+    }
+
+    data_link(start, stop, stream) {
+        var args = $.param(timeArgs(start, stop, stream));
+	return this.root + '/stream_eventinfo/' + this.data_name + '/'  + '?' + args;
+    }
+
+    name() {
+	return this.data_name;
+    }
+}
+
+
+
 // gets the actual values out of a data object returned by the redis api
 function redisValues(data) {
   return data.values
@@ -503,3 +522,9 @@ POWER_SUPPLY_DATA_TYPES["max_output_current"] = {
 };
 
 
+var EVENT_INFO_DATA_TYPES = {}
+
+EVENT_INFO_DATA_TYPES["purity"] = {
+  data_link: function(script_root) { return new D3DataLink(new EventInfoLink(script_root, "purity")) },
+  horizon_format: function(d) { return clean_format(d, d3.format('.4f')); },
+};

@@ -67,6 +67,9 @@ CRATE_DATA = CHANNEL_DATA + [] # other stuff to be included
 
 HEADER_DATA = ["frame_no", "event_no", "trig_frame_no", "blocks"]
 
+EVENT_INFO_DATA = ["purity"]
+EVENT_INFO_TIME_STEPS = [2, 10, 1]
+
 # and for power supplies stuff
 POWER_SUPPLY_DATA = ["measured_output_voltage", "measured_output_current", "output_voltage", "output_current", "max_output_current"]
 

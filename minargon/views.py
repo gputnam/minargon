@@ -223,3 +223,23 @@ def power_supplies():
 
     return render_template('power_supplies.html', **render_args)
 
+
+@app.route('/purity')
+def purity():
+
+    view_ind = {}
+
+    view_ind_opts = {}
+    render_args = {
+        'data_types': constants.EVENT_INFO_DATA,
+        'default_step': request.args.get('step', constants.EVENT_INFO_TIME_STEPS[0], type=float),
+        'view_ind': view_ind,
+        'view_ind_opts': view_ind_opts,
+        'view_type': 'readout',
+        'steps': constants.EVENT_INFO_TIME_STEPS,
+    }
+#    render_args = dict(render_args, **stream_metric_args(request.args))
+
+    return render_template('purity.html', **render_args)
+
+
