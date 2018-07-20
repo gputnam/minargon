@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+{% block title %}Purity{% endblock %}
+{% block body %}
+{{ super() }}
+<!-- This is the Stream Options  -->
+<div class="container">
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card">
+	<div class="card-header">Stream Options</div>
+	<div class="card-body">
+          <form class="form" role="form">
+            <div class="form-group row">
+              <label class="col-sm-4 control-form-label col-form-label">
+                Step
+              </label>
+              <div class="col-sm-8">
+                <select id="data-step" class="form-control" onchange="updateStep(this, '#timeseries', $('#data-type').val(),context,Param(), metric_info)">
+                  {% for step in steps %}
+                  <option value="{{step}}" {% if step == default_step%}selected="true" {%endif%}>{{step}} seconds</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </form>
+	</div>
+      </div>
+    </div>
+  </div>
+  <!-- This holds the cube thing -->
+  <div class="col-md-8" style="padding:0" id="timeseries"></div>
+</div>
+{%endblock%}
+{% block script %}
+<script defer>
+  
+  // simple metric_info implementation
+  class event_info_metric_info {
+  constructor() {}  
+  data_list(_, context) {
+  return data_links;
+  }
+  }
+  
+
+
+// global variables to be accessed by form fields, etc.
+var context;
+var data_links;
+var metric_info;
+$(document).ready(function() {
+
+// setup data links
+data_links = [
+  {% for d in data_types %}
+    EVENT_INFO_DATA_TYPES["{{d}}"].data_link($SCRIPT_ROOT),
+  {% endfor %}
+];
+
+
+metric_info = new event_info_metric_info();
+
+// setup cubism
+context = create_cubism_context("#timeseries", $("#data-step").val());
+    <!-- // start getting data -->
+    horizon = updateData("#timeseries", context, Param(), $("#data-type").val(), metric_info);
+});
+
+
+function link_param() { }
+
+</script>
+{% endblock %}
+
