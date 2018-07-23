@@ -35,7 +35,7 @@ d3.json($SCRIPT_ROOT + "/get_warnings/" + n_warnings + "/" + start, function(err
   if (data===undefined || data.warnings===undefined || data.warnings.length===undefined) return;
 
   // iterate over warnings in descending order
-  for (var i = 0; i < data.warnings.lengthl i++) {
+  for (var i = 0; i < data.warnings.length; i++) {
     var span_id = "warning_" + i;
     var span_start = "<span id='" + span_id + "'>";
     $("#warnings").append( `

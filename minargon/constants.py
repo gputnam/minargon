@@ -24,10 +24,10 @@ SLOT_OFFSET = 4
 N_WIRES_PER_PLANE = 240
 
 # channel mapping
-# CHANNEL_MAP_FNAME = "/sbnd/data/users/sbnd/VST_CHANNEL_MAP/channel_map.txt"
-# (channel_to_wire, wire_to_channel, N_CHANNELS_PER_FEM, FEM_ACTIVE_CHANNELS) = tools.parse_channel_map_file(CHANNEL_MAP_FNAME, N_CHANNELS_PER_FEM, N_FEM, SLOT_OFFSET)
+CHANNEL_MAP_FNAME = "/web/sites/s/sbn-online.fnal.gov/cgi-bin/minargon/minargon/channel_map.txt"
+(channel_to_wire, wire_to_channel, N_CHANNELS_PER_FEM, FEM_ACTIVE_CHANNELS) = tools.parse_channel_map_file(CHANNEL_MAP_FNAME, N_CHANNELS_PER_FEM, N_FEM, SLOT_OFFSET)
 
-(channel_to_wire, wire_to_channel, N_CHANNELS_PER_FEM, FEM_ACTIVE_CHANNELS) = tools.default_channel_map(N_CHANNELS, N_FEM)
+# (channel_to_wire, wire_to_channel, N_CHANNELS_PER_FEM, FEM_ACTIVE_CHANNELS) = tools.default_channel_map(N_CHANNELS, N_FEM)
 
 detector = {
   'n_channels': N_CHANNELS,
@@ -55,7 +55,7 @@ PLANES = ["combined", "induction", "collection"]
 POWER_SUPPLIES = ["PL506"]
 
 # Redis Stuff
-REDIS_TIME_STEPS = [1, 10]
+REDIS_TIME_STEPS = [5, 30, 60]
 # Each entry in this list should have a corresponding entry in 
 # static/js/minargon/Data.js 'var DATA_TYPES' describing how the datum is 
 # presented on the front-end

@@ -24,7 +24,7 @@
 // get snapshot time
 d3.json($SCRIPT_ROOT + "/snapshot/time", function(err, data) {
   var time = moment(new Date(data.value * 1000));
-  $("#update-time").html("Snapshot At: " + time.format("MM/DD hh:mm:ss"));
+  $("#update-time").html("Snapshot At: " + time.format("MM/DD HH:mm:ss"));
 });
 
 d3.json($SCRIPT_ROOT + "/snapshot/sub_run", function(err, data) {

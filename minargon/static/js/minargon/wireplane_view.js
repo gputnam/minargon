@@ -66,21 +66,33 @@ class wireplane_metric_info {
 function updatePoll(datatype, plane, detector, param, is_new_data) {
 
     histogram.reLayout(layoutHisto(datatype, param, detector, plane));
-    scatter.reLayout(layoutScatter(datatype, param));
+    scatter.reLayout(layoutScatter(datatype, param, detector, plane));
 
     if (is_new_data) {
         // if there's a poll, stop it
         if (!(poll === undefined)) poll.stop();
-        poll = newPoll(datatype, histogram, scatter, detector, plane);
+        poll = newPoll(datatype, histogram, scatter, detector, plane, param);
 
     }
 }
 
+function titleize(str) {
+    return str.replace(/_/g, ' ').replace(/\w\S*/g, function(txt){
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+}
+
 // default layout for histograms
-function layoutHisto(datatype, param, detector, plane) {
+function layoutHisto(datatype, param, detector, plane, run, subrun) {
     var n_data_points = detector[plane].n_wires;
 
+    var title = plane + " plane " + datatype;
+    if (!(run === undefined) && !(subrun === undefined)) {
+        title = title + " run " + run + " subrun " + subrun;
+    }
+
     var layout = {
+        title: titleize(title),
         xaxis: {
             title: datatype,
         },
@@ -98,8 +110,14 @@ function layoutHisto(datatype, param, detector, plane) {
 }
 
 // default layout for scatter plots
-function layoutScatter(datatype, param) {
+function layoutScatter(datatype, param, detector, plane, run, subrun) {
+    var title = plane + " plane " + datatype;
+    if (!(run === undefined) && !(subrun === undefined)) {
+        title = title + " run " + run + " subrun " + subrun;
+    }
+
     var layout = {
+        title: titleize(title),
         yaxis: {
             title: datatype,
         },
@@ -124,26 +142,30 @@ function newHistogram(datatype, param, detector, plane, target) {
 
 
 function newScatter(datatype, param, detector, plane, target) {
-    var layout = layoutScatter(datatype, param);
+    var layout = layoutScatter(datatype, param, detector, plane);
 
     return new LineChart(detector[plane].n_wires, target, layout);
 }
 
-function newPoll(datatype, histogram, scatter, detector, plane) {
+function newPoll(datatype, histogram, scatter, detector, plane, param) {
     // multi wire link querries a set of wires all at once
     var data_link = new D3DataLink(new MultiWireLink($SCRIPT_ROOT, datatype, detector[plane].offset, detector[plane].offset + detector[plane].n_wires));
     // sleep for 10 seconds in between polling
     var timeout = 10000;
 
     var update_time = function(data, start) {
-        $("#update-time").html("Poll Time: " + moment(start).format("hh:mm:ss"));
-        $("#update-subrun").html("Data SubRun: " + data.index);
+        $("#update-time").html("Poll Time: " + moment(start).format("HH:mm:ss"));
     }; 
 
-    // tell the poll to update the histogram and the scatter plot
-    var listeners = [histogram.updateData.bind(histogram), scatter.updateData.bind(scatter), update_time];
+    var re_title = function(data, start) {
+        histogram.reLayout(layoutHisto(datatype, Param(), detector, plane, data.index.run, data.index.subrun));
+        scatter.reLayout(layoutScatter(datatype, Param(), detector, plane, data.index.run, data.index.subrun));
+    }
 
-    poll = new D3DataPoll(data_link, timeout, listeners, check_update_state);
+    // tell the poll to update the histogram and the scatter plot
+    var listeners = [histogram.updateData.bind(histogram), scatter.updateData.bind(scatter), update_time, re_title];
+
+    poll = new D3DataPoll(data_link, timeout, listeners, check_update_state, get_run, get_subrun);
     poll.run();
     return poll;
 }

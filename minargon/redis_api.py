@@ -74,17 +74,37 @@ def query_data(data, args, wire_range, data_map):
     stream_name = args.get('stream_name')
     index = args.get('start', None, type=parseiso_or_int)
     skip = args.get('skip', None, type=int)
-    # backup if index is none
-    if index is None:
-        # case for sub_run stream
-        if stream_name == "sub_run":
-            index = get_subrun_index()
-        # case for time stream
-        elif skip is not None:
-            index = get_time_index(skip)
-        # neither sub_run nor time stream -- bad
+
+    sub_run_stream = "sub_run" in stream_name
+    
+    # case for sub_run stream
+    if sub_run_stream:
+        # set subrun if necessary
+        if index is None:
+            subrun = get_subrun_index()
+            index = subrun
         else:
-            raise Exception("Bad Redis Request")
+            subrun = index
+
+        # set run if necessary
+        if stream_name == "sub_run":
+            run = get_run_index()
+        else:
+            try:
+                run = int(stream_name.split("_")[-1])
+            except:
+                raise Exception("Bad Redis Request")
+
+        stream_name = "sub_run_%i" % run
+    # case for time stream
+    else:
+        # backup if index is none
+        if index is None:
+            if skip is not None:
+                index = get_time_index(skip)
+            # neither sub_run nor time stream -- bad
+            else:
+                raise Exception("Bad Redis Request")
         
     # get the most recent data on the stream 
     # go back one time step to be safe
@@ -93,6 +113,11 @@ def query_data(data, args, wire_range, data_map):
         key = 'stream/%s:%i:%s:wire:%i' % (stream_name, index, data, wire)
         p.get(key)
     result = [check_and_map(x, data_map) for x in p.execute()]
+
+    # send back sub run and run no for sub run stream
+    if sub_run_stream:
+        index = {"run": run, "subrun": subrun}
+
     return result, index
 
 # get all data points in args.start, args.stop for a single
@@ -106,24 +131,42 @@ def stream_data(base_key, args, data_map):
     step = args.get('step',1000,type=int)//1000
     now = int(time.time())
 
+    sub_run_stream = "sub_run" in stream_name
+
     # adjust for clock skew
     # if not sub_run stream
-    if stream_name != "sub_run":
+    if not sub_run_stream:
 	dt = now_client - now
 	start -= dt
 	stop -= dt
 
-    if start is None: 
-        # case for sub_run stream
-        if stream_name == "sub_run":
-            start = get_subrun_index()
-            stream_name = "%s_%i" % (stream_name, get_run_index())
-        # case for time stream
-        elif skip is not None:
-            start = get_time_index(skip)
-        # neither sub_run nor time stream -- bad
+    if sub_run_stream:
+        # set subrun if necessary
+        if start is None:
+            subrun = get_subrun_index()
+            start = subrun
         else:
-            raise Exception("Bad Redis Request")
+            subrun = start
+
+        # set run if necessary
+        if stream_name == "sub_run":
+            run = get_run_index()
+        else:
+            try:
+                run = int(stream_name.split("_")[-1])
+            except:
+                raise Exception("Bad Redis Request")
+
+        stream_name = "sub_run_%i" % run
+
+    # case for time stream
+    else:
+        if start is None: 
+            if skip is not None:
+                start = get_time_index(skip)
+            # time stream must set skip
+            else:
+                raise Exception("Bad Redis Request")
         
     if stop is None:
         stop = int(start) + step
@@ -131,11 +174,14 @@ def stream_data(base_key, args, data_map):
     p = redis.pipeline()
     for i in range(int(start),int(stop),step):
         key = 'stream/%s:%i:%s' % (stream_name, i//step, base_key)
-        print key
         p.get(key)
 
 
     result = [check_and_map(x, data_map) for x in p.execute()]
+
+    # send back sub run and run no for sub run stream
+    if sub_run_stream:
+        start = {"run": run, "subrun": subrun}
         
     return result, start
 
@@ -308,8 +354,8 @@ def get_warnings(max_n, start=None, stop=None):
         start = 0
     if stop is None:
         stop = get_time_index(1)
-    warnings = redis.zrevrangebyscore("WARNINGS", int(start), int(stop), num=int(max_n), start=-1)
-    json_data = [json.loads(w) for w in warnings]
+    warnings = redis.zrevrangebyscore("WARNINGS", int(stop), int(start))
+    json_data = [json.loads(w) for i,w in enumerate(warnings) if i < int(max_n)]
     return jsonify(warnings=json_data)
 
 # get last time online analysis ran

@@ -16,7 +16,7 @@
 
 <div class="row">
 <div class="col-md-12">
-    <div id="correlation"></div>
+    <div id="display"></div>
 </div>
 </div>
 
@@ -28,11 +28,17 @@ $(document).ready(function() {
 // get snapshot time
 d3.json($SCRIPT_ROOT + '/snapshot/time', function(err, data) {
   var time = moment(new Date(data.value * 1000));
-  $("#snapshot-time").html(time.format("MM/DD HH:mm:ss"));
+  $("#snapshot-time").html(time.format("MM/DD hh:mm:ss"));
 });
 
 // helpful waiting message
-$('#correlation').html("LOADING CORRELATION MATRIX...");
+$('#display').html("LOADING EVENT DISPLAY...");
+
+{% if plane == "induction" %}
+
+{% endif %}
+
+for 
 
 // draw the correlation matrix
 d3.json($SCRIPT_ROOT + '/snapshot/correlation' , function(err, data) {

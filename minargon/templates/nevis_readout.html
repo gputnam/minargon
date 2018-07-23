@@ -7,7 +7,7 @@
   <thead>
     <tr>
       <th scope="col">FEM #</th>
-      <th scope="col">Time</th>
+      <th scope="col">Polling Time</th>
       <th scope="col">SubRun</th>
       {% for metric in header_metrics %}
       <th scope="col">{{metric}}</th>
@@ -39,8 +39,8 @@ $(document).ready(function() {
     var listener = function(data) { $("#{{metric}}_{{i}}").html(redisValues(data)); } 
     {% if loop.index == 1 %}
      var timer = function(data, time) { 
-       $("#time_{{i}}").html(moment(time).format("hh:mm:ss"));
-       $("#subrun_{{i}}").html(data.index);
+       $("#time_{{i}}").html(moment(time).format("HH:mm:ss"));
+       $("#subrun_{{i}}").html(data.index.subrun);
      }
      var poll = new D3DataPoll(data_link, 10000, [listener, timer], () => true);
     {% else %}

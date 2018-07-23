@@ -1,11 +1,13 @@
 class D3DataPoll {
     // expects a D3DataLink or D3DataChain
-    constructor(data, timeout, listeners, update_function) {
+    constructor(data, timeout, listeners, update_function, run_function, subrun_function) {
         this.data = data;
         this.timeout = timeout;
         this.listeners = listeners;
         this.running = true;
         this.update_function = update_function;
+        this.run_function = run_function;
+        this.subrun_function = subrun_function;
     }
 
     run() {
@@ -17,12 +19,31 @@ class D3DataPoll {
             setTimeout(this.run.bind(this), this.timeout);
             return;
         }
+
+        var run;
+        var stream;
+        if (!(this.run_function === undefined)) {
+            run = this.run_function();
+            if (run != null) stream = "sub_run_" + run;
+            else stream = "sub_run";
+        }
+        else {
+            run = null;
+            stream = "sub_run";
+        }
+        var subrun;
+        if (!(this.subrun_function === undefined)) {
+            subrun = this.subrun_function();
+        }
+        else {
+            subrun = null;
+        }
             
         var self = this;
         var start = new Date();
         start.setSeconds(start.getSeconds() - 10);
         var now = new Date();
-        this.data.get_data_promise(null, null, "sub_run")
+        this.data.get_data_promise(subrun, null, stream)
             .then(function(value) {
                 for (var i = 0; i < self.listeners.length; i++) {
                     var func = self.listeners[i];
@@ -313,11 +334,21 @@ function timeArgs(start, stop, stream_name) {
   };
   // start can be null
   if (start != null) {
-    ret.start = start.toISOString();
+    if (!isNaN(stream_name)) {
+      ret.start = start.toISOString();
+    }
+    else {
+      ret.start = start;
+    }
   }
 
-  if (stop != null) {
-    ret.stop = stop.toISOString();
+  if (stop != null && !isNaN(stream_name)) {
+    if (!isNaN(stream_name)) {
+      ret.stop = stop.toISOString();
+    }
+    else {
+      ret.stop = stop;
+    }
   }
   // set step if using a time stream
   if (!isNaN(stream_name)) {
@@ -352,8 +383,8 @@ CHANNEL_DATA_TYPES["rawhit_occupancy"] = {
 };
 
 CHANNEL_DATA_TYPES["baseline"] = {
-  range: [-10, 10],
-  warning_range: [-7,7],
+  range: [500, 2000],
+  warning_range: [550,1300],
   horizon_format: function(d) { return clean_format(d, float_format); },
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "baseline", channel_no)) },
 };
@@ -366,7 +397,8 @@ CHANNEL_DATA_TYPES["baseline_rms"] = {
 };
 
 CHANNEL_DATA_TYPES["pulse_height"] = {
-  range: [0, 50],
+  range: [0, 100],
+  warning_range: [-1, 1000],
   data_link: function(script_root, channel_no) { return new D3DataLink(new ChannelLink(script_root, "pulse_height", channel_no)) },
 };
 
@@ -439,7 +471,7 @@ NEVIS_HEADER_DATA_TYPES["event_no"] = {
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "event_no", crate, fem)) },
 };
 NEVIS_HEADER_DATA_TYPES["trig_frame_no"] = {
-  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "trigframe_no", crate, fem)) },
+  data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "trig_frame_no", crate, fem)) },
 };
 NEVIS_HEADER_DATA_TYPES["blocks"] = {
   data_link: function(script_root, crate, fem) { return new D3DataLink(new FEMLink(script_root, "blocks", crate, fem)) },
