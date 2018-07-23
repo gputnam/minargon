@@ -526,5 +526,5 @@ var EVENT_INFO_DATA_TYPES = {}
 
 EVENT_INFO_DATA_TYPES["purity"] = {
   data_link: function(script_root) { return new D3DataLink(new EventInfoLink(script_root, "purity")) },
-  horizon_format: function(d) { return clean_format(d, d3.format('.4f')); },
+  horizon_format: function(d) { return clean_format(d, float_format); },
 };

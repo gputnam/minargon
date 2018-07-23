@@ -44,7 +44,7 @@ function add_metrics(target, context, data_links, param, metric_info) {
     // add new metrics
     var data = data_links.map(function(data_link) { 
         var metric = context.metric(data_link.get_values.bind(data_link), data_link.name());
-        if (!(metric_info.on_upadte === undefined)) {
+        if (!(metric_info.on_update === undefined)) {
             metric.on("change", metric_info.on_update.bind(metric_info));
         }
         return metric;
@@ -220,9 +220,9 @@ function updateData(target, context, param, data_type, metric_info, remove_old, 
 
 // formatting for displaying numbers
 // taken from minard
-si_format = d3.format('.2s');
-float_format = d3.format('.2f');
-percent_format = d3.format('.2%');
+si_format = d3.format('.4s');
+float_format = d3.format('.4f');
+percent_format = d3.format('.4%');
 
 function clean_format(d, format) {
   if (!$.isNumeric(d))
