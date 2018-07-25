@@ -1,4 +1,6 @@
+from . import app
 import tools
+
 
 # Detector Stuff
 
@@ -24,7 +26,7 @@ SLOT_OFFSET = 4
 N_WIRES_PER_PLANE = 240
 
 # channel mapping
-CHANNEL_MAP_FNAME = "/web/sites/s/sbn-online.fnal.gov/cgi-bin/minargon/minargon/channel_map.txt"
+CHANNEL_MAP_FNAME = app.config["CHANNEL_MAP_FNAME"]
 (channel_to_wire, wire_to_channel, N_CHANNELS_PER_FEM, FEM_ACTIVE_CHANNELS) = tools.parse_channel_map_file(CHANNEL_MAP_FNAME, N_CHANNELS_PER_FEM, N_FEM, SLOT_OFFSET)
 
 # (channel_to_wire, wire_to_channel, N_CHANNELS_PER_FEM, FEM_ACTIVE_CHANNELS) = tools.default_channel_map(N_CHANNELS, N_FEM)
