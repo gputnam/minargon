@@ -220,9 +220,9 @@ function updateData(target, context, param, data_type, metric_info, remove_old, 
 
 // formatting for displaying numbers
 // taken from minard
-si_format = d3.format('.4s');
-float_format = d3.format('.4f');
-percent_format = d3.format('.4%');
+si_format = d3.format('.2s');
+float_format = d3.format('.2f');
+percent_format = d3.format('.2%');
 
 function clean_format(d, format) {
   if (!$.isNumeric(d))
