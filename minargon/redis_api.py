@@ -231,15 +231,15 @@ def stream_eventinfo_data(base_key, args, data_map):
     p = redis.pipeline()
     # Some how need to change this to 7 for 10 seconds. There are 7 between the start and the end and it iterates up every ten seconds for something reason. 
 
-    update_len = int(start+minard_step)
-    if float(stop-start)/float(minard_step) == 460: 
-        update_len = int(stop) 
+    #update_len = int(start+minard_step)
+    # if float(stop-start)/float(minard_step) == 460: 
+    #     update_len = int(stop) 
     #print ("update_len:",  update_len) 
 
 
 #    while (redis_len <= start+minard_step):
 
-    for i in range(int(start),update_len,redis_step):
+    for i in range(int(start),int(stop),redis_step):
        # print ("i: %i i//step: %i" % (i,i//step))
         key = 'stream/%s:%i:%s' % (stream_name, i//redis_step, base_key)
         #print key
