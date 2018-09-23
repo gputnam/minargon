@@ -1,0 +1,63 @@
+{
+    "instances": {
+        "wireplane": {
+            "types": {
+                "combined": {
+                    "fields": "range 480"
+                },
+                "induction": {
+                    "fields": "range 240"
+                },
+                "collection": {
+                    "fields": "range 240 480"
+                }
+            },
+            "field.timeseries": {
+                "data_link": "TPC_redis_timeseries",
+                "constructor": {
+                    "wire": "%(field)s"
+                },
+                "server_delay": 1e3,
+                "steps": [1, 1000]
+            },
+            "type.data": {
+                "data_link": "TPC_redis_wireplane", 
+                "constructor": {
+                    "plane": "%(type)s"
+                }
+            },
+            "field.name": "wire %(field)s",
+            "type.name": "%(type)s plane",
+            "metrics": ["rms", "hit_occupancy"]
+        },
+        "detector": {
+            "types": {
+                "detector": {
+                    "name": "detector",
+                    "field.name": "detector",
+                    "fields": ["detector"]
+                }
+            },
+            "field.timeseries": {
+                "data_link": "Detector_timeseries",
+                "constructor": {},
+                "server_delay": 1e3,
+                "steps": [1, 1000]
+            },
+            "metrics": ["purity"]
+        }
+    },
+    "metrics": {
+        "rms": {
+            "range": [0, 10],
+            "warning_range": [1,5]
+        },
+        "hit_occupancy": {
+            "range": [0, 10],
+            "warning_range": [1,5]
+        }
+    }
+
+
+
+}
