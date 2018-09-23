@@ -7,10 +7,13 @@ import os
 import sys
 import random
 import constants
-from tools import parseiso
 import sys
 
-PROGRAMS = []
+from tools import parseiso
+from parse import parse
+
+# load data configuration file
+DATA_CONFIG = parse.DataParser(app.config).config
 
 """
 	Routes intented to be seen by the user	
@@ -208,21 +211,23 @@ def wireplane_view():
     render_args = dict(render_args, **stream_metric_args(request.args))
 
     return render_template('wireplane_view.html', **render_args)
-    
-# data associated with a power supply
-@app.route('/power_supplies')
-def power_supplies():
-    supply = "PL506"
+
+@app.route('/test/wireplane_view2')
+def wireplane_view2():
+    plane = request.args.get('plane', 'combined')
+    initial_datum = request.args.get('data', 'rms')
+
+    instance_name = "%s plane" % plane
+    timeseries = DATA_CONFIG.data_instance_timeseries(instance_name)
+
     render_args = {
-        'data': constants.POWER_SUPPLY_DATA,
-        'supply_name': supply,
-        'steps': constants.REDIS_POWER_SUPPLY_TIME_STEPS,
-        'view_ind_opts': {'supply': constants.POWER_SUPPLIES},
-        'view_ind': {'supply': supply}, 
+        'metric': initial_datum,
+        'timeseries': timeseries.to_json(maxn=25),
+        'title': instance_name
     }
 
-    return render_template('power_supplies.html', **render_args)
-
+    return render_template('timeseries.html', **render_args)
+    
 
 @app.route('/purity')
 def purity():

@@ -22,13 +22,11 @@ class DataParser(object):
 
         # buld the timeseries objects
         for instance, config in instances_config.items():
-            data_instance = DataInstance(instance)
-
             types = self.build_types(self.get_instance_param("types", instance, config))
             for typ, typ_config in types.items():
                 name = self.get_type_param("name", instance, typ, config, typ_config)
                 metrics = self.build_metrics(self.get_instance_param("metrics", instance, config), metrics_config)
-                data_type = DataType(name, metrics)
+                data_instance = DataInstance(name, metrics)
 
                 # get the fields for this type
                 fields = self.build_fields(self.get_type_param("fields", instance, typ, config, typ_config))
@@ -40,11 +38,9 @@ class DataParser(object):
                     data_timeseries = self.build_timeseries(name, timeseries, instance, typ, field)
                     data_field = DataField(name)
               
-                    data_type.add_pair(data_field, data_timeseries)
+                    data_instance.add_pair(data_field, data_timeseries)
 
-                data_instance.add_type(data_type)
-                    
-            self.config.add_instance(data_instance)
+                self.config.add_instance(data_instance)
 
     def build_timeseries(self, name, config, instance, typ, field):
         required_items = ["data_link", "constructor", "steps", "server_delay"]

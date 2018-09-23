@@ -9,26 +9,18 @@ class DataConfig(object):
     def add_instance(self, instance):
         self.instances[instance.name] = instance
 
-    def data_type_timeseries(self, instance_name, type_name):
-        typ = self.instances[instance_name].types[type_name]
-        (steps, server_delay) = resolve_timeseries(typ.timeseries)
-        return TimeSeries(typ.name, typ.timeseries, steps, server_delay, typ.metrics) 
+    def data_instance_timeseries(self, instance_name):
+        instance = self.instances[instance_name]
+        (steps, server_delay) = resolve_timeseries(instance.timeseries)
+        return TimeSeries(instance.name, instance.timeseries, steps, server_delay, instance.metrics) 
 
-    def data_field_timeseries(self, instance_name, type_name, field_name):
-        typ = self.instance[instance_name].types[type_name]
-        field = self.instance[instance_name].types[type_name].fields[field_name]
-        timeseries = self.timeseries[typ.fields.keys().index(field_name)] 
-        return TimeSeries(field.name, [timeseries], timeseries.steps, timeseries.server_delay, typ.metrics)
+    def data_field_timeseries(self, instance_name, field_name):
+        instance = self.instance[instance_name]
+        field = self.instance[instance_name].fields[field_name]
+        timeseries = self.timeseries[instance.fields.keys().index(field_name)] 
+        return TimeSeries(field.name, [timeseries], timeseries.steps, timeseries.server_delay, instance.metrics)
 
 class DataInstance(object):
-    def __init__(self, name):
-        self.name = name
-        self.types = OrderedDict()
-
-    def add_type(self, typ):
-        self.types[typ.name] = typ
-
-class DataType(object):
     def __init__(self, name, metrics):
         self.fields = OrderedDict()
         self.timeseries = []

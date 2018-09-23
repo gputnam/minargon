@@ -13,7 +13,7 @@
                 }
             },
             "field.timeseries": {
-                "data_link": "TPC_redis_timeseries",
+                "data_link": "wire_link",
                 "constructor": {
                     "wire": "%(field)s"
                 },
