@@ -1,0 +1,72 @@
+{% macro metric_option(metrics, default_metric, id) %}
+<div class="form-group row">
+    <label class="col-sm-4 control-form-label col-form-label">Data</label>
+    <div class="col-sm-8">
+        <select id="{{id}}" class="form-control">
+            {% for metric, _ in metrics.items() %}
+                <option {% if metric==default_metric %}selected="true" {%endif%}value="{{metric}}">{{metric}}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro step_option(steps, default_step, id) %}
+<div class="form-group row">
+    <label class="col-sm-4 control-form-label col-form-label">
+        Step
+    </label>
+    <div class="col-sm-8">
+        <select id="{{id}}" class="form-control">
+            {% for step in steps %}
+                <option {% if step==default_step %}selected="true" {%endif%}value="{{step * 1000}}">{{step}} seconds</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro height_option(heights, default_height, id) %}
+<div class="form-group row">
+    <label class="col-sm-4 control-form-label col-form-label">
+        Height
+    </label>
+    <div class="col-sm-8">
+        <select id="{{id}}" class="form-control">
+            {% for height in heights %}
+                <option {%if height == default_height %}selected="true"{% endif %} value="{{height}}">{{height}}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro threshold_option(id_lo, id_hi) %}
+<div class="form-group row">
+    <label class="col-sm-6 control-form-label col-form-label"> Threshold Hi</label>
+    <div class="col-sm-6">
+        <input type="text" size="12" id="{{id_hi}}">
+    </div>
+</div>
+<div class="form-group row">
+    <label class="col-sm-6 control-form-label col-form-label"> Threshold Lo</label>
+    <div class="col-sm-6">
+        <input type="text" size="12" id="{{id_lo}}">
+    </div>
+</div>
+{% endmacro %}
+
+{% macro warning_option(id_lo, id_hi) %}
+<div class="form-group row">
+    <label class="col-sm-6 control-form-label col-form-label"> Warning Hi</label>
+    <div class="col-sm-6">
+        <input type="text" size="12" id="{{id_hi}}">
+    </div>
+</div>
+<div class="form-group row">
+    <label class="col-sm-6 control-form-label col-form-label"> Warning Lo</label>
+    <div class="col-sm-6">
+        <input type="text" size="12" id="{{id_lo}}">
+    </div>
+</div>
+{% endmacro %}
