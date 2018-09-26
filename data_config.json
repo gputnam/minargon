@@ -12,39 +12,66 @@
                     "fields": "range 240 480"
                 }
             },
-            "field.timeseries": {
-                "data_link": "wire_link",
-                "constructor": {
-                    "wire": "%(field)s"
-                },
-                "server_delay": 1e3,
-                "steps": [1, 1000]
-            },
-            "type.data": {
-                "data_link": "TPC_redis_wireplane", 
-                "constructor": {
-                    "plane": "%(type)s"
-                }
-            },
+            "field.wire": "%(field)s",
             "field.name": "wire %(field)s",
-            "type.name": "%(type)s plane",
+
+            "timeseries_link": "wire_link",
+            "field_data_link": "multi_wire_link",
+            "steps": [100, 1000],
+            "server_delay": 1,
+            "name": "%(type)s plane",
             "metrics": ["rms", "hit_occupancy"]
         },
-        "detector": {
-            "types": {
-                "detector": {
-                    "name": "detector",
-                    "field.name": "detector",
-                    "fields": ["detector"]
+        "readout": {
+            "fields": "TPC_NCrate",
+            "field.name": "crate %(field)s",
+            "field.crate": "%(field)s",
+            "timeseries_link": "readout_link",
+            "field_data_link": "multi_readout_link",
+            "steps": [100, 1000],
+            "server_delay": 1,
+            "name": "readout",
+            "metrics": ["rms", "hit_occupancy"]
+        },
+        "crate": {
+            "types": "TPC_NCrate",
+            "fields": "TPC_NFEM %(type)s",
+            "field.name": "FEM %(field)s",
+            "field.fem": "%(field)s",
+            "crate": "%(type)s",
+            "timeseries_link": "crate_link",
+            "field_data_link": "multi_crate_link",
+            "steps": [100, 1000],
+            "server_delay": 1,
+            "name": "crate %(type)s",
+            "metrics": ["rms", "hit_occupancy"]
+        },
+        "fem": {
+            "types": "TPC_NFEM 0",
+            "fields": "TPC_NFEM_Channel %(type)s",
+            "field.name": "Channel %(field)s",
+            "field.wire": "%(field)s",
+            "timeseries_link": "fem_link",
+            "field_data_link": "multi_fem_link",
+            "steps": [100, 1000],
+            "server_delay": 1,
+            "name": "fem %(type)s",
+            "metrics": ["rms", "hit_occupancy"]
+        },
+        "TPC": {
+            "name": "TPC",
+            "fields": ["TPC"],
+            "field.name": "%(field)s",
+            "timeseries_link": "TPC_metric",
+            "field_data_link": "TPC_metric",
+            "server_delay": 1,
+            "steps": [100, 1000],
+            "metrics": {
+                "purity": {
+                    "range": [0, 1000],
+                    "warning_range": [0, 100]
                 }
-            },
-            "field.timeseries": {
-                "data_link": "Detector_timeseries",
-                "constructor": {},
-                "server_delay": 1e3,
-                "steps": [1, 1000]
-            },
-            "metrics": ["purity"]
+            }
         }
     },
     "metrics": {
@@ -53,8 +80,8 @@
             "warning_range": [1,5]
         },
         "hit_occupancy": {
-            "range": [0, 10],
-            "warning_range": [1,5]
+            "range": [0, 1],
+            "warning_range": [0.1,0.5]
         }
     }
 
