@@ -1,4 +1,6 @@
 {% extends "layout.html" %}
+{% import "stream_options_macro.html" as stream_options %}
+
 {% block title %}Channel Snapshot{% endblock %}
 {% block body %}
 {{ super() }}
@@ -8,7 +10,15 @@
 </div>
 <div class="row">
     <div class="col-md-4">
-        {% include 'multistream_options.html' %}
+        <div class="card hcenter">
+            <div class="card-header">Display Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
+                    {{ stream_options.step_option(timeseries.steps, timeseries.steps[0], "form-step") }}
+                    {{ stream_options.height_option([40, 60, 80, 100], 40, "form-height") }}
+	        </form>
+            </div>
+        </div>
     </div><!--
     --><div class="col-md-8" style="padding:0" id="timeseries"></div>
 </div>
@@ -37,39 +47,18 @@ d3.json($SCRIPT_ROOT + "/snapshot/sub_run", function(err, data) {
   $("#update-subrun").html("SubRun: "  + data.value);
 });
 
-// simple metric_info implementation
-class channel_snapshot_metric_info {
-    constructor() {}
-
-    data_list(_, context) {
-        return data_links;
-    }
-}
-// global variables to be accessed by form fields, etc.
-var context;
-var data_links;
-var metric_info;
 $(document).ready(function() {
   // draw waveform
   draw_waveform('waveform', {wire: {{channel}} });
   draw_fft('fft', {wire: {{channel}} });
   
-  // setup data links
-  data_links = [
-  {% for d in data_types %}
-    CHANNEL_DATA_TYPES["{{d}}"].data_link($SCRIPT_ROOT, {{channel}}),
-  {% endfor %}
-  ];
-
-  metric_info = new channel_snapshot_metric_info();
-
   // setup cubism
-  context = create_cubism_context("#timeseries", $("#data-step").val());
+  var controller = new CubismMultiMetricController("#timeseries", {{timeseries.to_json()|safe}}, 0, 40)
+    .heightController("#form-height")
+    .stepController("#form-step"); 
+
   // start polling for data
-  updateData("#timeseries", context, Param(), null, metric_info);
+  controller.updateData();
 });
-
-function link_param() { return {}; }
-
 </script> 
 {% endblock %}
