@@ -51,8 +51,9 @@ class LineChart {
         this.n_data = n_data;
         this.target = target;
         this.draw(layout);
-        this.range = range;
-        if (!(this.range === undefined)) this.range_trace();
+        if (!(range === undefined)) {
+          this.updateRange(range);
+        }
     }
 
     draw(layout) {
