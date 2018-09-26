@@ -70,14 +70,28 @@
           </button>-->
           <div class="navbar-collapse collapse" id="navbar">
             <ul class="navbar-nav mr-auto">
-              {{ nav_link('noise_snapshot', 'Noise Snapshot') }}
-              {{ nav_link('channel_snapshot', 'Channel Snapshot') }}
-              {{ nav_link('fem_snapshot', 'FEM Snapshot') }}
-              {{ nav_link('crate_view', 'Readout View') }}
-              {{ nav_link('wireplane_view', 'Wire Plane View') }}
-              {{ nav_link('nevis_readout', 'Nevis Readout') }}
-              {{ nav_link('recent_warnings', 'Warnings') }}
-	      {{ nav_link('purity', 'Purity')}}
+              <li class='dropdown nav-item'>
+              <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>Raw Data<b class='caret'></b></a>
+                <ul class='dropdown-menu bg-maroon'>
+                  {{ nav_link('noise_snapshot', 'Noise Snapshot') }}
+                  {{ nav_link('channel_snapshot', 'Channel Snapshot') }}
+                  {{ nav_link('fem_snapshot', 'FEM Snapshot') }}
+                </ul>
+              </li>
+              <li class='dropdown nav-item'>
+              <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>Detector + Readout<b class='caret'></b></a>
+                <ul class='dropdown-menu bg-maroon'>
+                  {{ nav_link('crate_view', 'Readout View') }}
+                  {{ nav_link('wireplane_view', 'Wire Plane View') }}
+                  {{ nav_link('nevis_readout', 'Nevis Readout') }}
+                </ul>
+              </li>
+              <li class='dropdown nav-item'>
+              <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>Nearline<b class='caret'></b></a>
+                <ul class='dropdown-menu bg-maroon'>
+	          {{ nav_link('purity', 'Purity')}}
+                </ul>
+              </li>
             </ul>
           </div><!--/.navbar-collapse -->
         </nav>
