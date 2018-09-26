@@ -24,10 +24,6 @@ def test_error():
     sys.stderr.write("Flask error logging test")
     raise Exception("Flask exception logging test")
 
-@app.route('/test_static')
-def test_static():
-    return render_template('test_static.html')
-
 @app.route('/hello')
 def hello():
     return 'Hello 2!'
@@ -39,10 +35,6 @@ def index():
 @app.route('/introduction')
 def introduction():
     return render_template('introduction.html')
-
-@app.route('/recent_warnings')
-def recent_warnings():
-    return render_template('recent_warnings.html')
 
 @app.route('/nevis_readout')
 def nevis_readout():
@@ -98,15 +90,6 @@ def channel_snapshot():
         'view_ind_opts': view_ind_opts
     }
     return render_template('channel_snapshot.html', **template_args)
-
-# args used by view's which involve stream metrics 
-def stream_metric_args(args):
-    return {
-        'steps': constants.REDIS_TIME_STEPS,
-        'detector': constants.detector,
-        'initial_datum': args.get('data', 'rms'),
-        'default_step': args.get('step', constants.REDIS_TIME_STEPS[0], type=int),
-    }
 
 # the view associated with a number of channels on an fem 
 @app.route('/fem_view')
