@@ -10,7 +10,7 @@ import constants
 import sys
 
 from tools import parseiso
-from parse import parse
+from data_config import parse
 
 # load data configuration file
 DATA_CONFIG = parse.DataParser(app.config).config
@@ -93,11 +93,9 @@ def channel_snapshot():
 
     template_args = {
         'channel': channel,
-        'steps': constants.REDIS_TIME_STEPS,
-        'data_types': constants.CHANNEL_DATA,
-        'default_step': request.args.get('step', constants.REDIS_TIME_STEPS[0], type=int),
-        'view_ind_opts': view_ind_opts,
+        'timeseries': DATA_CONFIG.data_field_timeseries("combined plane", "wire %i" % channel),
         'view_ind': view_ind,
+        'view_ind_opts': view_ind_opts
     }
     return render_template('channel_snapshot.html', **template_args)
 
@@ -114,116 +112,41 @@ def stream_metric_args(args):
 @app.route('/fem_view')
 def fem_view():
     fem = request.args.get('fem', 0, type=int)
-    crate = request.args.get('crate', 0, type=int)
-    initial_datum = request.args.get('data', 'rms')
-    data = constants.CHANNEL_DATA
-
-    view_ind = {
-      'fem': fem,
-      'crate': crate,
-    }
-
-    view_ind_opts = {
-      'fem': range(constants.N_FEM_PER_CRATE), 
-      'crate': range(constants.N_CRATES)
-    }
-
-    render_args = {
-        'data': data,
-        'view_ind': view_ind,
-        'view_ind_opts': view_ind_opts,
-        'view_type': 'fem',
-    }
-
-    render_args = dict(render_args, **stream_metric_args(request.args))
-
-    return render_template('readout_view.html', **render_args)
+    instance_name = "fem %i" % fem
+    return timeseries_view(request.args, instance_name, "channel", "wireLink")
 
 # view of a number of fem's on a readout crate
 @app.route('/crate_view')
 def crate_view():
     crate = request.args.get('crate', 0, type=int)
-    initial_datum = request.args.get('data', 'rms')
-    n_channels_per_fem = constants.N_CHANNELS_PER_FEM
-    data = constants.FEM_DATA
+    instance_name = "crate %i" % crate
+    return timeseries_view(request.args, instance_name, "fem", "femLink")
 
-    view_ind = {
-      'crate': crate
-    }
-
-    view_ind_opts = {
-        'crate': range(constants.N_CRATES)
-    }
-
-    render_args = {
-        'data': data,
-        'view_ind': view_ind,
-        'view_ind_opts': view_ind_opts,
-        'view_type': 'crate',
-    }
-    render_args = dict(render_args, **stream_metric_args(request.args))
-
-    return render_template('readout_view.html', **render_args)
-
-# view of a number of fem's on a readout crate
+# view of a number of crates in the readout
 @app.route('/readout_view')
 def readout_view():
-    initial_datum = request.args.get('data', 'rms')
-    data = constants.FEM_DATA
-
-    view_ind = {}
-
-    view_ind_opts = {}
-
-    render_args = {
-        'data': data,
-        'view_ind': view_ind,
-        'view_ind_opts': view_ind_opts,
-        'view_type': 'readout',
-    }
-    render_args = dict(render_args, **stream_metric_args(request.args))
-
-    return render_template('readout_view.html', **render_args)
-
+    instance_name = "readout"
+    return timeseries_view(request.args, instance_name, "crate", "crateLink")
 
 # view of a number of wires on a wireplane
 @app.route('/wireplane_view')
 def wireplane_view():
     plane = request.args.get('plane', 'combined')
-    initial_datum = request.args.get('data', 'rms')
-    data = constants.CHANNEL_DATA
- 
-    view_ind = {
-        'plane': plane
-    }
-    view_ind_opts = {
-        'plane': constants.PLANES
-    }
-
-    render_args = {
-        'data': data,
-        'view_ind': view_ind,
-        'view_ind_opts': view_ind_opts,
-        'view_type': 'wireplane',
-        'initial_datum': initial_datum,
-    }
-
-    render_args = dict(render_args, **stream_metric_args(request.args))
-
-    return render_template('wireplane_view.html', **render_args)
-
-@app.route('/test/wireplane_view2')
-def wireplane_view2():
-    plane = request.args.get('plane', 'combined')
-    initial_datum = request.args.get('data', 'rms')
-
     instance_name = "%s plane" % plane
-    timeseries = DATA_CONFIG.data_instance_timeseries(instance_name)
+    return timeseries_view(request.args, instance_name, "wire", "wireLink")
+
+def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
+    timeseries = DATA_CONFIG.data_instance_timeseries(instance_name, maxn=25)
+    field_data = DATA_CONFIG.data_instance_field_data(instance_name)
+    initial_datum = args.get('data', 'rms')
 
     render_args = {
         'metric': initial_datum,
-        'timeseries': timeseries.to_json(maxn=25),
-        'title': instance_name
+        'timeseries': timeseries,
+        'title': instance_name,
+        'field_data': field_data,
+        'view_ident': view_ident,
+        'link_function': link_function
     }
 
     return render_template('timeseries.html', **render_args)
