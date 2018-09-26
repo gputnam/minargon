@@ -1,95 +1,259 @@
-// Requires cubism.js loaded
+class TimeSeries {
+  constructor(config, href) {
+    this.config = config;
+    this.href = href;
+  }
 
-// Helper functions for using cubism horizon charts
+  field_data_list(metric) {
+    var ret = [];
+    for (var i = 0; i < this.config.fields.length; i++) {
+      // get the name of the data link constructor
+      var Fconstructor = this.config.data_link;
+      ret.push(window[Fconstructor](metric, this.config.instance, this.config.fields[i]));
+    }
+    return ret;
+  }
 
-// Most functions below attempt to be independent of html.
-// One exception is the Param() function, which will assume you have fields
-// with the id's as specified below. More specifically, it assumes your page is 
-// using 'stream_options.html' or 'multistream_options.html' as defined in templates/
-// 
-// If you wish to use Param() without including either of those pages, then you should 
-// implement a page with you're own fields that have the same id's. Alternatively,
-// you can use this code with a 'metric_info' object (see below) that doesn't implement
-// 'param'. In that case, the Param() function will never be called internally by this
-// code, and you will be able to use it without errors. 
+  metric_data_list(field_index) {
+    var ret = [];
+    var Fconstructor = this.config.data_link;
+    for (var i = 0; i < this.config.metric_list.length; i++) {
+      var metric = this.config.metrics[this.config.metric_list[i]];
+      ret.push(window[Fconstructor](metric, this.config.instance, this.config.fields[field_index]));
+    }
+    return ret;
+  }
 
-// The variable "metric_info" in the code below always refers to an object 
-// implementing the "metric_info" interface, which has the following functions:
-// data_list(data_type, context) (REQUIRED)
-//     provides a list of D3DataLink/D3DataChain objects to be used as metrics
-// param(param) (OPTIONAL)
-//     provides the default parameters for a new data type. If not defined, 
-//     param won't be updated on a data type update.
-// on_click(data_type, horizon_index) (OPTIONAL)
-//     function which will be called when a horizon chart is clicked
-//     (`this` is set as the class)
-// on_update(start, stop) (OPTIONAL)
-//     function which will be called when a metric updates 
-//     (`this` is set as the class)
-// on_finish(param, is_new_data)
-//     function which will be called after data or parameters are updated -- datatype name and
-//     whether this call is the original initialization is provided
+  // collect default parameters from metric
+  default_param(metric) {
+    return this.config.metrics[metric];
+  }
 
-// For an example of an implementation of the metric info interface, see 
-// readout_view_metric_info at the top of readout_views.js
+  getLink(index) {
+    if (!(this.href === undefined)) {
+        return this.href(this.config.instance, this.config.fields[index]);
+    }
+    return undefined;
+  }
 
-// Other variables are commonly used:
-// target: jquery-name (i.e. "#id" or ".class") of the div to be written to
-// context: the cubism context
-// data_links: a list of objects implementing the D3DataLink interface
-// param: a dictionary of horizon options as returned by Param()
-
-// add in metrics w/ a horizon chart to the provided target
-function add_metrics(target, context, data_links, param, metric_info) {
-    // add new metrics
-    var data = data_links.map(function(data_link) { 
-        var metric = context.metric(data_link.get_values.bind(data_link), data_link.name());
-        if (!(metric_info.on_update === undefined)) {
-            metric.on("change", metric_info.on_update.bind(metric_info));
-        }
-        return metric;
-    });
-    return make_horizons(target, context, data, param, metric_info);
 }
 
-// delete the horizons and the associated metrics
-function delete_horizons(target, context) {
-    d3.select(target).selectAll('.horizon')
-        .call(context.horizon().remove)
-        .remove();
+class CubismMultiMetricController {
+  constructor(target, timeseries_config, field_index, height) {
+    this.target = target;
+    this.timeseries = new TimeSeries(timeseries_config);
+    this.height = height;
+    this.field_index = field_index;
+
+    this.context = create_cubism_context(target, this.timeseries);
+  }
+  heightController(id) {
+    var self = this;
+    $(id).change(function() { self.updateHeight(this.value); });
+    return this;
+  }
+  stepController(id) {
+    var self = this;
+    $(id).change(function() {self.updateStep(this.value);});
+    return this;
+  }
+ 
+  updateStep(input) {
+    this.context.step(input);
+    // remake the data
+    this.updateData(true);
+  }
+
+  updateHeight(input) {
+    this.height = input;
+
+    // redraw horizons
+    var data = d3.select(this.target).selectAll('.horizon').data();
+    delete_horizons(this);
+    make_horizons(this, data);
+
+  }
+ 
+  updateData(remove_old) {
+    if (remove_old === true)
+      delete_horizons(this);
+      
+    var data_links = this.timeseries.metric_data_list(this.field_index);
+    var ret = add_metrics(this, data_links, false);
+    return ret;
+  }
+
+}
+
+// class for controlling parameters of cubism context
+class CubismController {
+  constructor(target, timeseries_config, metric, height) {
+    this.target = target;
+
+    this.timeseries = new TimeSeries(timeseries_config);
+    this.context = create_cubism_context(target, this.timeseries);
+
+    this.height = height;
+    this.metric = metric;
+    this.target = target;
+  }
+
+
+  set() {
+    this.metricParam();
+    return this;
+  }
+
+  linkFunction(Fhref) {
+    this.timeseries.href = Fhref;
+    return this;
+  }
+ 
+  metricController(id) {
+    var self = this;
+    $(id).change(function() { self.updateMetric(this.value); });
+    return this;
+  }
+  heightController(id) {
+    var self = this;
+    $(id).change(function() { self.updateParam(this.value, "height"); });
+    return this;
+  }
+  rangeController(id_lo, id_hi, update_on_metric_change) {
+    var self = this;
+
+    $(id_lo).keypress(function(e) {
+      if (e.which == 13) {
+        self.updateParam(this.value, "range-lo");
+      }
+    });
+    $(id_hi).keypress(function(e) {
+      if (e.which == 13) {
+        self.updateParam(this.value, "range-hi");
+      }
+    });
+
+    if (!(update_on_metric_change === false)) {
+        this.range_lo_controller = id_lo;
+        this.range_hi_controller = id_hi;
+    }
+    return this;
+  }
+  stepController(id) {
+    var self = this;
+    $(id).change(function() {self.updateStep(this.value);});
+    return this;
+  }
+
+  onClick(stream_name, index) {
+    // check if link function is defined
+    var link = this.timeseries.getLink(index);
+    if (!(link === undefined)) {
+        // go there
+        window.location.href = $SCRIPT_ROOT + "/" + link;
+    }
+  }
+
+  metricParam() {
+    var metric_param = this.timeseries.default_param(this.metric);
+    this.range = metric_param.range;
+    this.format = metric_param.format;
+    // set in range values
+    if (!(this.range_lo_controller === undefined)) {
+      $(this.range_lo_controller).val(this.range[0]);
+    } 
+    if (!(this.range_hi_controller === undefined)) {
+      $(this.range_hi_controller).val(this.range[1]);
+    }
+  }
+
+  updateMetric(metric) {
+    this.metric = metric;
+    this.metricParam();
+    this.updateData(true);
+  } 
+
+  updateStep(input) {
+    this.context.step(input);
+    // remake the data
+    this.updateData(true);
+  }
+
+  updateParam(input, param_name) {
+    // update this param
+    if (param_name == "height") this.height = input;
+    else if (param_name == "range-hi") this.range[1] = input;
+    else if (param_name == "range-lo") this.range[0] = input;
+    // if no valid update, just return
+    else return;
+
+    // redraw horizons
+    var data = d3.select(this.target).selectAll('.horizon').data();
+    delete_horizons(this);
+    make_horizons(this, data);
+  }
+
+  updateData(remove_old) {
+    if (remove_old === true) {
+        delete_horizons(this);
+    }
+    var data_links = this.timeseries.field_data_list(this.metric); 
+    var ret = add_metrics(this, data_links, true);
+    return ret;
+  }
+
+}
+
+// add in metrics w/ a horizon chart to the provided target
+function add_metrics(controller, data_links, use_field_name) {
+  // add new metrics
+  var data = data_links.map(function(data_link, i) { 
+    // use the field name or the metric name
+    if (use_field_name) {
+      var metric = controller.context.metric(data_link.get_values.bind(data_link), controller.timeseries.config.fields[i].name);
+    }
+    else {
+      var metric = controller.context.metric(data_link.get_values.bind(data_link), controller.timeseries.config.metric_list[i]);
+    }
+    //metric.on("change", function(start, stop) {});
+    return metric;
+  });
+    return make_horizons(controller, data);
 }
 
 // make new horizon objects
-function make_horizons(target, context, data, param, metric_info) {
-    var horizon = context.horizon();
-    if (!(param === undefined || param.height === undefined)) {
-      horizon = horizon.height(param.height);
-    }
-    if (!(param === undefined || param.threshold_lo === undefined || param.threshold_hi === undefined)) {
-      horizon = horizon.extent([param.threshold_lo, param.threshold_hi]);
-    }
-    if (!(param === undefined || param.format === undefined)) {
-      horizon = horizon.format(param.format);
-    }
-    var horizons = d3.select(target).selectAll('.horizon')
-        .data(data)
+function make_horizons(controller, data) {
+  var horizon = controller.context.horizon();
+  horizon = horizon.height(controller.height);
+  //horizon = horizon.extent(controller.range);
+  if (!(controller.format === undefined)) {
+    horizon = horizon.format(controller.format);
+  }
+  var horizons = d3.select(controller.target).selectAll('.horizon')
+      .data(data)
       .enter().insert("div", ".bottom")
-        .attr("class", "horizon")
+      .attr("class", "horizon")
       .call(horizon);
-    if (!(metric_info.on_click === undefined)) {
-         horizons.on("click", metric_info.on_click.bind(metric_info));
-    }
-    return horizons;
+  if (!(controller.onClick == undefined)) {
+    horizons.on("click", controller.onClick.bind(controller));
+  }
+  return horizons;
 }
 
-// make a new cubism context with the given time-step in seconds
-function create_cubism_context(target, step) {
+// delete the horizons and the associated metrics
+function delete_horizons(controller) {
+  d3.select(controller.target).selectAll('.horizon')
+      .call(controller.context.horizon().remove)
+      .remove();
+}
+
+function create_cubism_context(target, timeseries) {
+    var step = timeseries.config.steps[0];
     var size = $(target).width();
     var context = cubism.context()
-        .serverDelay(1000 * 1.5 * 60 /* 1 minute when running offline */)
-        .clientDelay(1000 * 60)
+        .serverDelay(timeseries.config.server_delay)
         .step(step*1000)
-        .size(size);    
+        .size(size); 
 
     // delete old axes
     $(target + ' .axis').remove();
@@ -115,119 +279,5 @@ function create_cubism_context(target, step) {
         .call(context.rule());    
 
     return context;
-
-}
-
-// If 'newParam' is not provided, will return the current horizon parameters
-// by looking in the appropriate fields. 
-// Otherwise will update those fields to the appropriate parameters.
-function Param(newParam) {
-    if (newParam === undefined) 
-        return {
-            data: $("#data-type").val(),
-	    height: $("#data-height").val(),
-	    threshold_lo: $("#threshold-lo").val(),
-	    threshold_hi: $("#threshold-hi").val(),
-            step: $("#data-step").val(),
-            warning_range: [$("#warning-lo").val(), $("#warning-hi").val()],
-        };
-    else {
-        /*// also update the link
-        var url_root = [location.protocol, '//', location.host, location.pathname].join('');
-        var title = document.title;
-        window.history.replaceState({}, title, url_root + "?" + $.param(newParam));*/
-
-        $("#data-height").val(newParam["height"]);
-
-        if (!(newParam.data == undefined)) {
-          $("#data-type").val(newParam.data);
-        }
-        if (!(newParam.threshold_lo === undefined)) {
-          $("#threshold-lo").val(newParam["threshold_lo"]);
-        }
-        else {
-          $("#threshold-lo").val("");
-        }
-
-        if (!(newParam.threshold_hi === undefined)) {
-          $("#threshold-hi").val(newParam["threshold_hi"]);
-        }
-        else {
-          $("#threshold-hi").val("");
-        }
-        if (!(newParam.step === undefined)) {
-          $("#data-step").val(newParam.step);
-        }
-        if (!(newParam.warning_range === undefined)) {
-          $("#warning-lo").val(newParam.warning_range[0]);
-          $("#warning-hi").val(newParam.warning_range[1]);
-        }
-        else {
-          $("#warning-lo").val("");
-          $("#warning-hi").val("");
-        }
-    } 
-}
-
-
-// update cubism options 
-// selector: the html object that called this function
-// selector.step is the new context step in seconds
-// datatype: the current data type in cubism metrics
-function updateStep(selector, target, datatype, context, param, metric_info) { 
-    context.step(selector.value*1000); 
-    // re-make the data
-    updateData(target, context, param, datatype, metric_info, true, false);
-} 
-
-function updateParam(target, context, param, metric_info) {
-    var data = d3.select(target).selectAll('.horizon').data();
-    delete_horizons(target, context);
-
-    var ret = make_horizons(target, context, data, param, metric_info);
-    if (!(metric_info.on_finish === undefined)) {
-        metric_info.on_finish(param, false);
-    }
-
-    return ret;
-}
-
-// data_type: the new data type to be used in cubism metrics
-// remove_old: boolean, whether to delete old horizon charts
-//      optional argument, will default to false
-// is_new_data: boolean, whether the given data_type is different than the 
-// current data_type in the horizon charts
-//      optional argument, will default to true
-function updateData(target, context, param, data_type, metric_info, remove_old, is_new_data) {
-    if (remove_old === true) {
-        delete_horizons(target, context);
-    }
-    var data_links = metric_info.data_list(data_type, context); 
-
-    if (!(metric_info.param === undefined)) {
-        param = metric_info.param(param);
-        Param(param);
-    }
-
-    var ret = add_metrics(target, context, data_links, param, metric_info);
-
-    if (!(is_new_data === false) && !(metric_info.on_finish === undefined)) {
-        var new_data = !(is_new_data === false) || remove_old;
-        metric_info.on_finish(param, new_data);
-    }
-    return ret;
-}
-
-// formatting for displaying numbers
-// taken from minard
-si_format = d3.format('.2s');
-float_format = d3.format('.2f');
-percent_format = d3.format('.2%');
-
-function clean_format(d, format) {
-  if (!$.isNumeric(d))
-    return '-';
-  else
-    return format(d);
 }
 
