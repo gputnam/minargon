@@ -4,7 +4,12 @@ from collections import OrderedDict
 
 from functions import ParserFunctions
 from timeseries import TimeSeries, TimeSeriesDatum
+from field_data import *
 from config import *
+
+RESERVED_FIELD_KEYS = ["name"]
+RESERVED_INSTANCE_KEYS = ["types", "name", "steps", "server_delay", "metrics", "fields", "timeseries_link", "field_data_link"]
+FIELD_KEY_IDENT = "field."
 
 class DataParser(object):
     def __init__(self, redis_config):
@@ -22,37 +27,69 @@ class DataParser(object):
 
         # buld the timeseries objects
         for instance, config in instances_config.items():
-            types = self.build_types(self.get_instance_param("types", instance, config))
+            types = self.get_instance_param("types", instance, "", config, {}, required=False)
+            if types is None:
+                types = {"": {}}
+            else:
+                types = self.build_types(types)
+
             for typ, typ_config in types.items():
-                name = self.get_type_param("name", instance, typ, config, typ_config)
-                metrics = self.build_metrics(self.get_instance_param("metrics", instance, config), metrics_config)
-                data_instance = DataInstance(name, metrics)
+                name = self.get_instance_param("name", instance, typ, config, typ_config)
+                steps = self.get_instance_param("steps", instance, typ, config, typ_config)
+                server_delay = self.get_instance_param("server_delay", instance, typ, config, typ_config)
+                metrics = self.build_metrics(self.get_instance_param("metrics", instance, typ, config, typ_config), metrics_config)
+
+                userdata = self.get_instance_userdata(instance, typ, config, typ_config)
+
+                data_instance = DataInstance(name, metrics, steps, server_delay, userdata)
 
                 # get the fields for this type
-                fields = self.build_fields(self.get_type_param("fields", instance, typ, config, typ_config))
+                fields = self.build_fields(self.get_instance_param("fields", instance, typ, config, typ_config))
                 for field, field_config in fields.items():
                     # now build the timeseries objects
                     name = self.get_field_param("name", instance, typ, field, config, typ_config, field_config)
-                    timeseries = self.get_field_param("timeseries", instance, typ, field, config, typ_config, field_config)
+                    userdata = self.get_field_userdata(instance, typ, field, config, typ_config, field_config)
 
-                    data_timeseries = self.build_timeseries(name, timeseries, instance, typ, field)
-                    data_field = DataField(name)
-              
-                    data_instance.add_pair(data_field, data_timeseries)
+                    data_field = DataField(name, userdata)
+                    data_instance.add_field(data_field)
+
+                # maybe get timeseries
+                timeseries = self.get_instance_param("timeseries_link", instance, typ, config, typ_config, required=False)
+                if timeseries is not None:
+                    data_instance.add_timeseries(timeseries)
+                # maybe get field data
+                field_data = self.get_instance_param("field_data_link", instance, typ, config, typ_config, required=False)
+                if field_data is not None:
+                    data_instance.add_field_data(field_data)
 
                 self.config.add_instance(data_instance)
 
-    def build_timeseries(self, name, config, instance, typ, field):
-        required_items = ["data_link", "constructor", "steps", "server_delay"]
-        for item in required_items:
-            if item not in config:
-                raise ValueError("Timeseries config missing parameter %s" % item)
-        if not isinstance(config["constructor"], OrderedDict):
-            raise ValueError("Bad timeseries constructor")
-        constructor = {}
-        for key, val in config["constructor"].items():
-            constructor[key] = self.field_format(val, instance, typ, field)
-        return TimeSeriesDatum(name, config["data_link"], constructor, config["steps"], config["server_delay"])
+    def get_field_userdata(self, instance_name, type_name, field_name, instance_config, type_config, field_config):
+        ret = {}
+        for key,val in field_config.items():
+            if key not in RESRVED_FIELD_KEYS: 
+                ret[key] = self.field_format(val, instance_name, type_name, field_name)
+        for key,val in type_config.items():
+            if key.startswith(FIELD_KEY_IDENT):
+                key = key.split(FIELD_KEY_IDENT)[1]
+                if key not in RESERVED_FIELD_KEYS and key not in ret:
+                    ret[key] = self.field_format(val, instance_name, type_name, field_name)
+        for key,val in instance_config.items():
+            if key.startswith(FIELD_KEY_IDENT):
+                key = key.split(FIELD_KEY_IDENT)[1]
+                if key not in RESERVED_FIELD_KEYS and key not in ret:
+                    ret[key] = self.field_format(val, instance_name, type_name, field_name)
+        return ret
+
+    def get_instance_userdata(self, instance_name, type_name, instance_config, type_config):
+        ret = {}
+        for key, val in type_config.items():
+            if not key.startswith(FIELD_KEY_IDENT) and key not in RESERVED_INSTANCE_KEYS and key not in ret:
+                ret[key] = self.instance_format(val, instance_name, type_name)
+        for key, val in instance_config.items():
+            if not key.startswith(FIELD_KEY_IDENT) and key not in RESERVED_INSTANCE_KEYS and key not in ret:
+                ret[key] = self.instance_format(val, instance_name, type_name)
+        return ret
 
     def build_metrics(self, metrics, metric_config):
         metrics_out = self.build_types(metrics)
@@ -67,7 +104,7 @@ class DataParser(object):
         if param in field_config:
             return self.field_format(field_config[param], instance_name, type_name, field_name)
 
-        parent_param = "field." + param 
+        parent_param = FIELD_KEY_IDENT + param 
         if parent_param in type_config:
             return self.field_format(type_config[parent_param], instance_name, type_name, field_name)
         if parent_param in instance_config:
@@ -85,34 +122,20 @@ class DataParser(object):
         # otherwise do nothing
         return val
 
-    def get_instance_param(self, param, name, config, required=True):
-        if param in config:
-            return self.instance_format(config[param], name)
-        if required:
-            raise ValueError("Required INSTANCE parameter '%s' not provided in instance '%s'" % (param, name))
-        return None
-
-    def instance_format(self, val, name):
-        # reformat if string
-        if isinstance(val, unicode):
-            return val % {"instance": name} 
-        # otherwise do nothing
-        return val
-                
-    def get_type_param(self, param, instance_name, type_name, parent_config, type_config, required=True):
+    def get_instance_param(self, param, instance_name, type_name, parent_config, type_config, required=True):
         if param in type_config:
-            return self.type_format(type_config[param], instance_name, type_name)
+            return self.instance_format(type_config[param], instance_name, type_name)
 
-        parent_param = "type." + param 
+        parent_param = param 
         if parent_param in parent_config:
-            return self.type_format(parent_config[parent_param], instance_name, type_name) 
+            return self.instance_format(parent_config[parent_param], instance_name, type_name) 
 
         if required:
             raise ValueError("Required TYPE parameter '%s' not provided in type '%s' instance '%s'" % (param, type_name, instance_name))
 
         return None
 
-    def type_format(self, val, instance_name, type_name):
+    def instance_format(self, val, instance_name, type_name):
         # reformat if string
         if isinstance(val, unicode):
             return val % {"type": type_name, "instance": instance_name} 
@@ -125,7 +148,8 @@ class DataParser(object):
         if isinstance(typeset, unicode):
             function_str = typeset.split(" ")
             fname = function_str[0]
-            assert(hasattr(self.functions, fname))
+            if not hasattr(self.functions, fname):
+                raise ValueError("Function '%s' does not exist" % fname)
             func = getattr(self.functions, fname)
             if len(function_str) == 1:
                 typeset = func()
