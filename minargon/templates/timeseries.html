@@ -1,0 +1,96 @@
+{% import "stream_options_macro.html" as stream_options %}
+
+{% extends "layout.html" %}
+{% block title %}{{title}}{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+<div class="row">
+    <div class="col-md-6 vcenter" style="padding:0">
+        <div id="histogram"></div>
+    </div>
+    <div class="col-md-6 vcenter" style="padding:0">
+        <div id="scatter"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8" style="padding:0" id="timeseries"></div>
+    <div class="col-md-4 vcenter">
+        <div class="card hcenter">
+            <div class="card-header">Display Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
+                    {{ stream_options.metric_option(timeseries.metrics, metric, "form-metric") }}
+                    {{ stream_options.step_option(timeseries.steps, timeseries.steps[0], "form-step") }}
+                    {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
+                    {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }}
+                    {{ stream_options.warning_option("form-warning-range-lo", "form-warning-range-hi") }}
+	        </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{%endblock%}
+{% block script %}
+<script defer>
+// global cubism parameters
+var controller;
+// global field data controller
+var field_data;
+
+$(document).ready(function() {
+    // timeseries configuration
+    var config = {{timeseries.to_json()|safe}};
+
+    // field data configuration
+    var field_data_config = {{field_data.to_json()|safe}};
+
+    // set up poll config
+    field_data = new FieldData("{{title}}", field_data_config, "{{metric}}", 0)
+      .metricController("#form-metric")
+      .rangeController("#form-range-lo", "#form-range-hi", false)
+      .warningrangeController("#form-warning-range-lo", "#form-warning-range-hi")
+      .set();
+
+    // set up histogram to listen
+    field_data.addHistogram("histogram", "{{view_ident}}");
+
+    // and scatter
+    field_data.addScatter("scatter", "{{view_ident}}");
+
+    // start poll
+    field_data.updatePoll();
+
+    // build cubism controller
+    controller = new CubismController("#timeseries", config, "{{metric}}", 25)
+      .linkFunction({{link_function}})
+      .metricController("#form-metric")
+      .heightController("#form-height")
+      .stepController("#form-step")
+      .rangeController("#form-range-lo", "#form-range-hi")
+      .set();
+
+    // start cubism
+    controller.updateData();
+});
+
+// function to update href
+function wireLink(instance, field) {
+  return "channel_snapshot?channel=" + field.wire;
+}
+
+function crateLink(instance, field) {
+  return "crate_view?crate=" + field.crate;
+}
+
+function femLink(instance, field) {
+  return "fem_view?fem=" + field.fem;
+}
+
+function channelLink(instance, field) {
+  return "channel_snapshot?channel=" + field.wire;
+}
+
+</script>
+{% endblock %}
