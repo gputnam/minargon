@@ -63,6 +63,10 @@ function multi_fem_link(metric, instance, fields) {
   return multi_link(fem_link, metric, instance, fields);
 }
 
+function TPC_metric(metric, instance, fields) {
+  return new D3DataLink(new EventInfoLink($SCRIPT_ROOT, metric));
+}
+
 // pass to D3DataLink to get stuff
 class FEMLink {
     constructor(script_root, data_name, crate, fem) {
