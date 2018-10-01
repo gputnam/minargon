@@ -53,28 +53,3 @@ detector = {
    'fem_active_channels': FEM_ACTIVE_CHANNELS,
 }
 
-PLANES = ["combined", "induction", "collection"] 
-POWER_SUPPLIES = ["PL506"]
-
-# Redis Stuff
-REDIS_TIME_STEPS = [5, 30, 60]
-# Each entry in this list should have a corresponding entry in 
-# static/js/minargon/Data.js 'var DATA_TYPES' describing how the datum is 
-# presented on the front-end
-CHANNEL_DATA = ["rms", "baseline", "baseline_rms", "hit_occupancy", "pulse_height", "next_channel_dnoise", "rawhit_occupancy", "rawhit_pulse_height"] 
-
-# same as for channel data
-FEM_DATA = CHANNEL_DATA + []
-CRATE_DATA = CHANNEL_DATA + [] # other stuff to be included
-
-HEADER_DATA = ["frame_no", "event_no", "trig_frame_no", "blocks"]
-
-EVENT_INFO_DATA = ["purity"]
-EVENT_INFO_TIME_STEPS = [5, 60, 3600]
-
-# and for power supplies stuff
-POWER_SUPPLY_DATA = ["measured_output_voltage", "measured_output_current", "output_voltage", "output_current", "max_output_current"]
-
-# different time steps for power supply data
-REDIS_POWER_SUPPLY_TIME_STEPS = [10]
-
