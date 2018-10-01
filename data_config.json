@@ -67,10 +67,7 @@
             "server_delay": 1,
             "steps": [100, 1000],
             "metrics": {
-                "purity": {
-                    "range": [0, 1000],
-                    "warning_range": [0, 100]
-                }
+                "purity": {}
             }
         }
     },
