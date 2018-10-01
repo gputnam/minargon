@@ -10,6 +10,9 @@ class FieldData {
     this.listeners = [];
     this.histograms = [];
     this.scatters = [];
+  
+    this.range = [];
+    this.warning_range = [];
   }
 
   set() {
@@ -85,7 +88,7 @@ class FieldData {
   layoutHistogram(yLabel) {
     var n_data = this.nData();
     var title = this.title + " " + this.metric;
-    return {
+    var ret = {
       title: titleize(title),
       xaxis: {
         title: this.metric,
@@ -96,6 +99,7 @@ class FieldData {
         title: yLabel
       }
     };
+    return ret;
   }
 
   addHistogram(target, yLabel) {
@@ -109,7 +113,7 @@ class FieldData {
   layoutScatter(xLabel) {
     var n_data = this.nData();
     var title = this.title + " " + this.metric;
-    return {
+    var ret = {
       title: titleize(title),
       xaxis: {
         title: xLabel
@@ -119,34 +123,71 @@ class FieldData {
         range: this.range
       }
     };
+    return ret;
   }
 
   addScatter(target, title, xLabel) {
     var n_data = this.nData();
     var layout = this.layoutScatter(title, xLabel);
-    var scatter = new LineChart(n_data, target, layout, this.config.metrics[this.metric].warning_range);
+    if (this.warning_range.length != 0) {
+      var scatter = new LineChart(n_data, target, layout, this.config.metrics[this.metric].warning_range);
+    }
+    else {
+      var scatter = new LineChart(n_data, target, layout);
+    }
     this.listeners.push(scatter.updateData.bind(scatter));
     this.scatters.push(scatter);
   }
 
   metricParam() {
     var metric_param = this.config.metrics[this.metric];
-    this.range = metric_param.range;
-    this.warning_range = metric_param.warning_range;
+    if (metric_param.range !== undefined) {
+      this.range = metric_param.range;
+    }
+    else {
+      this.range = [];
+    }
+
+    if (metric_param.warning_range !== undefined ){
+      this.warning_range = metric_param.warning_range;
+    }
+    else {
+      this.warning_range = [];
+    }
 
     // set in range values
     if (!(this.range_lo_controller === undefined)) {
-      $(this.range_lo_controller).val(this.range[0]);
+      if (this.range.length != 0) {
+        $(this.range_lo_controller).val(this.range[0]);
+      }
+      else {
+        $(this.range_lo_controller).val("");
+      {
     }
     if (!(this.range_hi_controller === undefined)) {
-      $(this.range_hi_controller).val(this.range[1]);
+      if (this.range.length != 0) {
+        $(this.range_hi_controller).val(this.range[1]);
+      }
+      else {
+         $(this.range_hi_controller).val("");
+      }
     }
 
     if (!(this.warning_range_lo_controller === undefined)) {
-      $(this.warning_range_lo_controller).val(this.warning_range[0]);
+      if (this.warning_range.length != 0) {
+        $(this.warning_range_lo_controller).val(this.warning_range[0]);
+      }
+      else {
+        $(this.warning_range_lo_controller).val("");
+      }
     }
     if (!(this.warning_range_hi_controller === undefined)) {
-      $(this.warning_range_hi_controller).val(this.warning_range[1]);
+      if (this.warning_range.length != 0) {
+        $(this.warning_range_hi_controller).val(this.warning_range[1]);
+      }
+      else {
+        $(this.warning_range_hi_controller).val("");
+      }
     }
   }
 
@@ -179,7 +220,9 @@ class FieldData {
     }
     for (var i = 0; i < this.scatters.length; i++) {
       this.scatters[i].reLayout(scatter_update);
-      this.scatters[i].updateRange(this.warning_range);
+      if (this.warning_range.length != 0) {
+        this.scatters[i].updateRange(this.warning_range);
+      }
     }
   }
 

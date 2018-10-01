@@ -1,5 +1,5 @@
 class TimeSeries {
-  constructor(config, href) {
+  aonstructor(config, href) {
     this.config = config;
     this.href = href;
   }
@@ -96,6 +96,8 @@ class CubismController {
     this.height = height;
     this.metric = metric;
     this.target = target;
+
+    this.range = [];
   }
 
 
@@ -156,14 +158,30 @@ class CubismController {
 
   metricParam() {
     var metric_param = this.timeseries.default_param(this.metric);
-    this.range = metric_param.range;
+    if (!(metric_param.range === undefined)) {
+      this.range = metric_param.range; 
+    }
+    else {
+      this.range = [];
+    }
+
     this.format = metric_param.format;
     // set in range values
     if (!(this.range_lo_controller === undefined)) {
-      $(this.range_lo_controller).val(this.range[0]);
+      if (this.range.length != 0) {
+        $(this.range_lo_controller).val(this.range[0]);
+      }
+      else { 
+       $(this.range_lo_controller).val("");
+     }
     } 
     if (!(this.range_hi_controller === undefined)) {
-      $(this.range_hi_controller).val(this.range[1]);
+      if (this.range.length != 0) {
+        $(this.range_hi_controller).val(this.range[1]);
+      }
+      else {
+        $(this.range_hi_controller).val("");
+      }
     }
   }
 
@@ -225,7 +243,9 @@ function add_metrics(controller, data_links, use_field_name) {
 function make_horizons(controller, data) {
   var horizon = controller.context.horizon();
   horizon = horizon.height(controller.height);
-  //horizon = horizon.extent(controller.range);
+  if (controller.range !== undefined && controller.range.length != 0) { 
+    horizon = horizon.extent(controller.range);
+  }
   if (!(controller.format === undefined)) {
     horizon = horizon.format(controller.format);
   }
