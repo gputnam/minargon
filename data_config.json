@@ -44,7 +44,7 @@
             "steps": [100, 1000],
             "server_delay": 1,
             "name": "crate %(type)s",
-            "metrics": ["rms", "hit_occupancy"]
+            "metrics": ["rms", "hit_occupancy", "frame_no", "event_no", "trig_frame_no", "blocks"]
         },
         "fem": {
             "types": "TPC_NFEM 0",
@@ -56,7 +56,7 @@
             "steps": [100, 1000],
             "server_delay": 1,
             "name": "fem %(type)s",
-            "metrics": ["rms", "hit_occupancy", "frame_no", "event_no", "trig_frame_no", "blocks"]
+            "metrics": ["rms", "hit_occupancy"]
         },
         "TPC": {
             "name": "TPC",
