@@ -15,13 +15,13 @@
    </tr>
   </thead>
   <tbody>
-    {% for i in range(n_fem) %}
+    {% for _,fem in fem_data.fields.items() %}
     <tr>
-      <th scope="col">{{i}}</th>
-      <th scope="col"><span id="time_{{i}}"></span></th>
-      <th scope="col"><span id="subrun_{{i}}"></span></th>
+      <th scope="col">{{fem.fem}}</th>
+      <th scope="col"><span id="time_{{fem.fem}}"></span></th>
+      <th scope="col"><span id="subrun_{{fem.fem}}"></span></th>
       {% for metric in header_metrics %}
-      <th scope="col"><span id="{{metric}}_{{i}}"></span></th>
+      <th scope="col"><span id="{{metric}}_{{fem.fem}}"></span></th>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -32,23 +32,29 @@
 <script defer>
 $(document).ready(function() {
   // set up each metric and a poll for each metric
-  {% for i in range(n_fem) %}
   {% for metric in header_metrics %}
   {
-    var data_link = NEVIS_HEADER_DATA_TYPES["{{metric}}"].data_link($SCRIPT_ROOT, 0 /* OK bc only 1 crate in VST */, {{i}});
-    var listener = function(data) { $("#{{metric}}_{{i}}").html(redisValues(data)); } 
+    var field_data = new FieldData("{{metric}}", {{fem_data.to_json()|safe}}, "{{metric}}", 0)
+      .set();
+    var listener = function(data) { 
+      var data = redisValues(data);
+      for (var i = 0; i < data.length; i++) {
+        $("#{{metric}}_" + String(i)).html(data[i]); 
+      }
+    } 
+    field_data.addListener(listener);
     {% if loop.index == 1 %}
      var timer = function(data, time) { 
-       $("#time_{{i}}").html(moment(time).format("HH:mm:ss"));
-       $("#subrun_{{i}}").html(data.index.subrun);
+       for (var i = 0; i < data.values.length; i++) { 
+         $("#time_" + String(i)).html(moment(time).format("HH:mm:ss"));
+         //$("#subrun_" + String(i)).html(data.index.subrun);
+         $("#subrun_" + String(i)).html(moment(data.index[i]).format("HH:mm:ss"));
+       }
      }
-     var poll = new D3DataPoll(data_link, 10000, [listener, timer], () => true);
-    {% else %}
-      var poll = new D3DataPoll(data_link, 10000, [listener] , () => true);
+     field_data.addListener(timer);
     {% endif %}
-    poll.run();
+    field_data.updatePoll();
   }
-  {% endfor %}
   {% endfor %}
 });
 </script>

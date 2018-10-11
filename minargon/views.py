@@ -40,7 +40,8 @@ def introduction():
 def nevis_readout():
     render_args = {
       'n_fem': constants.N_FEM,
-      'header_metrics': constants.HEADER_DATA,
+      'header_metrics': ["frame_no", "event_no", "trig_frame_no", "blocks"],
+      'fem_data': DATA_CONFIG.data_instance_field_data("crate 0"),
     }
     return render_template('nevis_readout.html', **render_args) 
 
