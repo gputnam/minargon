@@ -36,7 +36,9 @@ class DataInstance(object):
         self.steps = steps
         self.server_delay = server_delay
         self.metrics = metrics
-        self.userdata = userdata
+        self._userdata = userdata
+        for key, val in userdata.items():
+            setattr(self, key, val)
 
         self.field_data = None
         self.timeseries = None
@@ -51,7 +53,7 @@ class DataInstance(object):
         self.field_data = field_data_link
 
     def to_dict(self):
-        return dict(name=self.name, **self.userdata)
+        return dict(name=self.name, **self._userdata)
 
     def to_json(self):
         return json.dumps(self.to_dict())
@@ -60,10 +62,12 @@ class DataInstance(object):
 class DataField(object):
     def __init__(self, name, userdata):
         self.name = name
-        self.userdata = userdata
+        self._userdata = userdata
+        for key, val in userdata.items():
+            setattr(self, key, val)
 
     def to_dict(self):
-        return dict(name=self.name, **self.userdata)
+        return dict(name=self.name, **self._userdata)
 
     def to_json(self):
         return json.dumps(self.to_dict())
