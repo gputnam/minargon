@@ -162,7 +162,7 @@ class FieldData {
       }
       else {
         $(this.range_lo_controller).val("");
-      {
+      }
     }
     if (!(this.range_hi_controller === undefined)) {
       if (this.range.length != 0) {

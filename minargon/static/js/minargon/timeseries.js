@@ -1,5 +1,5 @@
 class TimeSeries {
-  aonstructor(config, href) {
+  constructor(config, href) {
     this.config = config;
     this.href = href;
   }
@@ -14,12 +14,19 @@ class TimeSeries {
     return ret;
   }
 
-  metric_data_list(field_index) {
+  metric_data_list(field_index, metric_list) {
     var ret = [];
     var Fconstructor = this.config.data_link;
     for (var i = 0; i < this.config.metric_list.length; i++) {
       var metric = this.config.metrics[this.config.metric_list[i]];
-      ret.push(window[Fconstructor](metric, this.config.instance, this.config.fields[field_index]));
+      var add = true;
+      if (metric_list !== undefined && metric_list.indexOf(metric) < 0) {
+        add = false;
+      } 
+
+      if (add) {
+        ret.push(window[Fconstructor](metric, this.config.instance, this.config.fields[field_index]));
+      }
     }
     return ret;
   }
@@ -57,6 +64,10 @@ class CubismMultiMetricController {
     $(id).change(function() {self.updateStep(this.value);});
     return this;
   }
+  metrics(metric_list) {
+    this.metric_list = metric_list;
+    return this;
+  }
  
   updateStep(input) {
     this.context.step(input);
@@ -78,7 +89,7 @@ class CubismMultiMetricController {
     if (remove_old === true)
       delete_horizons(this);
       
-    var data_links = this.timeseries.metric_data_list(this.field_index);
+    var data_links = this.timeseries.metric_data_list(this.field_index, this.metric_list);
     var ret = add_metrics(this, data_links, false);
     return ret;
   }
