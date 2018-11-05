@@ -1,4 +1,4 @@
-flask==0.10
+flask==1.0
 gunicorn
 #numpy
 #pyzmq
