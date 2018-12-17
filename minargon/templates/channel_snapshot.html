@@ -53,7 +53,7 @@ $(document).ready(function() {
   draw_fft('fft', {wire: {{channel}} });
   
   // setup cubism
-  var controller = new CubismMultiMetricController("#timeseries", {{timeseries.to_json()|safe}}, {{channel}}, {{stream_links|tojson|safe}}, {{streams|tojson|safe}}, 0, 40)
+  var controller = new CubismMultiMetricController("#timeseries", {{timeseries.to_json()|safe}}, 0, {{stream_links|tojson|safe}}, {{streams|tojson|safe}}, 0, 40)
     .heightController("#form-height")
     .streamController("#form-stream"); 
 
