@@ -1,39 +1,42 @@
 class TimeSeries {
-  constructor(config, href) {
+  constructor(config, stream_links, streams, href) {
     this.config = config;
+    this.stream_links = stream_links;
     this.href = href;
+    this.streams = streams;
+
+    this.server_delay = 5000; // guess, for now
   }
 
-  field_data_list(metric) {
-    var ret = [];
-    for (var i = 0; i < this.config.fields.length; i++) {
-      // get the name of the data link constructor
-      var Fconstructor = this.config.data_link;
-      ret.push(window[Fconstructor](metric, this.config.instance, this.config.fields[i]));
+  data_link(stream_index, metric_list, field_list) {
+    if (metric_list === undefined) {
+      metric_list = this.config.metric_list;
     }
-    return ret;
-  }
-
-  metric_data_list(field_index, metric_list) {
-    var ret = [];
-    var Fconstructor = this.config.data_link;
-    for (var i = 0; i < this.config.metric_list.length; i++) {
-      var metric = this.config.metrics[this.config.metric_list[i]];
-      var add = true;
-      if (metric_list !== undefined && metric_list.indexOf(metric) < 0) {
-        add = false;
-      } 
-
-      if (add) {
-        ret.push(window[Fconstructor](metric, this.config.instance, this.config.fields[field_index]));
+    if (field_list === undefined) {
+      var fields = this.config.fields;
+    }
+    else {
+      var fields = [];
+      for (var i = 0; i < field_list.length; i++) {
+        fields.push( this.config.fields[field_list[i]] );
       }
     }
-    return ret;
+    return new D3DataLink(new MetricStreamLink($SCRIPT_ROOT + this.stream_links[stream_index], this.streams[stream_index], 
+        this.config.instance, fields, metric_list, false));
+  }
+
+  infer_step(stream_index, callback) {
+    if (this.stream_links.length == 0) return callback(0);
+ 
+    var link = new MetricStreamLink($SCRIPT_ROOT + this.stream_links[stream_index], this.streams[stream_index],
+        this.config.instance, this.config.fields, this.config.metric_list, false);
+
+    return d3.json(link.step_link(), function(data) { callback(data.step); });
   }
 
   // collect default parameters from metric
   default_param(metric) {
-    return this.config.metrics[metric];
+    return this.config.metric_config[metric];
   }
 
   getLink(index) {
@@ -46,22 +49,34 @@ class TimeSeries {
 }
 
 class CubismMultiMetricController {
-  constructor(target, timeseries_config, field_index, height) {
+  constructor(target, timeseries_config, field_index, stream_links, streams, stream_index, height) {
+    this.timeseries = new TimeSeries(timeseries_config, stream_links, streams);
     this.target = target;
-    this.timeseries = new TimeSeries(timeseries_config);
     this.height = height;
     this.field_index = field_index;
+    this.stream_index = stream_index;
 
-    this.context = create_cubism_context(target, this.timeseries);
+    this.max_data = 1000;
   }
+
+  buildContext(callback) {
+    var self = this;
+    create_cubism_context(this.target, this.timeseries, function(step, context) {
+      self.step = step;
+      self.context = context;
+      callback(self);
+    });
+  }
+
   heightController(id) {
     var self = this;
     $(id).change(function() { self.updateHeight(this.value); });
     return this;
   }
-  stepController(id) {
+
+  streamController(id) {
     var self = this;
-    $(id).change(function() {self.updateStep(this.value);});
+    $(id).change(function() {self.updateStream(this.value);});
     return this;
   }
   metrics(metric_list) {
@@ -69,10 +84,15 @@ class CubismMultiMetricController {
     return this;
   }
  
-  updateStep(input) {
-    this.context.step(input);
-    // remake the data
-    this.updateData(true);
+  updateStream(input) {
+    this.stream_index = input;
+    var self = this;
+    this.timeseries.infer_step(input, function(step) {
+      self.step = step;
+      self.context.step(step);
+      // remake the data
+      self.updateData(true);
+    });
   }
 
   updateHeight(input) {
@@ -86,31 +106,83 @@ class CubismMultiMetricController {
   }
  
   updateData(remove_old) {
+    // if no streams, don't do anything
+    if (this.timeseries.streams.length == 0) {
+      return;
+    }
+
     if (remove_old === true)
       delete_horizons(this);
-      
-    var data_links = this.timeseries.metric_data_list(this.field_index, this.metric_list);
-    var ret = add_metrics(this, data_links, false);
+
+    if (!(this.buffer === undefined)) {
+      this.buffer.stop();
+    }
+
+    var pairs = [];
+    for (var i = 0; i < this.timeseries.config.metric_list.length; i++) {
+      pairs.push( [this.timeseries.config.metric_list[i], this.timeseries.config.fields[this.field_index].link] );
+    }
+
+    // make a new buffer
+    var start = new Date();
+    start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
+    this.cubism_on = false;
+
+    // get the poll
+    var poll = new D3DataPoll(this.timeseries.data_link(this.stream_index, undefined, [this.field_index]),
+      this.step);
+    // and the buffer
+    this.buffer = new D3DataBuffer(poll, pairs, this.max_data, [this.startCubism.bind(this)]);
+    this.buffer.run(start);
+  }
+
+  dataLinks(buffers) {
+    var ret = [];
+    for (var j = 0; j < this.timeseries.config.fields.length; j++) {
+      ret.push( build_data_link(j, buffers[j]) );
+    }
     return ret;
+  }
+
+  startCubism(buffers) {
+    if (!this.cubism_on) {
+      this.cubism_metrics = add_metrics(this, this.dataLinks(buffers), true);
+      this.cubism_on = true;
+    }
+  }
+
+  run() {
+    this.buildContext(function(self) {
+      self.updateData();
+    });
   }
 
 }
 
 // class for controlling parameters of cubism context
 class CubismController {
-  constructor(target, timeseries_config, metric, height) {
-    this.target = target;
-
-    this.timeseries = new TimeSeries(timeseries_config);
-    this.context = create_cubism_context(target, this.timeseries);
+  constructor(target, timeseries_config, metric, stream_links, streams, stream_index, height) {
+    this.timeseries = new TimeSeries(timeseries_config, stream_links, streams);
 
     this.height = height;
     this.metric = metric;
     this.target = target;
+    this.stream_index = stream_index;
 
     this.range = [];
+
+    // max data
+    this.max_data = 1000;
   }
 
+  buildContext(callback) {
+    var self = this;
+    create_cubism_context(this.target, this.timeseries, function(step, context) {
+      self.step = step;
+      self.context = context;
+      callback(self);
+    });
+  }
 
   set() {
     this.metricParam();
@@ -152,9 +224,10 @@ class CubismController {
     }
     return this;
   }
-  stepController(id) {
+
+  streamController(id) {
     var self = this;
-    $(id).change(function() {self.updateStep(this.value);});
+    $(id).change(function() {self.updateStream(this.value);});
     return this;
   }
 
@@ -169,6 +242,9 @@ class CubismController {
 
   metricParam() {
     var metric_param = this.timeseries.default_param(this.metric);
+    if (metric_param === undefined) {
+      metric_param = {};
+    }
     if (!(metric_param.range === undefined)) {
       this.range = metric_param.range; 
     }
@@ -202,10 +278,15 @@ class CubismController {
     this.updateData(true);
   } 
 
-  updateStep(input) {
-    this.context.step(input);
-    // remake the data
-    this.updateData(true);
+  updateStream(input) {
+    this.stream_index = input;
+    var self = this;
+    this.timeseries.infer_step(input, function(step) {
+      self.step = step;
+      self.context.step(step);
+      // remake the data
+      self.updateData(true);
+    });
   }
 
   updateParam(input, param_name) {
@@ -223,12 +304,58 @@ class CubismController {
   }
 
   updateData(remove_old) {
+    // if no streams, don't do anything
+    if (this.timeseries.streams.length == 0) {
+      return;
+    }
+
     if (remove_old === true) {
         delete_horizons(this);
     }
-    var data_links = this.timeseries.field_data_list(this.metric); 
-    var ret = add_metrics(this, data_links, true);
+
+    // reset the poll
+    if (!(this.buffer === undefined)) {
+      this.buffer.stop();
+    }
+
+    // build the metric/field pais we expect to access
+    var pairs = [];
+    for (var i = 0; i < this.timeseries.config.fields.length; i++) {
+      pairs.push([this.metric, this.timeseries.config.fields[i].link]);
+    }
+
+    // make a new buffer
+    // to be on the safe side, get back to ~1000 data points
+    var start = new Date(); 
+    start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
+    this.cubism_on = false;
+
+    // first build the poll
+    var poll = new D3DataPoll(this.timeseries.data_link(this.stream_index, [this.metric]), this.step, []);
+    // wrap with a buffer
+    this.buffer = new D3DataBuffer(poll, pairs, this.max_data, [this.startCubism.bind(this)]);
+    this.buffer.run(start);
+  }
+
+  dataLinks(buffers) {
+    var ret = [];
+    for (var j = 0; j < this.timeseries.config.fields.length; j++) {
+      ret.push( build_data_link(j, buffers[j]) );
+    }
     return ret;
+  }
+
+  startCubism(buffers) {
+    if (!this.cubism_on) {
+      this.cubism_metrics = add_metrics(this, this.dataLinks(buffers), true);
+      this.cubism_on = true;
+    }
+  }
+
+  run() {
+    this.buildContext(function(self) {
+      self.updateData();
+    });
   }
 
 }
@@ -239,10 +366,10 @@ function add_metrics(controller, data_links, use_field_name) {
   var data = data_links.map(function(data_link, i) { 
     // use the field name or the metric name
     if (use_field_name) {
-      var metric = controller.context.metric(data_link.get_values.bind(data_link), controller.timeseries.config.fields[i].name);
+      var metric = controller.context.metric(data_link.bind(data_link), controller.timeseries.config.fields[i].name);
     }
     else {
-      var metric = controller.context.metric(data_link.get_values.bind(data_link), controller.timeseries.config.metric_list[i]);
+      var metric = controller.context.metric(data_link.bind(data_link), controller.timeseries.config.metric_list[i]);
     }
     //metric.on("change", function(start, stop) {});
     return metric;
@@ -278,37 +405,100 @@ function delete_horizons(controller) {
       .remove();
 }
 
-function create_cubism_context(target, timeseries) {
-    var step = timeseries.config.steps[0];
-    var size = $(target).width();
-    var context = cubism.context()
-        .serverDelay(timeseries.config.server_delay)
-        .step(step*1000)
-        .size(size); 
+function create_cubism_context(target, timeseries, callback) {
+    function create_cubism_context_with_step(target, timeseries, step, callback) {
+      // if we couldn't figure out what the step size should be, default to 1s
+      // any step less than 1s is a mistake
+      if (step < 1000) step = 1000; // units of ms
+      var size = $(target).width();
+      var context = cubism.context()
+          .serverDelay(timeseries.server_delay)
+          .step(step)
+          .size(size); 
 
-    // delete old axes
-    $(target + ' .axis').remove();
+      // delete old axes
+      $(target + ' .axis').remove();
 
-    // add time axes
-    d3.select(target).selectAll(".axis")
-        .data(["top", "bottom"])
-      .enter().append("div")
-        .attr("class", function(d) { return d + " axis"; })
-        .each(function(d) {
-            var axis = context.axis()
-                .ticks(12)
-                .orient(d);
-                //.focusFormat(focus_format);
-            d3.select(this).call(axis);
-        });
+      // add time axes
+      d3.select(target).selectAll(".axis")
+          .data(["top", "bottom"])
+        .enter().append("div")
+          .attr("class", function(d) { return d + " axis"; })
+          .each(function(d) {
+              var axis = context.axis()
+                  .ticks(12)
+                  .orient(d);
+                  //.focusFormat(focus_format);
+              d3.select(this).call(axis);
+          });
 
-    // delete old rule
-    $(target + ' .rule').remove();
+      // delete old rule
+      $(target + ' .rule').remove();
 
-    d3.select(target).append("div")
-        .attr("class", "rule")
-        .call(context.rule());    
+      d3.select(target).append("div")
+          .attr("class", "rule")
+          .call(context.rule());    
 
-    return context;
+      callback(step, context);
+    }
+    // get what the step size should be 
+    timeseries.infer_step(0, function(step) {
+      create_cubism_context_with_step(target, timeseries, step, callback);
+    });
+}
+
+function build_data_link(ind, buffer) {
+  return function(start, stop, step, callback) {
+    // setup timestamps
+    var tz_start = moment.tz(start, "US/Central");
+    var tz_stop = moment.tz(stop, "US/Central");  
+    var ts_start = tz_start.unix() * 1000;
+    var ts_stop = tz_stop.unix() * 1000;
+    var n_data = (ts_stop - ts_start) / step;
+    
+    // now get the data
+    var ret = [];
+    // special cases -- no data available
+    if (buffer.size == 0 || 
+      buffer.get_first()[0] > ts_stop ||
+      buffer.get_last()[0] < ts_start) {
+      for (var i = 0; i < n_data; i++) {
+        ret.push(0);
+      }
+      return callback(null, ret);
+    }
+    
+    // get data
+    var last_index = 0;
+    for (var i = 0; i < n_data; i ++) {
+      var time = ts_start + i * step;
+      while (true) {
+        if (last_index == buffer.size) {
+	  ret.push(0);
+	  break;
+        }
+        var index = buffer.get(last_index)[0];
+        // if the index is too small, continue
+        if (index <= time) {
+          last_index += 1;
+          continue;
+        }
+        // if we're too small to have good data, just push zero
+        if (last_index == 0) {
+          ret.push(0);
+          break;
+        }
+        // if there was a gap, continue
+        if (time + step < index) {
+            ret.push(0);
+            break;
+        }
+        // otherwise, we can interpolate!
+        ret.push(buffer.get(last_index)[1]);
+        break;
+      }
+    }
+    return callback(null, ret);
+  };
 }
 

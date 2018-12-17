@@ -1,7 +1,7 @@
 // requires d3 and plotly loaded
 
 function draw_waveform(target, param) {
-  d3.json($SCRIPT_ROOT + "/snapshot/waveform?" + $.param(param), function(err, data) {
+  d3.json($SCRIPT_ROOT + "/online/snapshot/waveform?" + $.param(param), function(err, data) {
     if (data == null || data.value == null) return;
     var waveform = data.value;
 
@@ -28,7 +28,7 @@ function draw_waveform(target, param) {
 
 
 function draw_fft(target, param) {
-  d3.json($SCRIPT_ROOT + "/snapshot/fft?" + $.param(param), function(err, data) {
+  d3.json($SCRIPT_ROOT + "/online/snapshot/fft?" + $.param(param), function(err, data) {
     if (data == null || data.value == null) return;
     var fft_vals = data.value;
     if (!fft_vals.length) return;

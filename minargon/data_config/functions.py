@@ -8,7 +8,7 @@ class ParserFunctions(object):
 
     def TPC_NCrate(self):
         return range(1)
-    def TPC_NFEM(self, crate):
+    def TPC_NFEM(self):
         return range(8)
     def TPC_NFEM_Channel(self, fem):
         return range(int(fem)*64, (int(fem)+1)*64)

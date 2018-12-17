@@ -1,11 +1,12 @@
 class FieldData {
-  constructor(title, config, metric, step_ind) {
+  constructor(title, config, metric, stream, stream_link) {
     this.name = name;
     this.config = config;
     this.title = title;
-    this.poll = null;
+    this.buffer = null;
     this.metric = metric;
-    this.step_ind = step_ind;
+    this.stream = stream;
+    this.stream_link = stream_link;
     this.metricParam();
     this.listeners = [];
     this.histograms = [];
@@ -25,6 +26,7 @@ class FieldData {
     $(id).change(function() { self.updateMetric(this.value); });
     return this;
   }
+
   rangeController(id_lo, id_hi, update_on_metric_change) {
     var self = this;
 
@@ -69,16 +71,34 @@ class FieldData {
     return this.config.fields.length;
   }
 
-  updatePoll() {
-    if (this.poll != null) this.poll.stop();
+  updateBuffer() {
+    if (this.buffer != null) this.buffer.stop();
+    // get the data link
+    var link = new D3DataLink(new MetricStreamLink($SCRIPT_ROOT + this.stream_link, this.stream, this.config.instance, this.config.fields, [this.metric]));
+    // get the data poll
+    var poll = new D3DataPoll(link, this.step);
+    // get pairs
+    var pairs = [];
+    for (var i = 0; i < this.config.fields.length; i++) {
+      pairs.push( [this.metric, this.config.fields[i].link] );
+    }
+    // get the data buffer
+    this.buffer = new D3DataBuffer(poll, pairs, 1, this.listeners); 
+    // run with the most recent data
+    var start = new Date();
+    start.setSeconds(start.getSeconds() - 2 * this.step / 1000); // ms -> s
+    this.buffer.run(start);
+  }
 
-    var Fdata_link = this.config.data_link;
-    var data_link = window[Fdata_link](this.metric, this.config.instance, this.config.fields); 
-    // sleep for timeout time
-    var step =  this.config.steps[this.step_ind] * 1e3 /* s -> ms */;
-    var timeout = step;
-    this.poll = new D3DataPoll(data_link, timeout, this.listeners, step, this.config.server_delay);
-    this.poll.run();
+  run() {
+    // get the step size 
+    var link = new MetricStreamLink($SCRIPT_ROOT + this.stream_link, this.stream, this.config.instance, this.config.fields, [this.metric]);
+    var self = this;
+    d3.json(link.step_link(), function(data) {
+      self.step = data.step; 
+      if (self.step < 1000) self.step = 1000;
+      self.updateBuffer();
+    });
   }
 
   addListener(f) {
@@ -130,7 +150,7 @@ class FieldData {
     var n_data = this.nData();
     var layout = this.layoutScatter(title, xLabel);
     if (this.warning_range.length != 0) {
-      var scatter = new LineChart(n_data, target, layout, this.config.metrics[this.metric].warning_range);
+      var scatter = new LineChart(n_data, target, layout, this.config.metric_config[this.metric].warning_range);
     }
     else {
       var scatter = new LineChart(n_data, target, layout);
@@ -140,7 +160,7 @@ class FieldData {
   }
 
   metricParam() {
-    var metric_param = this.config.metrics[this.metric];
+    var metric_param = this.config.metric_config[this.metric];
     if (metric_param.range !== undefined) {
       this.range = metric_param.range;
     }

@@ -29,9 +29,13 @@ class Histogram {
     // update the data and redraw the plot
     // data: an array of size n_data
     updateData(data) {
-        var values = redisValues(data);
         for (var i = 0; i < this.data.length; i ++) {
-            this.data[i] = values[i];
+            if (data[i].size > 0) {
+              this.data[i] = data[i].get_last()[1];
+            }
+            else {
+              this.data[i] = 0;
+            }
         }
         this.redraw();
     }
@@ -130,9 +134,13 @@ class LineChart {
     // update the data and redraw the plot
     // data: an array of size n_data
     updateData(data) {
-        var values = redisValues(data);
         for (var i = 0; i < this.data.length; i ++) {
-            this.data[i] = values[i];
+            if (data[i].size > 0) {
+              this.data[i] = data[i].get_last()[1];
+            }
+            else {
+              this.data[i] = 0;
+            } 
         }
         this.redraw();
     }

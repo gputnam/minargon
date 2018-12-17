@@ -1,23 +1,20 @@
 import json
 
 class FieldData(object):
-    def __init__(self, instance):
+    def __init__(self, instance, metric_config):
         self.name = instance.name
-        self.data_link = instance.field_data
+        self.instance_link = instance.link
         self.fields = instance.fields
-        self.metrics = instance.metrics
-        self.steps = instance.steps
-        self.server_delay = instance.server_delay
+        self.metric_config = metric_config
         self.instance = instance
 
     def to_dict(self):
         return {
             "name": self.name,
-            "data_link": self.data_link,
+            "instance_link": self.instance_link,
             "fields": [f.to_dict() for _,f in self.fields.items()],
-            "metrics": self.metrics,
-            "steps": self.steps,
-            "server_delay": self.server_delay,
+            "metric_config": self.metric_config,
+            "metric_list": [k for k,_ in self.metric_config.items()],
             "instance": self.instance.to_dict(),
         }
 

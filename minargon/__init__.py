@@ -1,3 +1,5 @@
+from gevent import monkey
+monkey.patch_all()
 from flask.app import Flask
 
 class ReverseProxied(object):
@@ -40,4 +42,4 @@ app.config.from_envvar('MINARD_SETTINGS', silent=False)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 import minargon.views
-import minargon.redis_api
+import minargon.online_metrics

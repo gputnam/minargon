@@ -1,13 +1,14 @@
 flask==1.0
-#gunicorn
+gunicorn
+gevent
 #numpy
 #pyzmq
-redis>=2.10
+redis>=3.0
 #argparse
 #sphinx
 #requests
 #sqlalchemy
-#psycopg2
+psycopg2
 #alabaster
 #couchdb
 #wtforms

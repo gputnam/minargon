@@ -3,12 +3,12 @@ import collections
 from collections import OrderedDict
 
 from functions import ParserFunctions
-from timeseries import TimeSeries, TimeSeriesDatum
+from timeseries import TimeSeries
 from field_data import *
 from config import *
 
-RESERVED_FIELD_KEYS = ["name"]
-RESERVED_INSTANCE_KEYS = ["types", "name", "steps", "server_delay", "metrics", "fields", "timeseries_link", "field_data_link"]
+RESERVED_FIELD_KEYS = ["name", "link"]
+RESERVED_INSTANCE_KEYS = ["types", "name", "fields", "group_link"]
 FIELD_KEY_IDENT = "field."
 
 class DataParser(object):
@@ -25,7 +25,10 @@ class DataParser(object):
         instances_config = data_config_json["instances"]
         metrics_config = data_config_json["metrics"]
 
-        # buld the timeseries objects
+        # build the metrics
+        self.config.set_metrics(metrics_config)
+
+        # build instances
         for instance, config in instances_config.items():
             types = self.get_instance_param("types", instance, "", config, {}, required=False)
             if types is None:
@@ -35,32 +38,24 @@ class DataParser(object):
 
             for typ, typ_config in types.items():
                 name = self.get_instance_param("name", instance, typ, config, typ_config)
-                steps = self.get_instance_param("steps", instance, typ, config, typ_config)
-                server_delay = self.get_instance_param("server_delay", instance, typ, config, typ_config)
-                metrics = self.build_metrics(self.get_instance_param("metrics", instance, typ, config, typ_config), metrics_config)
-
+                group_link = self.get_instance_param("group_link", instance, typ, config, typ_config)
+                
                 userdata = self.get_instance_userdata(instance, typ, config, typ_config)
 
-                data_instance = DataInstance(name, metrics, steps, server_delay, userdata)
+                # data_instance = DataInstance(name, metrics, steps, server_delay, userdata)
+                data_instance = DataInstance(name, group_link, userdata)
 
                 # get the fields for this type
                 fields = self.build_fields(self.get_instance_param("fields", instance, typ, config, typ_config))
                 for field, field_config in fields.items():
                     # now build the timeseries objects
                     name = self.get_field_param("name", instance, typ, field, config, typ_config, field_config)
+                    link = self.get_field_param("link", instance, typ, field, config, typ_config, field_config)
+         
                     userdata = self.get_field_userdata(instance, typ, field, config, typ_config, field_config)
 
-                    data_field = DataField(name, userdata)
+                    data_field = DataField(name, link, userdata)
                     data_instance.add_field(data_field)
-
-                # maybe get timeseries
-                timeseries = self.get_instance_param("timeseries_link", instance, typ, config, typ_config, required=False)
-                if timeseries is not None:
-                    data_instance.add_timeseries(timeseries)
-                # maybe get field data
-                field_data = self.get_instance_param("field_data_link", instance, typ, config, typ_config, required=False)
-                if field_data is not None:
-                    data_instance.add_field_data(field_data)
 
                 self.config.add_instance(data_instance)
 

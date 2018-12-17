@@ -7,9 +7,9 @@ def total_seconds(td):
     return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
 def parseiso(timestr):
-    """Convert an iso time string -> unix timestamp."""
+    """Convert an iso time string -> [ms] unix timestamp."""
     dt = datetime.strptime(timestr,'%Y-%m-%dT%H:%M:%S.%fZ')
-    return calendar.timegm(dt.timetuple()) + dt.microsecond/1e6
+    return calendar.timegm(dt.timetuple())*1e3 + dt.microsecond/1e3
 
 # try parsing as int, falling back to parseiso
 def parseiso_or_int(inp_str):
