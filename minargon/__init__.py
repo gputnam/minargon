@@ -41,5 +41,10 @@ app.config.from_envvar('MINARD_SETTINGS', silent=False)
 
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
+# url converters
+from .util import ListConverter
+app.url_map.converters['list'] = ListConverter
+
+# routes
 import minargon.views
 import minargon.online_metrics

@@ -64,18 +64,18 @@ def stream_subscribe(name):
 def key(keyname):
     return jsonify(value=redis_api.get_key(redis, keyname))
 
-@app.route('/online/stream_group/<stream_type>/<metric_names>/<instance_name>/<field_start>/<field_end>')
-@app.route('/online/stream_group/<stream_type>/<metric_names>/<instance_name>/<field_list>')
+@app.route('/online/stream_group/<stream_type>/<list:metric_names>/<instance_name>/<int:field_start>/<int:field_end>')
+@app.route('/online/stream_group/<stream_type>/<list:metric_names>/<instance_name>/<list:field_list>')
 def stream_group(stream_type, metric_names, instance_name, field_start=None, field_end=None, field_list=None):
     args = stream_args(request.args)
 
     if field_list is not None:
-        fields = [x for x in field_list.split(",") if len(x) > 0]
+        fields = field_list
     else: 
-        fields = [str(x) for x in range(int(field_start), int(field_end))]
-    metrics = [x for x in metric_names.split(",") if len(x) > 0]
+        fields = [str(x) for x in range(field_start, field_end)]
+
     stream_names = []
-    for metric in metrics:
+    for metric in metric_names:
         for inst in fields:
             this_stream_name = "%s:%s:%s:%s" % (instance_name, inst, metric, stream_type)
             stream_names.append( this_stream_name )
