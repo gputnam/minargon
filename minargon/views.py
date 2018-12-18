@@ -136,6 +136,14 @@ def wireplane_view():
     instance_name = "%s plane" % plane
     return timeseries_view(request.args, instance_name, "wire", "wireLink")
 
+@app.route('/single_stream/<stream_name>/')
+def single_stream(stream_name):
+    render_args = {
+        "stream_name": stream_name,
+    }
+    return render_template('single_stream.html', **render_args) 
+    
+
 def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
     instance = DATA_CONFIG.get_instance(instance_name)
     metrics_to_streams = online_metrics.get_series(instance.link, instance.fields.items()[0][1].link)

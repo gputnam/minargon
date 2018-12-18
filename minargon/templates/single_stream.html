@@ -1,0 +1,36 @@
+{% import "stream_options_macro.html" as stream_options %}
+
+{% extends "layout.html" %}
+{% block title %}Stream: {{stream_name}}{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+<div class="row">
+    <div class="col-md-8" style="padding:0" id="timeseries"></div>
+    <div class="col-md-4 vcenter">
+        <div class="card hcenter">
+            <div class="card-header">Display Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
+                    {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
+                    {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }}
+	        </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{%endblock%}
+{% block script %}
+<script defer>
+$(document).ready(function() {
+    // build cubism controller
+    var controller = new CubismSingleStreamController("#timeseries", "{{stream_name}}", 25)
+      .heightController("#form-height")
+      .rangeController("#form-range-lo", "#form-range-hi");
+
+    // start cubism
+    controller.run();
+});
+</script>
+{% endblock %}
