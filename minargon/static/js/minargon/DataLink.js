@@ -1,3 +1,26 @@
+class SingleStreamLink {
+  constructor(root, stream) {
+    this.stream = stream;
+    this.root = root;
+  }
+
+  step_link() {
+    var link = this.root + '/infer1_step_size/' + this.stream;
+  }
+ 
+  data_link(start, stop) {
+    return this.root + '/stream/' + this.stream + '?' + $.param(timeArgs(start, stop));
+  }
+
+  event_source_link(start) {
+    return this.root + '/stream_subscribe/' + this.stream + '?' + $.param(timeArgs(start, null));
+  }
+
+  name() {
+    return this.stream;
+  }
+}
+
 // pass to D3DataLink to get stuff
 class MetricStreamLink {
   constructor(root, stream, instance, fields, metrics, sequence) {
@@ -21,7 +44,7 @@ class MetricStreamLink {
     return link;
   }
   
-  data_link(start, stop) {
+  data_link_internal(base, start, stop) {
     if (this.sequence) {
       var fields = '/' + this.field_start + '/' + thif.field_end; 
     }
@@ -36,12 +59,20 @@ class MetricStreamLink {
       metrics = metrics + this.metrics[i] + ',';
     }
 
-    var ret = this.root + '/stream_group/' + this.stream + '/' + metrics + '/' + this.instance.link + '/' + fields;
+    var ret = this.root + base + this.stream + '/' + metrics + '/' + this.instance.link + '/' + fields;
     var args = timeArgs(start, stop);
     if (!(args === null)) {
       ret = ret + '?' + $.param(args);
     }
     return ret;
+  }
+
+  data_link(start, stop) {
+    return this.data_link_internal('/stream_group/', start, stop);
+  }
+
+  event_source_link(start) {
+    return this.data_link_internal('/stream_group_subscribe/', start, null);
   }
 
   name() {

@@ -21,8 +21,8 @@ class TimeSeries {
         fields.push( this.config.fields[field_list[i]] );
       }
     }
-    return new D3DataLink(new MetricStreamLink($SCRIPT_ROOT + this.stream_links[stream_index], this.streams[stream_index], 
-        this.config.instance, fields, metric_list, false));
+    return new MetricStreamLink($SCRIPT_ROOT + this.stream_links[stream_index], this.streams[stream_index], 
+        this.config.instance, fields, metric_list, false);
   }
 
   infer_step(stream_index, callback) {
@@ -44,6 +44,113 @@ class TimeSeries {
         return this.href(this.config.instance, this.config.fields[index]);
     }
     return undefined;
+  }
+
+}
+
+class CubismSingleStreamController {
+  constructor(target, stream_name, height) {
+    this.stream_name = stream_name;
+    this.target = target;
+    this.height = height;
+    this.max_data = 1000;
+
+    this.range = [];
+  }
+
+  buildContext(callback) {
+    var self = this;
+    d3.json("/online/infer1_step_size/" + this.stream_name, function(data) {
+      create_cubism_context_with_step(self.target, data.step, function(step, context) {
+        self.step = step;
+        self.context = context;
+        callback(self);
+      });
+    });
+  }
+
+  heightController(id) {
+    var self = this;
+    $(id).change(function() { self.updateParam(this.value, "height"); });
+    return this;
+  }
+  rangeController(id_lo, id_hi, update_on_metric_change) {
+    var self = this;
+
+    $(id_lo).keypress(function(e) {
+      if (e.which == 13) {
+        self.updateParam(this.value, "range-lo");
+      }
+    });
+    $(id_hi).keypress(function(e) {
+      if (e.which == 13) {
+        self.updateParam(this.value, "range-hi");
+      }
+    });
+
+    if (!(update_on_metric_change === false)) {
+        this.range_lo_controller = id_lo;
+        this.range_hi_controller = id_hi;
+    }
+    return this;
+  }
+
+  updateParam(input, param_name) {
+    // update this param
+    if (param_name == "height") this.height = input;
+    else if (param_name == "range-hi") this.range[1] = input;
+    else if (param_name == "range-lo") this.range[0] = input;
+    // if no valid update, just return
+    else return;
+
+    // redraw horizons
+    var data = d3.select(this.target).selectAll('.horizon').data();
+    delete_horizons(this);
+    make_horizons(this, data);
+  }
+
+  updateData() {
+    // make a new buffer
+    // to be on the safe side, get back to ~1000 data points
+    var start = new Date(); 
+    start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
+    this.cubism_on = false;
+
+    // get the link
+    var link = new SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
+    //var data = new D3DataLink(link);
+    // get the poll
+    //var poll = new D3DataPoll(data, this.step, []);
+
+    // get the data source
+    var source = new D3DataSource(link, -1);
+
+    // wrap with a buffer
+    this.buffer = new D3DataBuffer(source, [[this.stream_name]], this.max_data, [this.startCubism.bind(this)]);
+    this.cubism_on = false;
+    this.buffer.run(start);
+
+    // start up the data source
+    this.data_source = new D3DataSource(new SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name), -1, []);
+    this.data_source.run(start);
+  }
+
+  dataLink(buffers) {
+    return build_data_link(0, buffers[0]);
+  }
+
+  startCubism(buffers) {
+    if (!this.cubism_on) {
+      var metrics = [this.context.metric(this.dataLink(buffers), this.stream_name)];
+      make_horizons(this, metrics);
+      this.cubism_on = true;
+    }
+  }
+
+  run() {
+    this.buildContext(function(self) {
+      self.updateData();
+    });
   }
 
 }
@@ -128,8 +235,8 @@ class CubismMultiMetricController {
     start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
     this.cubism_on = false;
 
-    // get the poll
-    var poll = new D3DataPoll(this.timeseries.data_link(this.stream_index, undefined, [this.field_index]),
+    // get the link
+    var poll = new D3DataPoll(new D3DataLink(this.timeseries.data_link(this.stream_index, undefined, [this.field_index])),
       this.step);
     // and the buffer
     this.buffer = new D3DataBuffer(poll, pairs, this.max_data, [this.startCubism.bind(this)]);
@@ -330,8 +437,14 @@ class CubismController {
     start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
     this.cubism_on = false;
 
+    var link = this.timeseries.data_link(this.stream_index, [this.metric]);
+
     // first build the poll
-    var poll = new D3DataPoll(this.timeseries.data_link(this.stream_index, [this.metric]), this.step, []);
+    var poll = new D3DataPoll(new D3DataLink(link), this.step, []);
+
+    // get the data source
+    //var source = new D3DataSource(link, -1);
+
     // wrap with a buffer
     this.buffer = new D3DataBuffer(poll, pairs, this.max_data, [this.startCubism.bind(this)]);
     this.buffer.run(start);
@@ -405,45 +518,47 @@ function delete_horizons(controller) {
       .remove();
 }
 
+function create_cubism_context_with_step(target, step, callback) {
+  // if we couldn't figure out what the step size should be, default to 1s
+  // any step less than 1s is a mistake
+  if (step < 1000) step = 1000; // units of ms
+  var size = $(target).width();
+  var context = cubism.context()
+    //.serverDelay(timeseries.server_delay)
+    .serverDelay(5000)
+    .step(step)
+    .size(size); 
+
+  // delete old axes
+  $(target + ' .axis').remove();
+  
+  // add time axes
+  d3.select(target).selectAll(".axis")
+    .data(["top", "bottom"])
+    .enter().append("div")
+    .attr("class", function(d) { return d + " axis"; })
+    .each(function(d) {
+     var axis = context.axis()
+	.ticks(12)
+	.orient(d);
+	//.focusFormat(focus_format);
+	d3.select(this).call(axis);
+      });
+
+  // delete old rule
+  $(target + ' .rule').remove();
+  
+  d3.select(target).append("div")
+  .attr("class", "rule")
+  .call(context.rule());    
+  
+  callback(step, context);
+}
+
 function create_cubism_context(target, timeseries, callback) {
-    function create_cubism_context_with_step(target, timeseries, step, callback) {
-      // if we couldn't figure out what the step size should be, default to 1s
-      // any step less than 1s is a mistake
-      if (step < 1000) step = 1000; // units of ms
-      var size = $(target).width();
-      var context = cubism.context()
-          .serverDelay(timeseries.server_delay)
-          .step(step)
-          .size(size); 
-
-      // delete old axes
-      $(target + ' .axis').remove();
-
-      // add time axes
-      d3.select(target).selectAll(".axis")
-          .data(["top", "bottom"])
-        .enter().append("div")
-          .attr("class", function(d) { return d + " axis"; })
-          .each(function(d) {
-              var axis = context.axis()
-                  .ticks(12)
-                  .orient(d);
-                  //.focusFormat(focus_format);
-              d3.select(this).call(axis);
-          });
-
-      // delete old rule
-      $(target + ' .rule').remove();
-
-      d3.select(target).append("div")
-          .attr("class", "rule")
-          .call(context.rule());    
-
-      callback(step, context);
-    }
     // get what the step size should be 
     timeseries.infer_step(0, function(step) {
-      create_cubism_context_with_step(target, timeseries, step, callback);
+      create_cubism_context_with_step(target, step, callback);
     });
 }
 

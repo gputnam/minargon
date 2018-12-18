@@ -1,9 +1,9 @@
 class D3DataBuffer {
-  constructor(poll, accessor_pairs, n_data, listeners) {
+  constructor(poll, accessors, n_data, listeners) {
     this.poll = poll;
-    this.pairs = accessor_pairs;
+    this.accessors = accessors;
     this.buffers = [];
-    for (var i = 0; i < this.pairs.length; i++) {
+    for (var i = 0; i < this.accessors.length; i++) {
       this.buffers.push( new CircularBuffer(n_data) );
     }
     this.poll.listeners = [this.updateBuffers.bind(this)];
@@ -19,11 +19,20 @@ class D3DataBuffer {
   }
 
 
-  updateBuffers(value, start) {
+  updateBuffers(value) {
     var data = value.values;
 
-    for (var i = 0; i < this.pairs.length; i++) {
-      var this_data = data[this.pairs[i][0]][this.pairs[i][1]];
+    for (var i = 0; i < this.accessors.length; i++) {
+      var this_data = data;
+      for (var k = 0; k < this.accessors[i].length; k++) {
+        this_data = this_data[this.accessors[i][k]];
+        if (this_data == undefined) {
+          break;
+        }
+      }
+      if (this_data === undefined) {
+        continue;
+      }
       for (var j = 0; j < this_data.length; j++) {
         this.buffers[i].push(this_data[j]);
       }
@@ -34,6 +43,31 @@ class D3DataBuffer {
     }
 
   }
+}
+
+class D3DataSource {
+  constructor(link, timeout, listeners) {
+    this.link = link;
+    this.timeout = timeout;
+    this.listeners = listeners;
+  }
+
+  run(start) {
+    this.source = new EventSource(this.link.event_source_link(start));
+    var self = this;
+    this.source.onmessage = function(event) {
+        var data = JSON.parse(event.data);
+        for (var i = 0; i < self.listeners.length; i++) {
+          var func = self.listeners[i];
+          func(data);
+        }
+    };
+  }
+
+  stop() {
+    this.source.close();
+  }
+
 }
 
 class D3DataPoll {
@@ -54,7 +88,7 @@ class D3DataPoll {
             .then(function(value) {
                 for (var i = 0; i < self.listeners.length; i++) {
                     var func = self.listeners[i];
-                    func(value, start);
+                    func(value);
                 }
                 // run again 
                 // determine the start
@@ -149,10 +183,5 @@ class D3DataLink {
         return this;
     }
   }
-}
-
-// gets the actual values out of a data object returned by the redis api
-function redisValues(data) {
-  return data.values
 }
 

@@ -73,17 +73,23 @@ class FieldData {
 
   updateBuffer() {
     if (this.buffer != null) this.buffer.stop();
-    // get the data link
-    var link = new D3DataLink(new MetricStreamLink($SCRIPT_ROOT + this.stream_link, this.stream, this.config.instance, this.config.fields, [this.metric]));
-    // get the data poll
-    var poll = new D3DataPoll(link, this.step);
+
     // get pairs
     var pairs = [];
     for (var i = 0; i < this.config.fields.length; i++) {
       pairs.push( [this.metric, this.config.fields[i].link] );
     }
+
+    // get the data link
+    var link = new MetricStreamLink($SCRIPT_ROOT + this.stream_link, this.stream, this.config.instance, this.config.fields, [this.metric]);
+    // get the data poll
+    //var poll = new D3DataPoll(new D3DataLink(link), this.step);
+
+    // data source
+    var source = new D3DataSource(link, -1);
+
     // get the data buffer
-    this.buffer = new D3DataBuffer(poll, pairs, 1, this.listeners); 
+    this.buffer = new D3DataBuffer(source, pairs, 1, this.listeners); 
     // run with the most recent data
     var start = new Date();
     start.setSeconds(start.getSeconds() - 2 * this.step / 1000); // ms -> s
