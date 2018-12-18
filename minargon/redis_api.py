@@ -61,6 +61,7 @@ def block_streams(rdb, streams):
             data = rdb.xread(streams, block=0)
             for stream_data in data:
                 stream = stream_data[0]
+                ret[stream] = []
                 for d in stream_data[1]:
                     n_received += 1
                     time = d[0].split("-")[0]
@@ -73,7 +74,10 @@ def subscribe_streams(rdb, stream_list, n_data=None, start=None, stop=None):
     data = get_streams(rdb, stream_list, n_data, start, stop)
     streams = {}
     for s in stream_list:
-        streams[s] = data[s][-1][0] # set "last seen" to most recent time value
+        if len(data[s]) > 0:
+            streams[s] = data[s][-1][0] # set "last seen" to most recent time value
+        else:
+            streams[s] = 0
     
     yield data
 
