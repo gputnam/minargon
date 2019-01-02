@@ -5,7 +5,7 @@ class SingleStreamLink {
   }
 
   step_link() {
-    var link = this.root + '/infer1_step_size/' + this.stream;
+    return this.root + '/infer_step_size/' + this.stream;
   }
  
   data_link(start, stop) {

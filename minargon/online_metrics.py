@@ -151,15 +151,12 @@ def stream_group(stream_type, metric_names, instance_name, field_start=None, fie
     return jsonify(values=values, min_end_time=min_end_time)
 
 @app.route('/online/infer_step_size/<stream_type>/<metric_name>/<instance_name>/<field_name>')
-def infer_step_size(stream_type, metric_name, instance_name, field_name):
-    key = "%s:%s:%s:%s" % (instance_name, field_name, metric_name, stream_type)
-    return infer_step_internal(key)
-
-@app.route('/online/infer1_step_size/<stream_name>')
-def infer1_step_size(stream_name):
-    return infer_step_internal(stream_name)
-
-def infer_step_internal(key):
+@app.route('/online/infer_step_size/<stream_name>')
+def infer_step_size(stream_name=None, stream_type=None, metric_name=None, instance_name=None, field_name=None):
+    if stream_name is None:
+        key = "%s:%s:%s:%s" % (instance_name, field_name, metric_name, stream_type)
+    else: 
+        key = stream_name
     data = redis_api.get_last_streams(redis, [key], count=2)
     times = [t for t, _ in data[key]] 
     

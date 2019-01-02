@@ -60,9 +60,11 @@ class CubismSingleStreamController {
 
   buildContext(callback) {
     var self = this;
-    d3.json("/online/infer1_step_size/" + this.stream_name, function(data) {
+    // get the link
+    var link = new SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
+    d3.json(link.step_link(), function(data) {
       create_cubism_context_with_step(self.target, data.step, function(step, context) {
-        self.step = step;
+        self.step = data.step;
         self.context = context;
         callback(self);
       });
@@ -129,10 +131,6 @@ class CubismSingleStreamController {
     this.buffer = new D3DataBuffer(source, [[this.stream_name]], this.max_data, [this.startCubism.bind(this)]);
     this.cubism_on = false;
     this.buffer.run(start);
-
-    // start up the data source
-    this.data_source = new D3DataSource(new SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name), -1, []);
-    this.data_source.run(start);
   }
 
   dataLink(buffers) {
