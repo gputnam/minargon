@@ -57,7 +57,8 @@ def block_streams(rdb, streams):
     while True:
         ret = {}
         n_received = 0
-        while n_received < len(streams):
+        #while n_received < len(streams):
+        while n_received < 1:
             data = rdb.xread(streams, block=0)
             for stream_data in data:
                 stream = stream_data[0]
