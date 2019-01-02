@@ -243,7 +243,7 @@ class CubismMultiMetricController {
 
   dataLinks(buffers) {
     var ret = [];
-    for (var j = 0; j < this.timeseries.config.fields.length; j++) {
+    for (var j = 0; j < this.timeseries.config.metric_list.length; j++) {
       ret.push( build_data_link(j, buffers[j]) );
     }
     return ret;
@@ -251,7 +251,7 @@ class CubismMultiMetricController {
 
   startCubism(buffers) {
     if (!this.cubism_on) {
-      this.cubism_metrics = add_metrics(this, this.dataLinks(buffers), true);
+      this.cubism_metrics = add_metrics(this, this.dataLinks(buffers), false);
       this.cubism_on = true;
     }
   }
