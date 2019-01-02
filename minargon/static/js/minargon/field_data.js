@@ -97,6 +97,12 @@ class FieldData {
   }
 
   run() {
+    // if no provided streams, don't run
+    if (this.stream_link === undefined || this.stream === undefined) {
+      alert("No data streams available for requested page");
+      return;
+    }
+
     // get the step size 
     var link = new MetricStreamLink($SCRIPT_ROOT + this.stream_link, this.stream, this.config.instance, this.config.fields, [this.metric]);
     var self = this;
@@ -167,14 +173,14 @@ class FieldData {
 
   metricParam() {
     var metric_param = this.config.metric_config[this.metric];
-    if (metric_param.range !== undefined) {
+    if (metric_param !== undefined && metric_param.range !== undefined) {
       this.range = metric_param.range;
     }
     else {
       this.range = [];
     }
 
-    if (metric_param.warning_range !== undefined ){
+    if (metric_param !== undefined && metric_param.warning_range !== undefined ){
       this.warning_range = metric_param.warning_range;
     }
     else {
