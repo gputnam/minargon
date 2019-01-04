@@ -1,4 +1,24 @@
 class D3DataBuffer {
+  // input:
+  // poll: a D3DatSource or D3DataPoll object 
+  //       NOTE: this class will reset the list of listeners attached to the passed in poll
+  // accessors: A list of key values used to access the data returned by the backend.
+  //            For example, lets say that the backend data was formatted as:
+  //            {
+  //              "values" : {
+  //                           "stream_1": [list_of_data],
+  //                           "stream_group": {
+  //                                             "group_instance_1": [list_of_data],
+  //                                             "group_instance_2": [list_of_data]
+  //                                           }
+  //                         }
+  //            }
+  //            Then, you would pass in to accessors: [["stream_1"], ["stream_group", "group_instance_1"], ["stream_group", "group_instance_2"]] 
+  //            NOTE: this class will store the data from each provided stream into a list of circular buffer objects. The ith circular buffer
+  //                  corresponds to the ith accessor list provided into the accessors variable 
+  // n_data: the amount of data to keep around in each circular buffer
+  // listeners: a list of functions to be called whenever any buffer updates. Each function will be passed as input a list of circular buffers,
+  //            where the order of circular buffers is specified by the "accessor" variable as mentioned above.
   constructor(poll, accessors, n_data, listeners) {
     this.poll = poll;
     this.accessors = accessors;
@@ -10,15 +30,18 @@ class D3DataBuffer {
     this.listeners = listeners;
   }
 
+  // run: start the Poll/Source and connect with the buffers
   run(start) {
     this.poll.run(start);
   }
 
+  // stop: stop the Poll/Source
   stop() {
     this.poll.stop();
   }
 
 
+  // internal function which updates the managed circular buffers with new data
   updateBuffers(value) {
     var data = value.values;
 
@@ -46,12 +69,20 @@ class D3DataBuffer {
 }
 
 class D3DataSource {
+  // input:
+  // link: a class following the interface defined in DataLink.js
+  // timeout: (currently unused) the time (in milliseconds) after which the source will give up requesting data
+  // listeners: a list of functions to be called with the data returned by the D3DataLink/Chain
   constructor(link, timeout, listeners) {
     this.link = link;
     this.timeout = timeout;
     this.listeners = listeners;
   }
 
+  // input:
+  // start: the start index into each time series for the first call for data
+  // behavior: starts up the D3DataSource -- sets up a persistent connection to the backend using SSE
+  //           and on each update calls the list of listener functions
   run(start) {
     this.source = new EventSource(this.link.event_source_link(start));
     var self = this;
@@ -64,6 +95,9 @@ class D3DataSource {
     };
   }
 
+  // behavior: stops the D3DataSource from running
+  // NOTE: you should always call this function when deleting an old Source.
+  // Otherwise, it will run forever
   stop() {
     this.source.close();
   }
@@ -71,7 +105,10 @@ class D3DataSource {
 }
 
 class D3DataPoll {
-    // expects a D3DataLink or D3DataChain
+    // input:
+    // data: A D3DataLink or D3DataChain
+    // timeout: the time difference (in milliseconds) between calls to the backend website
+    // listeners: a list of functions to be called with the data returned by the D3DataLink/Chain
     constructor(data, timeout, listeners) {
         this.data = data;
         this.timeout = timeout;
@@ -79,6 +116,10 @@ class D3DataPoll {
         this.running = true;
     }
 
+    // input:
+    // start: the start index into each time series for the first call to the D3DataLink/Chain
+    // behavior: starts up the D3DataPoll -- repetitively polls the backend for data and on each 
+    //           update calls the list of listener functions
     run(start) {
         if (!(this.running == true)) {
             return;
@@ -98,24 +139,32 @@ class D3DataPoll {
             });
     }
 
+    // behavior: stops the D3DataPoll from running
+    // NOTE: you should always call this function when deleting an old Poll.
+    // Otherwise, it will run forever
     stop() {
         this.running = false;
     }
 
+    // returns the name of the D3DataChain/Link provided as input
     name() {
         return this.data.name();
     }
 }
 
 class D3DataChain {
-  // expects a list of DataLinks and a final operation which 
-  // composes the links into a final result
+  // input:
+  // data_link: a list of D3DataLink objects
+  // name: (optional) provide some name to be returned by the name() getter/setter
   constructor(data_links, name) {
     this.data_links = data_links;
     this.local_name = name;
   }
 
-  // Same interface as D3DataLink
+  // For everything below: Same interface as D3DataLink
+  // However, the data returned (either through a promise or in a callback)
+  // will be formatted as a list of the data returned by each provided D3DataChain
+
   get_data(d3_callback, start, stop) {
     return Promise.all(this.data_links.map(function(iter_data_link) {
        return iter_data_link.get_data_promise(start, stop);
@@ -142,12 +191,18 @@ class D3DataChain {
 }
 
 class D3DataLink {
-  // takes as input a class which must implement the interface defined by LinkBuilder
+  // input:
+  // link_builder: a class which must implement the interface defined in DataLink.js
+  // name: (optional) provide some name to be returned by the name() getter/setter
   constructor(link_builder, name) {
     this.link_builder = link_builder;
     this.local_name = name;
   }
 
+  // input:
+  // d3_callback: callback function to be called with the data provided by the flask backend
+  // start: start index into the stream
+  // stop: (optional) stop index into the stream -- set to current time by default
   get_data(d3_callback, start, stop) {
      var self = this;
      return d3.json(self.link_builder.data_link(start, stop),
@@ -159,8 +214,12 @@ class D3DataLink {
 	});
   }
 
+  // input:
+  // start: start index into the stream
+  // stop: (optional) stop index into the stream -- set to current time by default
+  //
+  // returns: a javascript Promise which will return the data when it is ready
   get_data_promise(start, stop) {
-    // Magic Javascript garbage
     var self = this;
     return new Promise(function(resolve, reject) {
       d3.json(self.link_builder.data_link(start, stop), function(data) {
@@ -169,6 +228,7 @@ class D3DataLink {
      });
   }
 
+  // "local_name" getter/setter
   name(new_name) {
     if (new_name === undefined) {
         if (this.local_name === null || this.local_name === undefined) {

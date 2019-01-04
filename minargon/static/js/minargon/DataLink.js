@@ -1,3 +1,8 @@
+// DataLink which connects a raw stream name with the backend API for online metrics
+
+// Arguments to constructor:
+// root: the root path where all of the API endpoints are defined
+// stream: the full name of the stream 
 class SingleStreamLink {
   constructor(root, stream) {
     this.stream = stream;
@@ -21,7 +26,15 @@ class SingleStreamLink {
   }
 }
 
-// pass to D3DataLink to get stuff
+// DataLink which connects configured timeseries with the backend API for online metrics
+
+// Arguments to constructor:
+// root: the root path where all of the API endpoints are defined
+// stream: the name of the stream
+// instance: the instance object provided by the configuration backend
+// fields: a list of field objects provided by the configuration backend 
+// metrics: a list of metrics
+// sequence: you should set this to false unless you know what you are doing
 class MetricStreamLink {
   constructor(root, stream, instance, fields, metrics, sequence) {
     this.root = root;
