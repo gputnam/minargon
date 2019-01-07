@@ -1,5 +1,17 @@
 // requires d3 and plotly loaded
+// TODO: use import modules
 
+// Helper function for drawing a waveform from a snapshot as provided by the 
+// raw data api from the Flask backend
+
+
+// NOTE: the timing values are hardcoded from the SBND VST -- this may have to change in the future
+
+
+// Draw a waveform in the specified target from the specified link
+// target: div-id of the location of the plot
+// param: dictionary where the key-value pairs will be GET params for the URL specified
+//        to get data from the backend raw data API
 function draw_waveform(target, param) {
   d3.json($SCRIPT_ROOT + "/online/snapshot/waveform?" + $.param(param), function(err, data) {
     if (data == null || data.value == null) return;
@@ -26,7 +38,10 @@ function draw_waveform(target, param) {
   });
 }
 
-
+// Draw an FFT in the specified target from the specified link
+// target: div-id of the location of the plot
+// param: dictionary where the key-value pairs will be GET params for the URL specified
+//        to get data from the backend raw data API
 function draw_fft(target, param) {
   d3.json($SCRIPT_ROOT + "/online/snapshot/fft?" + $.param(param), function(err, data) {
     if (data == null || data.value == null) return;
