@@ -35,7 +35,6 @@
 </div>
 {%endblock%}
 {% block script %}
-<script src="{{ url_for('static', filename='js/minargon/draw_waveform.js') }}" defer></script>
 <script defer>
 // get snapshot time
 d3.json($SCRIPT_ROOT + "/online/snapshot/time", function(err, data) {
@@ -49,16 +48,19 @@ d3.json($SCRIPT_ROOT + "/online/snapshot/sub_run", function(err, data) {
 
 $(document).ready(function() {
   // draw waveform
-  draw_waveform('waveform', {wire: {{channel}} });
-  draw_fft('fft', {wire: {{channel}} });
+  import("{{ url_for('static', filename='js/minargon/draw_waveform.js') }}").then(function(module) { 
+    module.draw_waveform('waveform', {wire: {{channel}} });
+    module.draw_fft('fft', {wire: {{channel}} });
+  });
   
   // setup cubism
-  var controller = new CubismMultiMetricController("#timeseries", {{timeseries.to_json()|safe}}, 0, {{stream_links|tojson|safe}}, {{streams|tojson|safe}}, 0, 40)
-    .heightController("#form-height")
-    .streamController("#form-stream"); 
-
-  // start polling for data
-  controller.run();
+  import("{{ url_for('static', filename='js/minargon/timeseries.js') }}").then(function(module) {
+    var controller = new module.CubismMultiMetricController("#timeseries", {{timeseries.to_json()|safe}}, 0, {{stream_links|tojson|safe}}, {{streams|tojson|safe}}, 0, 40)
+      .heightController("#form-height")
+      .streamController("#form-stream"); 
+    // start polling for data
+    controller.run();
+  });
 });
 </script> 
 {% endblock %}

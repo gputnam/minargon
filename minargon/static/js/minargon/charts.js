@@ -4,7 +4,7 @@
 // class managing a plotly histogram
 // Class managing a list of time series that plots a histogram (in
 // plotly) of the most recent values across that time series 
-class Histogram {
+export class Histogram {
     // n_data: the number of time series to be used
     // target: the id of the div to be drawn in (without the '#')
     // layout: the layout of the plotly histogram as defined in plotly
@@ -62,7 +62,7 @@ class Histogram {
 // A class managing a scatter plot of a list of timeseries where the
 // most recent data point in each series is shown. Note that the scatter
 // plot will go in the order of the specified list of time-series
-class LineChart {
+export class LineChart {
     // n_data: the number of data points to be shown
     // target: the id of the div to be drawn in (excluding the '#')
     // layout: the layout of the plotly histogram (as defined in plotly)

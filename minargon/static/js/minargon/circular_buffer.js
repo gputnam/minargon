@@ -1,7 +1,7 @@
 // Has no external dependencies
 
 // Defines a CircularBuffer class to be used to store time-series data
-class CircularBuffer{
+export class CircularBuffer{
 
   // capacity: the number of data points to go into the circular buffer
   constructor(capacity) {

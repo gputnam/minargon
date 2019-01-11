@@ -1,4 +1,6 @@
-// TODO: use javascript imports
+import * as Data from "./Data.js";
+import * as DataLink from "./DataLink.js";
+import * as Chart from "./charts.js";
 
 // This file contains a few classes for plotting time-series data using cubism strip charts
 
@@ -78,7 +80,7 @@ class TimeSeries {
         fields.push( this.config.fields[field_list[i]] );
       }
     }
-    return new MetricStreamLink($SCRIPT_ROOT + this.stream_links[stream_index], this.streams[stream_index], 
+    return new DataLink.MetricStreamLink($SCRIPT_ROOT + this.stream_links[stream_index], this.streams[stream_index], 
         this.config.instance, fields, metric_list, false);
   }
 
@@ -91,7 +93,7 @@ class TimeSeries {
   infer_step(stream_index, callback) {
     if (this.stream_links.length == 0) return callback(0);
  
-    var link = new MetricStreamLink($SCRIPT_ROOT + this.stream_links[stream_index], this.streams[stream_index],
+    var link = new DataLink.MetricStreamLink($SCRIPT_ROOT + this.stream_links[stream_index], this.streams[stream_index],
         this.config.instance, this.config.fields, this.config.metric_list, false);
 
     return d3.json(link.step_link(), function(data) { callback(data.step); });
@@ -114,7 +116,7 @@ class TimeSeries {
 }
 
 // Controller for connecting cubism plots with a single time-series
-class CubismSingleStreamController {
+export class CubismSingleStreamController {
   // target: the div-id (including the '#') where the cubism plots will
   //         be drawn
   // stream_name: the name of the time series (will be provided to the
@@ -134,7 +136,7 @@ class CubismSingleStreamController {
   buildContext(callback) {
     var self = this;
     // get the link
-    var link = new SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
+    var link = new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
     d3.json(link.step_link(), function(data) {
       create_cubism_context_with_step(self.target, data.step, function(step, context) {
         self.step = data.step;
@@ -208,16 +210,16 @@ class CubismSingleStreamController {
     this.cubism_on = false;
 
     // get the link
-    var link = new SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
-    //var data = new D3DataLink(link);
+    var link = new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
+    //var data = new Data.D3DataLink(link);
     // get the poll
-    //var poll = new D3DataPoll(data, this.step, []);
+    //var poll = new Data.D3DataPoll(data, this.step, []);
 
     // get the data source
-    var source = new D3DataSource(link, -1);
+    var source = new Data.D3DataSource(link, -1);
 
     // wrap with a buffer
-    this.buffer = new D3DataBuffer(source, [[this.stream_name]], this.max_data, [this.startCubism.bind(this)]);
+    this.buffer = new Data.D3DataBuffer(source, [[this.stream_name]], this.max_data, [this.startCubism.bind(this)]);
     this.cubism_on = false;
     this.buffer.run(start);
   }
@@ -254,7 +256,7 @@ class CubismSingleStreamController {
 
 }
 
-class CubismMultiMetricController {
+export class CubismMultiMetricController {
   // target: the div-id (including the '#') where the cubism plots will
   //         be drawn
   // NOTE: the following 3 parameters are passed directly to the TimeSeries class
@@ -357,10 +359,10 @@ class CubismMultiMetricController {
     this.cubism_on = false;
 
     // get the link
-    var poll = new D3DataPoll(new D3DataLink(this.timeseries.data_link(this.stream_index, undefined, [this.field_index])),
+    var poll = new Data.D3DataPoll(new Data.D3DataLink(this.timeseries.data_link(this.stream_index, undefined, [this.field_index])),
       this.step);
     // and the buffer
-    this.buffer = new D3DataBuffer(poll, pairs, this.max_data, [this.startCubism.bind(this)]);
+    this.buffer = new Data.D3DataBuffer(poll, pairs, this.max_data, [this.startCubism.bind(this)]);
     this.buffer.run(start);
   }
 
@@ -391,7 +393,7 @@ class CubismMultiMetricController {
 }
 
 // class for controlling parameters of cubism context
-class CubismController {
+export class CubismController {
   // target: the div-id (including the '#') where the cubism plots will
   //         be drawn
   // NOTE: the following 3 parameters are passed directly to the TimeSeries class
@@ -612,13 +614,13 @@ class CubismController {
     var link = this.timeseries.data_link(this.stream_index, [this.metric]);
 
     // first build the poll
-    var poll = new D3DataPoll(new D3DataLink(link), this.step, []);
+    var poll = new Data.D3DataPoll(new Data.D3DataLink(link), this.step, []);
 
     // get the data source
-    //var source = new D3DataSource(link, -1);
+    //var source = new Data.D3DataSource(link, -1);
 
     // wrap with a buffer
-    this.buffer = new D3DataBuffer(poll, pairs, this.max_data, [this.startCubism.bind(this)]);
+    this.buffer = new Data.D3DataBuffer(poll, pairs, this.max_data, [this.startCubism.bind(this)]);
     this.buffer.run(start);
   }
 

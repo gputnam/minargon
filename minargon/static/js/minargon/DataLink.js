@@ -3,7 +3,7 @@
 // Arguments to constructor:
 // root: the root path where all of the API endpoints are defined
 // stream: the full name of the stream 
-class SingleStreamLink {
+export class SingleStreamLink {
   constructor(root, stream) {
     this.stream = stream;
     this.root = root;
@@ -35,7 +35,7 @@ class SingleStreamLink {
 // fields: a list of field objects provided by the configuration backend 
 // metrics: a list of metrics
 // sequence: you should set this to false unless you know what you are doing
-class MetricStreamLink {
+export class MetricStreamLink {
   constructor(root, stream, instance, fields, metrics, sequence) {
     this.root = root;
     this.stream = stream;

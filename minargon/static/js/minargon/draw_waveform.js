@@ -12,7 +12,7 @@
 // target: div-id of the location of the plot
 // param: dictionary where the key-value pairs will be GET params for the URL specified
 //        to get data from the backend raw data API
-function draw_waveform(target, param) {
+export function draw_waveform(target, param) {
   d3.json($SCRIPT_ROOT + "/online/snapshot/waveform?" + $.param(param), function(err, data) {
     if (data == null || data.value == null) return;
     var waveform = data.value;
@@ -42,7 +42,7 @@ function draw_waveform(target, param) {
 // target: div-id of the location of the plot
 // param: dictionary where the key-value pairs will be GET params for the URL specified
 //        to get data from the backend raw data API
-function draw_fft(target, param) {
+export function draw_fft(target, param) {
   d3.json($SCRIPT_ROOT + "/online/snapshot/fft?" + $.param(param), function(err, data) {
     if (data == null || data.value == null) return;
     var fft_vals = data.value;

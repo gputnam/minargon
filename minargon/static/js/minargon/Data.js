@@ -1,4 +1,6 @@
-class D3DataBuffer {
+import {CircularBuffer} from "./circular_buffer.js";
+
+export class D3DataBuffer {
   // input:
   // poll: a D3DatSource or D3DataPoll object 
   //       NOTE: this class will reset the list of listeners attached to the passed in poll
@@ -68,7 +70,7 @@ class D3DataBuffer {
   }
 }
 
-class D3DataSource {
+export class D3DataSource {
   // input:
   // link: a class following the interface defined in DataLink.js
   // timeout: (currently unused) the time (in milliseconds) after which the source will give up requesting data
@@ -104,7 +106,7 @@ class D3DataSource {
 
 }
 
-class D3DataPoll {
+export class D3DataPoll {
     // input:
     // data: A D3DataLink or D3DataChain
     // timeout: the time difference (in milliseconds) between calls to the backend website
@@ -152,7 +154,7 @@ class D3DataPoll {
     }
 }
 
-class D3DataChain {
+export class D3DataChain {
   // input:
   // data_link: a list of D3DataLink objects
   // name: (optional) provide some name to be returned by the name() getter/setter
@@ -190,7 +192,7 @@ class D3DataChain {
   }
 }
 
-class D3DataLink {
+export class D3DataLink {
   // input:
   // link_builder: a class which must implement the interface defined in DataLink.js
   // name: (optional) provide some name to be returned by the name() getter/setter
