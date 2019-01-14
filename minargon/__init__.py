@@ -41,3 +41,4 @@ app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 import minargon.views
 import minargon.redis_api
+import minargon.postgres_api
