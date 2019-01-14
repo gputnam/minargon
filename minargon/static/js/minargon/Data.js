@@ -1,104 +1,187 @@
-class D3DataPoll {
-    // expects a D3DataLink or D3DataChain
-    constructor(data, timeout, listeners, step, server_delay) {
+import {CircularBuffer} from "./circular_buffer.js";
+
+export class D3DataBuffer {
+  // input:
+  // poll: a D3DatSource or D3DataPoll object 
+  //       NOTE: this class will reset the list of listeners attached to the passed in poll
+  // accessors: A list of key values used to access the data returned by the backend.
+  //            For example, lets say that the backend data was formatted as:
+  //            {
+  //              "values" : {
+  //                           "stream_1": [list_of_data],
+  //                           "stream_group": {
+  //                                             "group_instance_1": [list_of_data],
+  //                                             "group_instance_2": [list_of_data]
+  //                                           }
+  //                         }
+  //            }
+  //            Then, you would pass in to accessors: [["stream_1"], ["stream_group", "group_instance_1"], ["stream_group", "group_instance_2"]] 
+  //            NOTE: this class will store the data from each provided stream into a list of circular buffer objects. The ith circular buffer
+  //                  corresponds to the ith accessor list provided into the accessors variable 
+  // n_data: the amount of data to keep around in each circular buffer
+  // listeners: a list of functions to be called whenever any buffer updates. Each function will be passed as input a list of circular buffers,
+  //            where the order of circular buffers is specified by the "accessor" variable as mentioned above.
+  constructor(poll, accessors, n_data, listeners) {
+    this.poll = poll;
+    this.accessors = accessors;
+    this.buffers = [];
+    for (var i = 0; i < this.accessors.length; i++) {
+      this.buffers.push( new CircularBuffer(n_data) );
+    }
+    this.poll.listeners = [this.updateBuffers.bind(this)];
+    this.listeners = listeners;
+  }
+
+  // run: start the Poll/Source and connect with the buffers
+  run(start) {
+    this.poll.run(start);
+  }
+
+  // stop: stop the Poll/Source
+  stop() {
+    this.poll.stop();
+  }
+
+
+  // internal function which updates the managed circular buffers with new data
+  updateBuffers(value) {
+    var data = value.values;
+
+    for (var i = 0; i < this.accessors.length; i++) {
+      var this_data = data;
+      for (var k = 0; k < this.accessors[i].length; k++) {
+        this_data = this_data[this.accessors[i][k]];
+        if (this_data == undefined) {
+          break;
+        }
+      }
+      if (this_data === undefined) {
+        continue;
+      }
+      for (var j = 0; j < this_data.length; j++) {
+        this.buffers[i].push(this_data[j]);
+      }
+    }
+    for (var i = 0; i < this.listeners.length; i++) {
+      var func = this.listeners[i];
+      func(this.buffers);
+    }
+
+  }
+}
+
+export class D3DataSource {
+  // input:
+  // link: a class following the interface defined in DataLink.js
+  // timeout: (currently unused) the time (in milliseconds) after which the source will give up requesting data
+  // listeners: a list of functions to be called with the data returned by the D3DataLink/Chain
+  constructor(link, timeout, listeners) {
+    this.link = link;
+    this.timeout = timeout;
+    this.listeners = listeners;
+  }
+
+  // input:
+  // start: the start index into each time series for the first call for data
+  // behavior: starts up the D3DataSource -- sets up a persistent connection to the backend using SSE
+  //           and on each update calls the list of listener functions
+  run(start) {
+    this.source = new EventSource(this.link.event_source_link(start));
+    var self = this;
+    this.source.onmessage = function(event) {
+        var data = JSON.parse(event.data);
+        for (var i = 0; i < self.listeners.length; i++) {
+          var func = self.listeners[i];
+          func(data);
+        }
+    };
+  }
+
+  // behavior: stops the D3DataSource from running
+  // NOTE: you should always call this function when deleting an old Source.
+  // Otherwise, it will run forever
+  stop() {
+    this.source.close();
+  }
+
+}
+
+export class D3DataPoll {
+    // input:
+    // data: A D3DataLink or D3DataChain
+    // timeout: the time difference (in milliseconds) between calls to the backend website
+    // listeners: a list of functions to be called with the data returned by the D3DataLink/Chain
+    constructor(data, timeout, listeners) {
         this.data = data;
         this.timeout = timeout;
         this.listeners = listeners;
         this.running = true;
-        this.step = step;
-        this.server_delay = server_delay;
     }
 
-    run() {
+    // input:
+    // start: the start index into each time series for the first call to the D3DataLink/Chain
+    // behavior: starts up the D3DataPoll -- repetitively polls the backend for data and on each 
+    //           update calls the list of listener functions
+    run(start) {
         if (!(this.running == true)) {
             return;
         }
-
-        if (!(this.update_function === undefined) && !this.update_function()) {
-            setTimeout(this.run.bind(this), this.timeout);
-            return;
-        }
-
         var self = this;
-        var start = new Date();
-        start.setSeconds(start.getSeconds() - this.server_delay);
-        var stop = new Date(start);
-        stop.setSeconds(stop.getSeconds() + this.step / 1e3); // ms -> s
-        var now = new Date();
-        this.data.get_data_promise(start, stop, this.step)
+        this.data.get_data_promise(start)
             .then(function(value) {
                 for (var i = 0; i < self.listeners.length; i++) {
                     var func = self.listeners[i];
-                    func(value, start);
+                    func(value);
                 }
+                // run again 
+                // determine the start
+                var next_start = start;
+                if (value.min_end_time != 0) next_start = value.min_end_time;
+                setTimeout(function() { self.run(next_start); }, self.timeout);
             });
-        setTimeout(this.run.bind(this), this.timeout);
     }
 
+    // behavior: stops the D3DataPoll from running
+    // NOTE: you should always call this function when deleting an old Poll.
+    // Otherwise, it will run forever
     stop() {
         this.running = false;
     }
 
+    // returns the name of the D3DataChain/Link provided as input
     name() {
         return this.data.name();
     }
 }
 
-class D3DataChain {
-  // expects a list of DataLinks and a final operation which 
-  // composes the links into a final result
-  constructor(data_links, name, operation) {
+export class D3DataChain {
+  // input:
+  // data_link: a list of D3DataLink objects
+  // name: (optional) provide some name to be returned by the name() getter/setter
+  constructor(data_links, name) {
     this.data_links = data_links;
     this.local_name = name;
-    if (operation === undefined) {
-      this.operation = function(x) { return x; }
-    }
-    else {
-      this.operation = operation;
-    }
   }
 
-  // Same interface as D3DataLink
-  get_data(start, stop, step, d3_callback) {
+  // For everything below: Same interface as D3DataLink
+  // However, the data returned (either through a promise or in a callback)
+  // will be formatted as a list of the data returned by each provided D3DataChain
+
+  get_data(d3_callback, start, stop) {
     return Promise.all(this.data_links.map(function(iter_data_link) {
-       return iter_data_link.get_data_promise(start, stop, step);
+       return iter_data_link.get_data_promise(start, stop);
     }))
-      .then(values => d3_callback(null, this.map_operation(values)));
+      .then(values => d3_callback(null, values));
 //            error => d3_callback(new Error("unable to load data")));
   }
 
-  get_values(start, stop, step, d3_callback)  {
-    return Promise.all(this.data_links.map(function(iter_data_link) {
-       return iter_data_link.get_data_promise(start, stop, step);
-    }))
-      .then(values => d3_callback(null, redisValues(this.map_operation(values))));
-  }
-  
-  get_data_promise(start, stop, step) {
+  get_data_promise(start, stop) {
       return Promise.all(this.data_links.map(function(iter_data_link) {
-         return iter_data_link.get_data_promise(start, stop, step);
+         return iter_data_link.get_data_promise(start, stop);
        }))
-          .then(values => Promise.resolve(this.map_operation(values)));
+          .then(values => Promise.resolve(values));
                // error => reject(error));
   }
-
-  map_operation(data) {
-    var n_streams = data.length;
-
-    var ret_data = [];
-    var indexes = [];
-
-    for (var i = 0; i < n_streams; i++) { 
-      ret_data.push(this.operation(data[i].values));
-      indexes.push(data[i].index);
-    }
-
-    var ret = {}
-    ret.index = indexes;
-    ret.values = ret_data;
-    return ret;
-  }
- 
   name() {
     if (this.local_name === undefined || this.local_name === null) {
       return this.data_links[0].name();
@@ -109,56 +192,45 @@ class D3DataChain {
   }
 }
 
-class D3DataLink {
-  // takes as input a class which must implement the interface defined
-  // by ChannelLink below.
-  constructor(link_builder, name, operation) {
+export class D3DataLink {
+  // input:
+  // link_builder: a class which must implement the interface defined in DataLink.js
+  // name: (optional) provide some name to be returned by the name() getter/setter
+  constructor(link_builder, name) {
     this.link_builder = link_builder;
     this.local_name = name;
-    if (operation === undefined) {
-      this.operation = function(x) { return x; }
-    }
-    else {
-      this.operation = operation;
-    }
   }
 
-  get_data(start, stop, step, d3_callback) {
+  // input:
+  // d3_callback: callback function to be called with the data provided by the flask backend
+  // start: start index into the stream
+  // stop: (optional) stop index into the stream -- set to current time by default
+  get_data(d3_callback, start, stop) {
      var self = this;
-     return d3.json(self.link_builder.data_link(start, stop, step),
+     return d3.json(self.link_builder.data_link(start, stop),
 	function(err, data) {
 	    if (!data) {
-                console.log(data);
-                console.log(err);
                 return d3_callback(new Error('unable to load data'));
             }
-	    return d3_callback(null,self.map_operation(data));
+	    return d3_callback(data);
 	});
   }
 
-  get_values(start, stop, step, d3_callback) {
-     var self = this;
-     return d3.json(self.link_builder.data_link(start, stop, step),
-	function(err, data) {
-	    if (!data) {
-                console.log(data);
-                console.log(err);
-                return d3_callback(new Error('unable to load data'));
-            }
-	    return d3_callback(null, redisValues(self.map_operation(data)));
-	});
-  }
-  
-  get_data_promise(start, stop, step) {
-    // Magic Javascript garbage
+  // input:
+  // start: start index into the stream
+  // stop: (optional) stop index into the stream -- set to current time by default
+  //
+  // returns: a javascript Promise which will return the data when it is ready
+  get_data_promise(start, stop) {
     var self = this;
     return new Promise(function(resolve, reject) {
-      d3.json(self.link_builder.data_link(start, stop, step), function(data) {
-        resolve(self.map_operation(data));
+      d3.json(self.link_builder.data_link(start, stop), function(data) {
+        resolve(data);
      });
      });
   }
 
+  // "local_name" getter/setter
   name(new_name) {
     if (new_name === undefined) {
         if (this.local_name === null || this.local_name === undefined) {
@@ -173,29 +245,5 @@ class D3DataLink {
         return this;
     }
   }
-
-  map_operation(data) {
-    var self = this;
-    data.values = data.values.map(function(v) {
-      if (v == 0) return 0;
-      return self.operation(v);
-    }); 
-    return data;
-  }
-}
-
-// gets the actual values out of a data object returned by the redis api
-function redisValues(data) {
-  return data.values
-}
-
-// what redis stream you should be subscribing to
-// TODO: implement
-function getDaqStream(step) {
-    return step / 1000;
-}
-
-function getPowerStream(step) {
-    return step / 1000;
 }
 

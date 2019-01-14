@@ -11,15 +11,15 @@
 </div>
 {% endmacro %}
 
-{% macro step_option(steps, default_step, id) %}
+{% macro stream_option(streams, default_stream, id) %}
 <div class="form-group row">
     <label class="col-sm-4 control-form-label col-form-label">
-        Step
+        Stream
     </label>
     <div class="col-sm-8">
         <select id="{{id}}" class="form-control">
-            {% for step in steps %}
-                <option {% if step==default_step %}selected="true" {%endif%}value="{{step * 1000}}">{{step}} seconds</option>
+            {% for stream in streams %}
+                <option {% if stream==default_stream %}selected="true" {%endif%}value="{{loop.index0}}">{{stream}}</option>
             {% endfor %}
         </select>
     </div>

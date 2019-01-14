@@ -20,8 +20,8 @@
             <div class="card-header">Display Options</div>
             <div class="card-body">
                 <form class="form" role="form">
-                    {{ stream_options.metric_option(timeseries.metrics, metric, "form-metric") }}
-                    {{ stream_options.step_option(timeseries.steps, timeseries.steps[0], "form-step") }}
+                    {{ stream_options.metric_option(timeseries.metric_config, metric, "form-metric") }}
+                    {{ stream_options.stream_option(streams, streams[0], "form-stream") }}
                     {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
                     {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }}
                     {{ stream_options.warning_option("form-warning-range-lo", "form-warning-range-hi") }}
@@ -46,50 +46,60 @@ $(document).ready(function() {
     // field data configuration
     var field_data_config = {{field_data.to_json()|safe}};
 
+    // list of streams
+    var streams = {{streams|tojson|safe}};
+
+    // and stream links
+    var stream_links = {{stream_links|tojson|safe}};
+
     // set up poll config
-    field_data = new FieldData("{{title}}", field_data_config, "{{metric}}", 0)
-      .metricController("#form-metric")
-      .rangeController("#form-range-lo", "#form-range-hi", false)
-      .warningrangeController("#form-warning-range-lo", "#form-warning-range-hi")
-      .set();
+    import("{{ url_for('static', filename='js/minargon/field_data.js') }}").then(function(module) {
+      field_data = new module.FieldData("{{title}}", field_data_config, "{{metric}}", streams[0], stream_links[0])
+	.metricController("#form-metric")
+	.rangeController("#form-range-lo", "#form-range-hi", false)
+	.warningrangeController("#form-warning-range-lo", "#form-warning-range-hi")
+	.set();
 
-    // set up histogram to listen
-    field_data.addHistogram("histogram", "{{view_ident}}");
+      // set up histogram to listen
+      field_data.addHistogram("histogram", "{{view_ident}}");
+      
+      // and scatter
+      field_data.addScatter("scatter", "{{view_ident}}");
+      
+      // begin
+      field_data.run();
+    });
 
-    // and scatter
-    field_data.addScatter("scatter", "{{view_ident}}");
+    import("{{ url_for('static', filename='js/minargon/timeseries.js') }}").then(function(module) {
+      // build cubism controller
+      controller = new module.CubismController("#timeseries", config, "{{metric}}", stream_links, streams, 0, 25) 
+	.linkFunction({{link_function}})
+	.metricController("#form-metric")
+	.heightController("#form-height")
+	.streamController("#form-stream")
+	.rangeController("#form-range-lo", "#form-range-hi")
+	.set();
 
-    // start poll
-    field_data.updatePoll();
-
-    // build cubism controller
-    controller = new CubismController("#timeseries", config, "{{metric}}", 25)
-      .linkFunction({{link_function}})
-      .metricController("#form-metric")
-      .heightController("#form-height")
-      .stepController("#form-step")
-      .rangeController("#form-range-lo", "#form-range-hi")
-      .set();
-
-    // start cubism
-    controller.updateData();
+      // start cubism
+      controller.run();
+    });
 });
 
 // function to update href
 function wireLink(instance, field) {
-  return "channel_snapshot?channel=" + field.wire;
+  return "channel_snapshot?channel=" + field.link;
 }
 
 function crateLink(instance, field) {
-  return "crate_view?crate=" + field.crate;
+  return "crate_view?crate=" + field.link;
 }
 
 function femLink(instance, field) {
-  return "fem_view?fem=" + field.fem;
+  return "fem_view?fem=" + field.link;
 }
 
 function channelLink(instance, field) {
-  return "channel_snapshot?channel=" + field.wire;
+  return "channel_snapshot?channel=" + field.link;
 }
 
 </script>

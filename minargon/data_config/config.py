@@ -8,66 +8,56 @@ class DataConfig(object):
     def __init__(self):
         self.instances = {}
 
+    def set_metrics(self, metric_config):
+        self.metrics = metric_config
+
+    def get_metrics(self):
+        return self.metrics
+
     def add_instance(self, instance):
         self.instances[instance.name] = instance
 
-    def data_instance_timeseries(self, instance_name, **kwargs):
-        instance = self.instances[instance_name]
-        if instance.timeseries is None:
-            raise ValueError("Instance %s does not have timeseries" % instance_name)
-        return TimeSeries(instance, **kwargs)
+    def get_instance(self, instance_name):
+        return self.instances[instance_name]
 
-    def data_field_timeseries(self, instance_name, field_name):
-        instance = self.instances[instance_name]
-        if instance.timeseries is None:
-            raise ValueError("Instance %s does not have timeseries" % instance_name)
-        return TimeSeries(instance, fields=[field_name])
+    def data_instance_timeseries(self, instance, metrics, **kwargs):
+        return TimeSeries(instance, metrics, **kwargs)
 
-    def data_instance_field_data(self, instance_name):
-        instance = self.instances[instance_name]
-        if instance.field_data is None:
-            raise ValueError("Instance %s does not have field data" % instance_name)
-        return FieldData(instance)
+    def data_field_timeseries(self, instance, field_name):
+        return TimeSeries(instance, self.metrics, fields=[field_name])
+
+    def data_instance_field_data(self, instance, metrics):
+        return FieldData(instance, metrics)
 
 class DataInstance(object):
-    def __init__(self, name, metrics, steps, server_delay, userdata):
+    def __init__(self, name, link, userdata):
         self.fields = OrderedDict()
         self.name = name
-        self.steps = steps
-        self.server_delay = server_delay
-        self.metrics = metrics
+        self.link = link
         self._userdata = userdata
         for key, val in userdata.items():
             setattr(self, key, val)
 
-        self.field_data = None
-        self.timeseries = None
-
     def add_field(self, field):
         self.fields[field.name] = field
 
-    def add_timeseries(self, timeseries_link):
-        self.timeseries = timeseries_link
-
-    def add_field_data(self, field_data_link):
-        self.field_data = field_data_link
-
     def to_dict(self):
-        return dict(name=self.name, **self._userdata)
+        return dict(name=self.name, link=self.link, **self._userdata)
 
     def to_json(self):
         return json.dumps(self.to_dict())
    
 
 class DataField(object):
-    def __init__(self, name, userdata):
+    def __init__(self, name, link, userdata):
         self.name = name
+        self.link = link
         self._userdata = userdata
         for key, val in userdata.items():
             setattr(self, key, val)
 
     def to_dict(self):
-        return dict(name=self.name, **self._userdata)
+        return dict(link=self.link, name=self.name, **self._userdata)
 
     def to_json(self):
         return json.dumps(self.to_dict())

@@ -11,6 +11,7 @@ import sys
 
 from tools import parseiso
 from data_config import parse
+import online_metrics
 
 # Postgres Requirements
 import subprocess 
@@ -46,7 +47,7 @@ def nevis_readout():
     render_args = {
       'n_fem': constants.N_FEM,
       'header_metrics': ["frame_no", "event_no", "trig_frame_no", "blocks"],
-      'fem_data': DATA_CONFIG.data_instance_field_data("crate 0"),
+      'fem_data': DATA_CONFIG.data_instance_field_data("crate"),
     }
     return render_template('nevis_readout.html', **render_args) 
 
@@ -89,11 +90,26 @@ def channel_snapshot():
     view_ind = {'channel': channel}
     view_ind_opts = {'channel': range(constants.N_CHANNELS)}
 
+    instance_name = "combined plane"
+    instance = DATA_CONFIG.get_instance(instance_name)
+
+    metrics_to_streams = online_metrics.get_series(instance.link, instance.fields.items()[0][1].link)
+    # turn dict into list of metrics and list of streams
+    # require any used stream by used by all metrics
+    metric_list = [key for key,_ in metrics_to_streams.items()] 
+    if len(metric_list) > 0:
+        stream_list, stream_links = zip(*metrics_to_streams[metric_list[0]])
+    else:
+        stream_list = []
+        stream_links = []
+
     template_args = {
         'channel': channel,
-        'timeseries': DATA_CONFIG.data_field_timeseries("combined plane", "wire %i" % channel),
+        'timeseries': DATA_CONFIG.data_field_timeseries(instance, "wire %i" % channel),
         'view_ind': view_ind,
-        'view_ind_opts': view_ind_opts
+        'view_ind_opts': view_ind_opts,
+        'streams': stream_list,
+        'stream_links': stream_links,
     }
     return render_template('channel_snapshot.html', **template_args)
 
@@ -107,9 +123,10 @@ def fem_view():
 # view of a number of fem's on a readout crate
 @app.route('/crate_view')
 def crate_view():
-    crate = request.args.get('crate', 0, type=int)
-    instance_name = "crate %i" % crate
-    return timeseries_view(request.args, instance_name, "fem", "femLink")
+    #crate = request.args.get('crate', 0, type=int)
+    #instance_name = "crate %i" % crate
+    instance_name = "crate"
+    return timeseries_view(request.args, instance_name, "FEM", "femLink")
 
 # view of a number of crates in the readout
 @app.route('/readout_view')
@@ -124,9 +141,37 @@ def wireplane_view():
     instance_name = "%s plane" % plane
     return timeseries_view(request.args, instance_name, "wire", "wireLink")
 
+@app.route('/single_stream/<stream_name>/')
+def single_stream(stream_name):
+    render_args = {
+        "stream_name": stream_name,
+    }
+    return render_template('single_stream.html', **render_args) 
+    
+
 def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
-    timeseries = DATA_CONFIG.data_instance_timeseries(instance_name, maxn=25)
-    field_data = DATA_CONFIG.data_instance_field_data(instance_name)
+    instance = DATA_CONFIG.get_instance(instance_name)
+    metrics_to_streams = online_metrics.get_series(instance.link, instance.fields.items()[0][1].link)
+    # turn dict into list of metrics and list of streams
+    # require any used stream by used by all metrics
+    metric_list = [key for key,_ in metrics_to_streams.items()] 
+    if len(metric_list) > 0:
+        stream_list, stream_links = zip(*metrics_to_streams[metric_list[0]])
+    else:
+        stream_list = []
+        stream_links = []
+    # get the config associated with each metric
+    master_config = DATA_CONFIG.get_metrics()
+    metric_config = {}
+    for metric in metric_list:
+        if metric in master_config:
+            metric_config[metric] = master_config[metric]
+        else:
+            metric_config[metric] = []
+
+    instance = DATA_CONFIG.get_instance(instance_name)
+    timeseries = DATA_CONFIG.data_instance_timeseries(instance, metric_config, maxn=25)
+    field_data = DATA_CONFIG.data_instance_field_data(instance, metric_config)
     initial_datum = args.get('data', 'rms')
 
     render_args = {
@@ -135,7 +180,9 @@ def timeseries_view(args, instance_name, view_ident="", link_function="undefined
         'title': instance_name,
         'field_data': field_data,
         'view_ident': view_ident,
-        'link_function': link_function
+        'link_function': link_function,
+        'streams': stream_list,
+        'stream_links': stream_links
     }
 
     return render_template('timeseries.html', **render_args)
