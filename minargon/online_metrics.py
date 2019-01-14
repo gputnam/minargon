@@ -2,7 +2,7 @@ from . import app
 from flask import jsonify, Response, request
 from redis import Redis
 import json
-from tools import parseiso, parseiso_or_int
+from tools import parseiso, parseiso_or_int, stream_args
 
 import redis_api
 
@@ -33,13 +33,6 @@ def snapshot(data):
         redis_key += ":%s:%s" % (k, v)
     return jsonify(values=redis_api.get_key(redis, redis_key))
 
-def stream_args(args):
-    ret = {}
-    ret["start"] = args.get('start',None,type=parseiso_or_int)
-    ret["stop"] = args.get('stop', None,type=parseiso_or_int)
-    ret["n_data"] = args.get('n_data', None, type=int)
-
-    return ret
 
 def get_min_end_time(data):
     min_end_time = 0

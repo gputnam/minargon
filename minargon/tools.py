@@ -51,6 +51,13 @@ def default_channel_map(n_channels, n_fem):
     fem_active_channels = [range(wire_per_fem[i]) for i in range(n_fem)]
     return (channel_to_wire, wire_to_channel, wire_per_fem, fem_active_channels)
 
+def stream_args(args):
+    ret = {}
+    ret["start"] = args.get('start',None,type=parseiso_or_int)
+    ret["stop"] = args.get('stop', None,type=parseiso_or_int)
+    ret["n_data"] = args.get('n_data', None, type=int)
+
+    return ret
     
 
 
