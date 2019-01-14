@@ -28,12 +28,14 @@
 // global variables to be accessed by form fields, etc.
 $(document).ready(function() {
   // setup cubism
-  var controller = new CubismMultiMetricController("#timeseries", {{timeseries.to_json()|safe}}, 0, 40)
-    .heightController("#form-height")
-    .stepController("#form-step"); 
+  import("{{ url_for('static', filename='js/minargon/timeseries.js') }}").then(function(module) {
+    var controller = new module.CubismMultiMetricController("#timeseries", {{timeseries.to_json()|safe}}, 0, 40)
+      .heightController("#form-height")
+      .stepController("#form-step"); 
 
-  // start polling for data
-  controller.updateData();
+    // start polling for data
+    controller.run();
+  });
 });
 </script>
 {% endblock %}

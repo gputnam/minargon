@@ -29,18 +29,20 @@
 {% block script %}
 <script defer>
 $(document).ready(function() {
-    // build cubism controller
-    var controller = new CubismSingleStreamController("#cubism-timeseries", "{{stream_name}}", 25)
-      .heightController("#form-height")
-      .rangeController("#form-range-lo", "#form-range-hi");
+    import("{{ url_for('static', filename='js/minargon/timeseries.js') }}").then(function(module) {
+      // build cubism controller
+      var controller = new module.CubismSingleStreamController("#timeseries", "{{stream_name}}", 25)
+        .heightController("#form-height")
+        .rangeController("#form-range-lo", "#form-range-hi");
 
-    // start cubism
-    controller.run();
+      // start cubism
+      controller.run();
 
-    // build plotly controller
-    var plotly_controller = new PlotlySingleStreamController("plotly-timeseries", "{{stream_name}}");
-    // start it
-    plotly_controller.run();
+      // build plotly controller
+      var plotly_controller = new PlotlySingleStreamController("plotly-timeseries", "{{stream_name}}");
+      // start it
+      plotly_controller.run();
+    });
 });
 </script>
 {% endblock %}

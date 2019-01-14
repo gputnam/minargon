@@ -1,0 +1,149 @@
+This directory contains the javascript code that runs the minargon
+website. The code accomplishes four main tasks:
+
+1. Polling for data from the flask backend (which in turn receives data
+from different databases)
+
+2. Displaying data to front end users
+
+3. Managing configuration for different time series data (i.e. typical
+ranges, warning values, which streams are expected to exist at a given
+time)
+
+4. User interface for navigating the website and specifying plot
+parameters
+
+
+The files in this directory split up these tasks as follows:
+
+DataLink.js: 
+
+Manages function (1).
+
+Contains a list of classes that all connect to different
+API endpoints in the flask backend for receving data. Each class defines
+the following methods -- each method returns a string corresponding to a
+URL:
+
+step_link(): URL to API backend which will return the time step
+associated with the time series configured to the class.
+
+data_link(start, stop): URL to API backend which will return data
+from a time series between the specified start and stop values. If the
+stop parameter is not given, it should default to the current time.
+
+event_source_link(start): URL to API backend which will generate a
+persistent connection using Server Side Events (SSE). The backend will
+first return all time series values between start and the current time,
+and will send further data whenever the time series receives an update
+(using the SSE protocol).
+
+
+name(): A string which corresponds to the name of this datalink
+object.
+
+Data.js:
+
+Manages function (1).
+
+Defines a series of classes that build abstractions on top of a provided
+data link class to provide an easier interface for plotter classes to
+use. The abstraction tower is as follows:
+
+                            DataLink
+                               /   |
+                              /    |
+                       D3DataLink  |
+                        /    |     |
+                       /     |     |
+                D3DataChain  |     |
+                       \     |     |
+                        \    |     |
+                       D3DataPoll D3DataSource
+                            \         /
+                             \       /
+                            D3DataBuffer
+
+The top class (DataLink) represents one of the classes defined in the
+file DataLink.js. All other names are specific classes in Data.js. Each
+class builds on the last by taking it as input. For example, the
+parameters to the D3DataSource class are (link, timeout, listeners)
+where "link" should be an instance of a D3DataLink. Each class builds on
+the last by taking it as input. For example, the parameters to the
+D3DataSource class are (link, timeout, listeners) where "link" should be
+an instance of a D3DataLink.
+
+Any plotter code should wrap around a D3DataBuffer.
+
+The individual classes in Data.js are as follows (see the file for
+further info):
+
+D3DataLink: takes in a "DataLink" object and provides two methods -- one
+to get data asynchronously with a callback function and one to return a
+JavaScript "Promise" object which will contain the data on retreival.
+
+D3DataChain: takes in a list of D3DataLink objects and provides the same
+interface, where now each returned data corresponds to a list of time
+streams specified by the input list of D3DataLink objects.
+
+D3DataPoll: takes in a D3DataLink of D3DataChain object and periodically
+uses them to "poll" the backend for data. Calls a list of "listener"
+functions each time new data arrives.
+
+D3DataSource: takes in a "DataLink" object and establishes a persistent
+connection to the backend using Server Side Events (SSE). Calls a list
+of "listener" functions each time new data arrives.
+
+D3DataBuffer: takes in a D3DataPoll or D3DataSource object and stores
+the time series data in a circular buffer. Each time the buffer is
+updated, calls a list of "listener" functions, providing the buffer as
+input.
+
+circular_buffer.js:
+
+Manages function (1).
+
+Defines the circular buffer data structure used by D3DataBuffer.
+
+charts.js:
+
+Manages function (2).
+
+Defines a couple of classes which can be used to display data from time
+series. Note that some of the website code also uses cubism to display
+time series metrics. Defines the following classes (see the file for
+more details):
+
+Histogram: Plots a histogram binning the most recent data from a
+provided list of timeseries.
+
+LineChart: Plots a scatter plot of the most recent data from a provided
+list of timeseries.
+
+field_data.js:
+
+Manages function (1, 2, 3, 4):
+
+This file, along with timeseries.js, contains the glue code that
+connects the data retreival operations (function 1) with displaying data
+to the user (function 2) while also managing user input and
+configuration of different time series (functions 3 and 4). 
+
+This file connects a provided list of timeseries with the Histogram and
+LineChart classes defines in chart.js. For an example usage see the
+template file timeseries.html. For more details, see the file.
+
+timeseries.js:
+
+Manages functions (1, 2, 3, 4):
+
+This file is glue code for interfacing with cubism plots. Similar to
+field_data.js, it takes in a list of time series and displays them in
+cubism while also managing UI for the user.
+
+draw_waveform.js:
+
+Manages function (2):
+
+This file (uniquely) does not deal with time-series data. It provides
+helper functions for drawing waveforms with plotly.

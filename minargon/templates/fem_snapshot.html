@@ -32,9 +32,12 @@ d3.json($SCRIPT_ROOT + "/snapshot/sub_run", function(err, data) {
 });
 
 $(document).ready(function() {
-  // draw waveform and fft
-  draw_waveform('waveform', {fem: {{fem}} });
-  draw_fft('fft', {fem: {{fem}} });
+  // draw waveform
+  import("{{ url_for('static', filename='js/minargon/draw_waveform.js') }}").then(function(module) { 
+    // draw waveform and fft
+    module.draw_waveform('waveform', {fem: {{fem}} });
+    module.draw_fft('fft', {fem: {{fem}} });
+  });
 });
 
 function link_param() { return {}; }
