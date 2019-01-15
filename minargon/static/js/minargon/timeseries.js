@@ -219,7 +219,7 @@ export class CubismSingleStreamController {
     var source = new Data.D3DataSource(link, -1);
 
     // wrap with a buffer
-    this.buffer = new Data.D3DataBuffer(source, [[this.stream_name]], this.max_data, [this.startCubism.bind(this)]);
+    this.buffer = new Data.D3DataBuffer(source, this.max_data, [this.startCubism.bind(this)]);
     this.cubism_on = false;
     this.buffer.run(start);
   }
@@ -346,13 +346,6 @@ export class CubismMultiMetricController {
       this.buffer.stop();
     }
 
-    // Build the accessor pairs to be passed to the D3DataBuffer
-    var pairs = [];
-    for (var i = 0; i < this.timeseries.config.metric_list.length; i++) {
-      // metric name then field name
-      pairs.push( [this.timeseries.config.metric_list[i], this.timeseries.config.fields[this.field_index].link] );
-    }
-
     // make a new buffer
     var start = new Date();
     start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
@@ -362,7 +355,7 @@ export class CubismMultiMetricController {
     var poll = new Data.D3DataPoll(new Data.D3DataLink(this.timeseries.data_link(this.stream_index, undefined, [this.field_index])),
       this.step);
     // and the buffer
-    this.buffer = new Data.D3DataBuffer(poll, pairs, this.max_data, [this.startCubism.bind(this)]);
+    this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.startCubism.bind(this)]);
     this.buffer.run(start);
   }
 
@@ -599,12 +592,6 @@ export class CubismController {
       this.buffer.stop();
     }
 
-    // build the metric/field pais we expect to access
-    var pairs = [];
-    for (var i = 0; i < this.timeseries.config.fields.length; i++) {
-      pairs.push([this.metric, this.timeseries.config.fields[i].link]);
-    }
-
     // make a new buffer
     // to be on the safe side, get back to ~1000 data points
     var start = new Date(); 
@@ -620,7 +607,7 @@ export class CubismController {
     //var source = new Data.D3DataSource(link, -1);
 
     // wrap with a buffer
-    this.buffer = new Data.D3DataBuffer(poll, pairs, this.max_data, [this.startCubism.bind(this)]);
+    this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.startCubism.bind(this)]);
     this.buffer.run(start);
   }
 

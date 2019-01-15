@@ -133,12 +133,6 @@ export class FieldData {
   updateBuffer() {
     if (this.buffer != null) this.buffer.stop();
 
-    // Get "accessor" pairs to pass to D3DataBuffer
-    var pairs = [];
-    for (var i = 0; i < this.config.fields.length; i++) {
-      pairs.push( [this.metric, this.config.fields[i].link] );
-    }
-
     // TODO: currently we can either setup the D3DataBuffer with a Poll
     // (polling) or a Source (server side events). We should decide
     // which method to use
@@ -152,7 +146,7 @@ export class FieldData {
     var source = new Data.D3DataSource(link, -1);
 
     // get the data buffer
-    this.buffer = new Data.D3DataBuffer(source, pairs, 1, this.listeners); 
+    this.buffer = new Data.D3DataBuffer(source, 1, this.listeners); 
     // run with the most recent data
     var start = new Date();
     // go just a little back in time to get the first data

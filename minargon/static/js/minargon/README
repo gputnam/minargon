@@ -38,6 +38,23 @@ first return all time series values between start and the current time,
 and will send further data whenever the time series receives an update
 (using the SSE protocol).
 
+accessors(): Return a list of key values used to access the data returned 
+by the backend. For example, lets say that the backend data was formatted as:
+{
+  "values" : {
+    "stream_1": [list_of_data],
+    "stream_group": {
+      "group_instance_1": [list_of_data],
+      "group_instance_2": [list_of_data]
+    }
+  }
+}
+Then, accessors() would return: 
+[ ["stream_1"], 
+  ["stream_group", "group_instance_1"], 
+  ["stream_group", "group_instance_2"]
+] 
+
 
 name(): A string which corresponds to the name of this datalink
 object.
