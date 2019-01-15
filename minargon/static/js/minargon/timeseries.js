@@ -160,7 +160,7 @@ class PlotlySingleStreamController {
     var source = new D3DataSource(link, -1);
 
     // wrap with a buffer
-    this.buffer = new D3DataBuffer(source, [[this.stream_name]], this.max_data, [this.scatter.updateData.bind(this.scatter)]);
+    this.buffer = new D3DataBuffer(source, this.max_data, [this.scatter.updateData.bind(this.scatter)]);
     this.buffer.run(start);
   }
 }
