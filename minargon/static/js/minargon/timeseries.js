@@ -112,7 +112,57 @@ class TimeSeries {
     }
     return undefined;
   }
+}
 
+class PlotlySingleStreamController {
+  constructor(target, stream_name) {
+    this.stream_name = stream_name;
+    this.target = target;
+    this.max_data = 1000;
+    // setup layout
+    this.layout = {
+      title: stream_name
+    };
+    // make a new plotly scatter plot
+    this.scatter = new TimeSeriesScatter(target, this.layout);
+  }
+
+  getTimeStep(callback) {
+    var self = this;
+    // get the link
+    var link = new SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
+    d3.json(link.step_link(), function(data) {
+        self.step = data.step;
+        callback(self);
+    });
+  }
+
+  // get the timestep and then start
+  run() {
+    this.getTimeStep(function(self) {
+      self.updateData();
+    });
+  }
+
+  updateData() {
+    // make a new buffer
+    // to be on the safe side, get back to ~1000 data points
+    var start = new Date(); 
+    start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
+
+    // get the link
+    var link = new SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
+    //var data = new D3DataLink(link);
+    // get the poll
+    //var poll = new D3DataPoll(data, this.step, []);
+
+    // get the data source
+    var source = new D3DataSource(link, -1);
+
+    // wrap with a buffer
+    this.buffer = new D3DataBuffer(source, [[this.stream_name]], this.max_data, [this.scatter.updateData.bind(this.scatter)]);
+    this.buffer.run(start);
+  }
 }
 
 // Controller for connecting cubism plots with a single time-series
