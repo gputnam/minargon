@@ -2,7 +2,7 @@
 // TODO: make use of module imports
 
 // class managing a plotly timeseries scatter plot
-class TimeSeriesScatter {
+export class TimeSeriesScatter {
     constructor(target, layout) {
       this.target = target;
       this.data = [];

@@ -124,7 +124,7 @@ class PlotlySingleStreamController {
       title: stream_name
     };
     // make a new plotly scatter plot
-    this.scatter = new TimeSeriesScatter(target, this.layout);
+    this.scatter = new Chart.TimeSeriesScatter(target, this.layout);
   }
 
   getTimeStep(callback) {
@@ -151,16 +151,16 @@ class PlotlySingleStreamController {
     start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
 
     // get the link
-    var link = new SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
-    //var data = new D3DataLink(link);
+    var link = new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
+    //var data = new Data.D3DataLink(link);
     // get the poll
-    //var poll = new D3DataPoll(data, this.step, []);
+    //var poll = new Data.D3DataPoll(data, this.step, []);
 
     // get the data source
-    var source = new D3DataSource(link, -1);
+    var source = new Data.D3DataSource(link, -1);
 
     // wrap with a buffer
-    this.buffer = new D3DataBuffer(source, this.max_data, [this.scatter.updateData.bind(this.scatter)]);
+    this.buffer = new Data.D3DataBuffer(source, this.max_data, [this.scatter.updateData.bind(this.scatter)]);
     this.buffer.run(start);
   }
 }
