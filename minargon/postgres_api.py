@@ -12,15 +12,19 @@ import subprocess
 import psycopg2
 import json
 from psycopg2.extras import RealDictCursor
+from tools import parseiso, parseiso_or_int, stream_args
 
 from . import app
-from flask import jsonify
+from flask import jsonify, request
+from datetime import datetime, timedelta # needed for testing only
 
 # Read in file with user(u) and password(p)
 file = open(app.config["EPICS_SECRET_KEY"],"r") 
 u = (file.readline()).strip(); # strip: removes leading and trailing chars
 p = (file.readline()).strip()
 file.close()
+
+global step_size # will update this when got a better way of getting the step size
 
 # Connect to the database
 connection = psycopg2.connect(database=app.config["POSTGRES_DB"], user=u, 
@@ -33,26 +37,33 @@ cursor = connection.cursor(cursor_factory=RealDictCursor) # Fancy way of using c
 
 @app.route("/power_supply_series/<ID>")
 def power_supply_series(ID):
+    
+	# Make a request for time range to plot
+	args = stream_args(request.args)
+	start_t = args['start']    # Start time
+	stop_t  = args['stop']     # Stop time
 
-    # convert python date time object to postgres
+	# Placeholder datetimes to be removed once working
+	# start_t = datetime.now()                         # Start time
+	# stop_t  = datetime.now() + timedelta(days=2)     # Stop time
 
-    # stream args to get start and stop from the user in tools.py 
-   
-    # Database query to execute
-    query="""SELECT SMPL_TIME AS SAMPLE_TIME,FLOAT_VAL AS VALUE
-    FROM SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<(INTERVAL '1 day') ORDER BY SMPL_TIME;""" % ID
+	t_interval = stop_t - start_t
 
-    cursor.execute(query)
+	# Database query to execute
+	query="""SELECT SMPL_TIME AS SAMPLE_TIME,FLOAT_VAL AS VALUE
+	FROM SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME;""" % ( ID, t_interval )
 
-    data = cursor.fetchall()
+	cursor.execute(query)
 
-    # cursor.connection.close() # for now don't close the connection with the database, may cause problems down the line
+	data = cursor.fetchall()
 
-    return jsonify(Data=data)
+	step_size = data[0][ len(data[0]) - 1 ] - data[0][ len(data[0]) - 2] # data[0] = SMPL TIMES
 
+	# For now don't close the connection with the database, may cause problems down the line
+	# cursor.connection.close() 
 
+	return jsonify(Data=data)
 
-
-
-
-
+# Function that uses the step size
+def GET_SMPLE_STEP():
+	return step_size
