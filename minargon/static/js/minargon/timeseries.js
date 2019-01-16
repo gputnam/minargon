@@ -2,6 +2,9 @@ import * as Data from "./Data.js";
 import * as DataLink from "./DataLink.js";
 import * as Chart from "./charts.js";
 
+// re-export DataLink
+export {DataLink};
+
 // This file contains a few classes for plotting time-series data using cubism strip charts
 
 // There are three available classes used for managing cubism:
@@ -114,14 +117,14 @@ class TimeSeries {
   }
 }
 
-class PlotlySingleStreamController {
-  constructor(target, stream_name) {
-    this.stream_name = stream_name;
+export class PlotlySingleStreamController {
+  constructor(target, link) {
+    this.link = link;
     this.target = target;
     this.max_data = 1000;
     // setup layout
     this.layout = {
-      title: stream_name
+      title: link.name()
     };
     // make a new plotly scatter plot
     this.scatter = new Chart.TimeSeriesScatter(target, this.layout);
@@ -129,9 +132,7 @@ class PlotlySingleStreamController {
 
   getTimeStep(callback) {
     var self = this;
-    // get the link
-    var link = new SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
-    d3.json(link.step_link(), function(data) {
+    d3.json(this.link.step_link(), function(data) {
         self.step = data.step;
         callback(self);
     });
@@ -150,17 +151,15 @@ class PlotlySingleStreamController {
     var start = new Date(); 
     start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
 
-    // get the link
-    var link = new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
-    //var data = new Data.D3DataLink(link);
+    var data = new Data.D3DataLink(this.link);
     // get the poll
-    //var poll = new Data.D3DataPoll(data, this.step, []);
+    var poll = new Data.D3DataPoll(data, this.step, []);
 
     // get the data source
-    var source = new Data.D3DataSource(link, -1);
+    //var source = new Data.D3DataSource(this.link, -1);
 
     // wrap with a buffer
-    this.buffer = new Data.D3DataBuffer(source, this.max_data, [this.scatter.updateData.bind(this.scatter)]);
+    this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.scatter.updateData.bind(this.scatter)]);
     this.buffer.run(start);
   }
 }
@@ -169,12 +168,11 @@ class PlotlySingleStreamController {
 export class CubismSingleStreamController {
   // target: the div-id (including the '#') where the cubism plots will
   //         be drawn
-  // stream_name: the name of the time series (will be provided to the
-  //              /online/single_stream/<name> endpoint of the online 
-  //              metrics API
+  // link: a DataLink object to be used to get data. The name() of the
+  //       DataLink object will also be used for display.
   // height: the height of the cubism time strip plot to be drawn
-  constructor(target, stream_name, height) {
-    this.stream_name = stream_name;
+  constructor(target, link, height) {
+    this.link = link;
     this.target = target;
     this.height = height;
     this.max_data = 1000;
@@ -186,8 +184,7 @@ export class CubismSingleStreamController {
   buildContext(callback) {
     var self = this;
     // get the link
-    var link = new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
-    d3.json(link.step_link(), function(data) {
+    d3.json(this.link.step_link(), function(data) {
       create_cubism_context_with_step(self.target, data.step, function(step, context) {
         self.step = data.step;
         self.context = context;
@@ -259,17 +256,15 @@ export class CubismSingleStreamController {
     start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
     this.cubism_on = false;
 
-    // get the link
-    var link = new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", this.stream_name);
-    //var data = new Data.D3DataLink(link);
+    var data = new Data.D3DataLink(this.link);
     // get the poll
-    //var poll = new Data.D3DataPoll(data, this.step, []);
+    var poll = new Data.D3DataPoll(data, this.step, []);
 
     // get the data source
-    var source = new Data.D3DataSource(link, -1);
+    //var source = new Data.D3DataSource(this.link, -1);
 
     // wrap with a buffer
-    this.buffer = new Data.D3DataBuffer(source, this.max_data, [this.startCubism.bind(this)]);
+    this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.startCubism.bind(this)]);
     this.cubism_on = false;
     this.buffer.run(start);
   }
@@ -291,7 +286,7 @@ export class CubismSingleStreamController {
   // Internal function: run cubism for the first time
   startCubism(buffers) {
     if (!this.cubism_on) {
-      var metrics = [this.context.metric(this.dataLink(buffers), this.stream_name)];
+      var metrics = [this.context.metric(this.dataLink(buffers), this.link.name())];
       make_horizons(this, metrics);
       this.cubism_on = true;
     }
