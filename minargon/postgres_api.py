@@ -60,7 +60,8 @@ def postgres_query(ID):
 
 
 # Gets the sample step size in unix miliseconds
-def get_timestep(ID):
+@app.route("/power_supply_step/<ID>")
+def power_supply_step(ID):
 	
 	data = postgres_query(ID)
 
