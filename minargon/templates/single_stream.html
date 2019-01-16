@@ -6,7 +6,12 @@
 {{ super() }}
 <div class="container">
 <div class="row">
-    <div class="col-md-8" style="padding:0" id="timeseries"></div>
+    <div class="col-md-8">
+	<!-- cubism div -->
+	<div style="padding:0" id="cubism-timeseries"></div>
+	<!-- plotly div -->
+	<div style="padding:0" id="plotly-timeseries"></div>
+    </div>
     <div class="col-md-4 vcenter">
         <div class="card hcenter">
             <div class="card-header">Display Options</div>
@@ -32,6 +37,11 @@ $(document).ready(function() {
 
       // start cubism
       controller.run();
+
+      // build plotly controller
+      var plotly_controller = new PlotlySingleStreamController("plotly-timeseries", "{{stream_name}}");
+      // start it
+      plotly_controller.run();
     });
 });
 </script>

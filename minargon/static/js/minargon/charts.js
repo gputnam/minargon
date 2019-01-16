@@ -1,6 +1,52 @@
 // All code here relies on plotly.js being loaded
 // TODO: make use of module imports
 
+// class managing a plotly timeseries scatter plot
+export class TimeSeriesScatter {
+    constructor(target, layout) {
+      this.target = target;
+      this.data = [];
+      this.times = [];
+      this.draw(layout);
+    }
+
+    draw(layout) {
+      Plotly.newPlot(this.target, this.trace(), layout);
+    }
+
+    trace() {
+      var ret = [{
+        x: this.times,
+        y: this.data,
+        type: 'scatter',
+      }];
+      return ret;
+    }
+
+    // update plot with a new layout
+    reLayout(layout) {
+        Plotly.relayout(this.target, layout);
+    }
+
+    // update the data and redraw the plot
+    // data should be a single time stream
+    updateData(buffers) {
+      var buffer = buffers[0];
+      for (var i = 0; i < buffer.size; i++) {
+        var dat = buffer.get(i);
+        this.times[i] = moment.unix(dat[0] / 1000) // ms -> s
+          .format("YYYY-MM-DD HH:mm:ss");
+        this.data[i] = dat[1];
+      }
+      this.redraw();
+    }
+
+    redraw() {
+         Plotly.redraw(this.target);
+    }
+
+}
+
 // class managing a plotly histogram
 // Class managing a list of time series that plots a histogram (in
 // plotly) of the most recent values across that time series 

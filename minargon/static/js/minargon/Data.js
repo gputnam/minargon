@@ -4,26 +4,15 @@ export class D3DataBuffer {
   // input:
   // poll: a D3DatSource or D3DataPoll object 
   //       NOTE: this class will reset the list of listeners attached to the passed in poll
-  // accessors: A list of key values used to access the data returned by the backend.
-  //            For example, lets say that the backend data was formatted as:
-  //            {
-  //              "values" : {
-  //                           "stream_1": [list_of_data],
-  //                           "stream_group": {
-  //                                             "group_instance_1": [list_of_data],
-  //                                             "group_instance_2": [list_of_data]
-  //                                           }
-  //                         }
-  //            }
-  //            Then, you would pass in to accessors: [["stream_1"], ["stream_group", "group_instance_1"], ["stream_group", "group_instance_2"]] 
-  //            NOTE: this class will store the data from each provided stream into a list of circular buffer objects. The ith circular buffer
-  //                  corresponds to the ith accessor list provided into the accessors variable 
   // n_data: the amount of data to keep around in each circular buffer
   // listeners: a list of functions to be called whenever any buffer updates. Each function will be passed as input a list of circular buffers,
   //            where the order of circular buffers is specified by the "accessor" variable as mentioned above.
-  constructor(poll, accessors, n_data, listeners) {
+
+  // NOTE: this class will store the data from each provided stream into a list of circular buffer objects. The ith circular buffer
+  //       corresponds to the ith accessor list provided by the DataLink. 
+  constructor(poll, n_data, listeners) {
     this.poll = poll;
-    this.accessors = accessors;
+    this.accessors = poll.accessors();
     this.buffers = [];
     for (var i = 0; i < this.accessors.length; i++) {
       this.buffers.push( new CircularBuffer(n_data) );
@@ -81,6 +70,11 @@ export class D3DataSource {
     this.listeners = listeners;
   }
 
+  // expose the link's accessors
+  accessors() {
+    return this.link.accessors();
+  }
+
   // input:
   // start: the start index into each time series for the first call for data
   // behavior: starts up the D3DataSource -- sets up a persistent connection to the backend using SSE
@@ -116,6 +110,11 @@ export class D3DataPoll {
         this.timeout = timeout;
         this.listeners = listeners;
         this.running = true;
+    }
+
+    // expose the data object accessors
+    accessors() {
+      return this.data.accessors();
     }
 
     // input:
@@ -163,6 +162,15 @@ export class D3DataChain {
     this.local_name = name;
   }
 
+  // expose the list of each data_link's accessors()
+  accessors() {
+    var ret = [];
+    for (var i = 0; i < this.data_links.length; i ++) {
+      ret = ret + this.data_links.accessors();
+    }
+    return ret;
+  }
+
   // For everything below: Same interface as D3DataLink
   // However, the data returned (either through a promise or in a callback)
   // will be formatted as a list of the data returned by each provided D3DataChain
@@ -199,6 +207,11 @@ export class D3DataLink {
   constructor(link_builder, name) {
     this.link_builder = link_builder;
     this.local_name = name;
+  }
+
+  // expose the link_builder accessors() function
+  accessors() {
+    return this.link_builder.accessors();
   }
 
   // input:

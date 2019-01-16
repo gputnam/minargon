@@ -21,6 +21,10 @@ export class SingleStreamLink {
     return this.root + '/stream_subscribe/' + this.stream + '?' + $.param(timeArgs(start, null));
   }
 
+  accessors() {
+    return [[this.stream]];
+  }
+
   name() {
     return this.stream;
   }
@@ -59,7 +63,7 @@ export class MetricStreamLink {
   
   data_link_internal(base, start, stop) {
     if (this.sequence) {
-      var fields = '/' + this.field_start + '/' + thif.field_end; 
+      var fields = '/' + this.field_start + '/' + this.field_end; 
     }
     else {
       var fields = "";
@@ -86,6 +90,27 @@ export class MetricStreamLink {
 
   event_source_link(start) {
     return this.data_link_internal('/stream_group_subscribe/', start, null);
+  }
+
+  accessors() {
+    var ret = [];
+    // iterate first over each metric
+    for (var i = 0; i < this.metrics.length; i++) {
+      // iterate over the fields
+    
+      // sequence
+      if (this.sequence) {
+        for (var field = this.field_start; field < this.field_start + this.field_end; field++) {
+          ret.push( [this.metrics[i], String(field)] );
+        }
+      }
+      // not a sequence -- iterate over the provided fields
+      for (var j = 0; j < this.fields.length; j++) {
+        ret.push( [this.metrics[i], this.fields[j].link] );
+      }
+    }
+    return ret;
+
   }
 
   name() {
