@@ -141,6 +141,14 @@ def wireplane_view():
     instance_name = "%s plane" % plane
     return timeseries_view(request.args, instance_name, "wire", "wireLink")
 
+@app.route('/power_supply_single_stream/<ID>')
+def power_supply_single_stream(ID):
+    render_args = {
+      "ID": ID
+    }
+    return render_template('power_supply_single_stream.html', **render_args)
+ 
+
 @app.route('/single_stream/<stream_name>/')
 def single_stream(stream_name):
     render_args = {
@@ -262,7 +270,7 @@ def test_pv():
             old[1] = row[1]
 
         # Push back every time       
-        pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])] , "href" : "power_supply_series/"+str(row[3]) }) # Level 3
+        pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])] , "href" : "power_supply_single_stream/"+str(row[3]) }) # Level 3
         index[2] = index[2] + 1
         tags[1] = tags[1] + 1
 
