@@ -34,7 +34,7 @@ $(document).ready(function() {
       var link = new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{ID}}");
 
       // build cubism controller
-      var controller = new module.CubismSingleStreamController("#timeseries", link, 25)
+      var controller = new module.CubismSingleStreamController("#cubism-timeseries", link, 25)
         .heightController("#form-height")
         .rangeController("#form-range-lo", "#form-range-hi");
 
@@ -42,7 +42,7 @@ $(document).ready(function() {
       controller.run();
 
       // build plotly controller
-      var plotly_controller = new PlotlySingleStreamController("plotly-timeseries", link);
+      var plotly_controller = new module.PlotlySingleStreamController("plotly-timeseries", link);
       // start it
       plotly_controller.run();
     });
