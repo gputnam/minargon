@@ -70,8 +70,7 @@ def power_supply_step(ID):
 	# Convert to a time in miliseconds from unix epoch
 	timestep = step_size.replace(tzinfo=timezone.utc).timestamp() * 1000.0
 
-	return timestep
-
+	return jsonify(step=timestep)
 
 @app.route("/power_supply_series/<ID>")
 def power_supply_series(ID):
@@ -82,6 +81,9 @@ def power_supply_series(ID):
 	for row in data:
 		row[0] = row[0].replace(tzinfo=timezone.utc).timestamp() * 1000.0
 
-	return jsonify(Data=data)
+        # setup the return dictionary
+        ret = { ID: data }
+
+	return jsonify(values=ret)
 
 
