@@ -24,26 +24,24 @@ u = (file.readline()).strip(); # strip: removes leading and trailing chars
 p = (file.readline()).strip()
 file.close()
 
-global step_size # will update this when got a better way of getting the step size
-
 # Connect to the database
 connection = psycopg2.connect(database=app.config["POSTGRES_DB"], user=u, 
   password=p,host=app.config["POSTGRES_HOST"], port=app.config["POSTGRES_PORT"])
 
 app.config["POSTGRES_HOST"]
 
- # Cursor allows python to execute a postgres command in the database session. 
-cursor = connection.cursor(cursor_factory=RealDictCursor) # Fancy way of using cursor
+# Make the DB query and return the data
+def postgres_query(ID):
+	
+	# Make PostgresDB connection
+	cursor = connection.cursor(cursor_factory=RealDictCursor) 
 
-@app.route("/power_supply_series/<ID>")
-def power_supply_series(ID):
-    
 	# Make a request for time range to plot
 	args = stream_args(request.args)
 	start_t = args['start']    # Start time
 	stop_t  = args['stop']     # Stop time
 
-	# Placeholder datetimes to be removed once working
+	# # Placeholder datetimes to be removed once working
 	# start_t = datetime.now()                         # Start time
 	# stop_t  = datetime.now() + timedelta(days=2)     # Stop time
 
@@ -55,15 +53,34 @@ def power_supply_series(ID):
 
 	cursor.execute(query)
 
+	# Grab the data
 	data = cursor.fetchall()
+
+	return data
+
+
+# Gets the sample step size in unix miliseconds
+def get_timestep(ID):
+	
+	data = postgres_query(ID)
 
 	step_size = data[0][ len(data[0]) - 1 ] - data[0][ len(data[0]) - 2] # data[0] = SMPL TIMES
 
-	# For now don't close the connection with the database, may cause problems down the line
-	# cursor.connection.close() 
+	# Convert to a time in miliseconds from unix epoch
+	timestep = step_size.replace(tzinfo=timezone.utc).timestamp() * 1000.0
+
+	return timestep
+
+
+@app.route("/power_supply_series/<ID>")
+def power_supply_series(ID):
+    
+	data = postgres_query(ID)
+
+	# Convert timestamps from python datetime objects to unix time in miliseconds
+	for row in data:
+		row[0] = row[0].replace(tzinfo=timezone.utc).timestamp() * 1000.0
 
 	return jsonify(Data=data)
 
-# Function that uses the step size
-def GET_SMPLE_STEP():
-	return step_size
+
