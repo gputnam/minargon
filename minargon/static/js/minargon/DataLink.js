@@ -22,7 +22,7 @@ export class PostgresStreamLink {
   }
 
   accessors() {
-    return [this.ID];
+    return [[this.ID]];
   }
 
   name() {
