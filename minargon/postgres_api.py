@@ -21,35 +21,45 @@ import time
 
 database = app.config["DATABASE"]
 
+# Only make the connection if we have a provided key
 # Read in file with user(u) and password(p)
 if (database == "SBNTESTSTAND"):
 	print "Using SBNTESTSTAND DB"
-	file = open(app.config["EPICS_SECRET_KEY"],"r") 
-	u = (file.readline()).strip(); # strip: removes leading and trailing chars
-	p = (file.readline()).strip()
-	file.close()
+	if "EPICS_SECRET_KEY" in app.config:
+		file = open(app.config["EPICS_SECRET_KEY"],"r") 
+		u = (file.readline()).strip(); # strip: removes leading and trailing chars
+		p = (file.readline()).strip()
+		file.close()
 
-	# Connect to the database
-	connection = psycopg2.connect(database=app.config["SBNTESTSTAND_DB"], user=u, 
-		password=p,host=app.config["SBNTESTSTAND_HOST"], port=app.config["SBNTESTSTAND_PORT"])
+		# Connect to the database
+		connection = psycopg2.connect(database=app.config["SBNTESTSTAND_DB"], user=u, 
+			password=p,host=app.config["SBNTESTSTAND_HOST"], port=app.config["SBNTESTSTAND_PORT"])
 
-	app.config["SBNTESTSTAND_HOST"]
+		app.config["SBNTESTSTAND_HOST"]
+	else:
+		connection = None
 else:
 	print "Using ICARUS DCS DB"
-	file = open(app.config["ICARUS_DCS_SECRET_KEY"],"r") 
-	u = (file.readline()).strip(); # strip: removes leading and trailing chars
-	p = (file.readline()).strip()
-	file.close()
+	if "ICARUS_DCS_SECRET_KEY" in app.config:
+		file = open(app.config["ICARUS_DCS_SECRET_KEY"],"r") 
+		u = (file.readline()).strip(); # strip: removes leading and trailing chars
+		p = (file.readline()).strip()
+		file.close()
 
-	# Connect to the database
-	connection = psycopg2.connect(database=app.config["ICARUS_DCS_DB"], user=u, 
-		password=p,host=app.config["ICARUS_DCS_HOST"], port=app.config["ICARUS_DCS_PORT"])
+		# Connect to the database
+		connection = psycopg2.connect(database=app.config["ICARUS_DCS_DB"], user=u, 
+			password=p,host=app.config["ICARUS_DCS_HOST"], port=app.config["ICARUS_DCS_PORT"])
 
-	app.config["ICARUS_DCS_HOST"]
+		app.config["ICARUS_DCS_HOST"]
+	else:
+		connection = None
 
 
 # Make the DB query and return the data
 def postgres_query(ID):
+        # return nothing if no connection
+        if connection is None:
+            return []
 	
 	# Make PostgresDB connection
 	cursor = connection.cursor(cursor_factory=RealDictCursor) 
