@@ -17,18 +17,36 @@ from tools import parseiso, parseiso_or_int, stream_args
 from . import app
 from flask import jsonify, request
 from datetime import datetime, timedelta # needed for testing only
+import time
+
+database = app.config["DATABASE"]
 
 # Read in file with user(u) and password(p)
-file = open(app.config["EPICS_SECRET_KEY"],"r") 
-u = (file.readline()).strip(); # strip: removes leading and trailing chars
-p = (file.readline()).strip()
-file.close()
+if (database == "SBNTESTSTAND"):
+	print "Using SBNTESTSTAND DB"
+	file = open(app.config["EPICS_SECRET_KEY"],"r") 
+	u = (file.readline()).strip(); # strip: removes leading and trailing chars
+	p = (file.readline()).strip()
+	file.close()
 
-# Connect to the database
-connection = psycopg2.connect(database=app.config["POSTGRES_DB"], user=u, 
-  password=p,host=app.config["POSTGRES_HOST"], port=app.config["POSTGRES_PORT"])
+	# Connect to the database
+	connection = psycopg2.connect(database=app.config["SBNTESTSTAND_DB"], user=u, 
+		password=p,host=app.config["SBNTESTSTAND_HOST"], port=app.config["SBNTESTSTAND_PORT"])
 
-app.config["POSTGRES_HOST"]
+	app.config["SBNTESTSTAND_HOST"]
+else:
+	print "Using ICARUS DCS DB"
+	file = open(app.config["ICARUS_DCS_SECRET_KEY"],"r") 
+	u = (file.readline()).strip(); # strip: removes leading and trailing chars
+	p = (file.readline()).strip()
+	file.close()
+
+	# Connect to the database
+	connection = psycopg2.connect(database=app.config["ICARUS_DCS_DB"], user=u, 
+		password=p,host=app.config["ICARUS_DCS_HOST"], port=app.config["ICARUS_DCS_PORT"])
+
+	app.config["ICARUS_DCS_HOST"]
+
 
 # Make the DB query and return the data
 def postgres_query(ID):
@@ -41,15 +59,20 @@ def postgres_query(ID):
 	start_t = args['start']    # Start time
 	stop_t  = args['stop']     # Stop time
 
-	# # Placeholder datetimes to be removed once working
+	# Placeholder datetimes to be removed once working
 	# start_t = datetime.now()                         # Start time
 	# stop_t  = datetime.now() + timedelta(days=2)     # Stop time
 
 	t_interval = stop_t - start_t
 
-	# Database query to execute
-	query="""SELECT SMPL_TIME AS SAMPLE_TIME,FLOAT_VAL AS VALUE
-	FROM SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME;""" % ( ID, t_interval )
+	# Database query to execute, times converted to unix [ms]
+	if (database == "SBNTESTSTAND"):
+		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,FLOAT_VAL AS VALUE
+			FROM SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME;""" % ( ID, t_interval )
+	
+	else:
+		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,FLOAT_VAL,NUM_VAL
+			FROM DCS_PRD.SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME"""% ( ID, t_interval )
 
 	cursor.execute(query)
 
@@ -65,24 +88,19 @@ def power_supply_step(ID):
 	
 	data = postgres_query(ID)
 
-	step_size = data[0][ len(data[0]) - 1 ] - data[0][ len(data[0]) - 2] # data[0] = SMPL TIMES
+	# Get the sample size from last two values in query
+	step_size = data[len(data) - 1]['sample_time'] - data[len(data) - 2]['sample_time'] 
 
-	# Convert to a time in miliseconds from unix epoch
-	timestep = step_size.replace(tzinfo=timezone.utc).timestamp() * 1000.0
+	return jsonify(step=step_size)
 
-	return jsonify(step=timestep)
 
 @app.route("/power_supply_series/<ID>")
 def power_supply_series(ID):
     
 	data = postgres_query(ID)
 
-	# Convert timestamps from python datetime objects to unix time in miliseconds
-	for row in data:
-		row[0] = row[0].replace(tzinfo=timezone.utc).timestamp() * 1000.0
-
-        # setup the return dictionary
-        ret = { ID: data }
+	# setup the return dictionary
+	ret = { ID: data }
 
 	return jsonify(values=ret)
 

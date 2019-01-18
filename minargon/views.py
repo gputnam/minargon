@@ -211,28 +211,50 @@ def purity():
 @app.route('/test_pv')
 def test_pv():
 
+    database = app.config["DATABASE"]
+
     # Read in file with user(u) and password(p)
-    file = open(app.config["EPICS_SECRET_KEY"],"r") 
-    u = (file.readline()).strip(); # strip: removes leading and trailing chars
-    p = (file.readline()).strip()
-    file.close()
+    if (database == "SBNTESTSTAND"):
+        file = open(app.config["EPICS_SECRET_KEY"],"r") 
+        u = (file.readline()).strip(); # strip: removes leading and trailing chars
+        p = (file.readline()).strip()
+        file.close()
 
-    # Connect to the database
-    connection = psycopg2.connect(database=app.config["POSTGRES_DB"], user=u, 
-    password=p,host=app.config["POSTGRES_HOST"], port=app.config["POSTGRES_PORT"])
+        # Connect to the database
+        connection = psycopg2.connect(database=app.config["SBNTESTSTAND_DB"], user=u, 
+            password=p,host=app.config["SBNTESTSTAND_HOST"], port=app.config["SBNTESTSTAND_PORT"])
 
-    app.config["POSTGRES_HOST"]
+        app.config["SBNTESTSTAND_HOST"]
+    else:
+        file = open(app.config["ICARUS_DCS_SECRET_KEY"],"r") 
+        u = (file.readline()).strip(); # strip: removes leading and trailing chars
+        p = (file.readline()).strip()
+        file.close()
+
+        # Connect to the database
+        connection = psycopg2.connect(database=app.config["ICARUS_DCS_DB"], user=u, 
+            password=p,host=app.config["ICARUS_DCS_HOST"], port=app.config["ICARUS_DCS_PORT"])
+
+        app.config["ICARUS_DCS_HOST"]
 
     # Cursor allows python to execute a postgres command in the database session. 
     cursor = connection.cursor() # Fancy way of using cursor
 
     # Database command to execute
-    query="""
-    SELECT CHAN_GRP.NAME, SPLIT_PART(CHANNEL.NAME,'/',1), SPLIT_PART(CHANNEL.NAME,'/',2), CHANNEL_ID
-    FROM CHANNEL, CHAN_GRP
-    WHERE CHANNEL.GRP_ID = CHAN_GRP.GRP_ID 
-    ORDER BY CHAN_GRP.NAME, CHANNEL.NAME;
-    """
+    if (database == "SBNTESTSTAND"):
+        query="""
+        SELECT CHAN_GRP.NAME, SPLIT_PART(CHANNEL.NAME,'/',1), SPLIT_PART(CHANNEL.NAME,'/',2), CHANNEL_ID
+        FROM CHANNEL, CHAN_GRP
+        WHERE CHANNEL.GRP_ID = CHAN_GRP.GRP_ID 
+        ORDER BY CHAN_GRP.NAME, CHANNEL.NAME;
+        """
+    else:
+        query="""
+        SELECT DCS_PRD.CHAN_GRP.NAME,SPLIT_PART(DCS_PRD.CHANNEL.NAME,'/',1),
+        SPLIT_PART(DCS_PRD.CHANNEL.NAME,'/',2),DCS_PRD.CHANNEL.CHANNEL_ID
+        FROM DCS_PRD.CHANNEL,DCS_PRD.CHAN_GRP WHERE DCS_PRD.CHANNEL.GRP_ID=DCS_PRD.CHAN_GRP.GRP_ID 
+        ORDER BY DCS_PRD.CHAN_GRP.NAME,DCS_PRD.CHANNEL.NAME;
+        """
 
     cursor.execute(query)
 
