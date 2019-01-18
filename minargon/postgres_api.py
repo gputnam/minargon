@@ -18,20 +18,27 @@ from . import app
 from flask import jsonify, request
 from datetime import datetime, timedelta # needed for testing only
 
+# Only make the connection if we have a provided key
 # Read in file with user(u) and password(p)
-file = open(app.config["EPICS_SECRET_KEY"],"r") 
-u = (file.readline()).strip(); # strip: removes leading and trailing chars
-p = (file.readline()).strip()
-file.close()
-
-# Connect to the database
-connection = psycopg2.connect(database=app.config["POSTGRES_DB"], user=u, 
-  password=p,host=app.config["POSTGRES_HOST"], port=app.config["POSTGRES_PORT"])
-
-app.config["POSTGRES_HOST"]
+if "EPICS_SECRET_KEY" in app.config:
+    file = open(app.config["EPICS_SECRET_KEY"],"r") 
+    u = (file.readline()).strip(); # strip: removes leading and trailing chars
+    p = (file.readline()).strip()
+    file.close()
+    
+    # Connect to the database
+    connection = psycopg2.connect(database=app.config["POSTGRES_DB"], user=u, 
+    password=p,host=app.config["POSTGRES_HOST"], port=app.config["POSTGRES_PORT"])
+    
+    app.config["POSTGRES_HOST"]
+else:
+    connection = None
 
 # Make the DB query and return the data
 def postgres_query(ID):
+        # return nothing if no connection
+        if connection is None:
+            return []
 	
 	# Make PostgresDB connection
 	cursor = connection.cursor(cursor_factory=RealDictCursor) 
