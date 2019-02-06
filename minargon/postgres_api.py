@@ -18,6 +18,7 @@ from . import app
 from flask import jsonify, request
 from datetime import datetime, timedelta # needed for testing only
 import time
+import calendar
 
 database = app.config["DATABASE"]
 
@@ -56,22 +57,13 @@ else:
 
 
 # Make the DB query and return the data
-def postgres_query(ID):
-        # return nothing if no connection
-        if connection is None:
-            return []
+def postgres_query(ID, start_t, stop_t):
+	# return nothing if no connection
+	if connection is None:
+		return []
 	
 	# Make PostgresDB connection
 	cursor = connection.cursor(cursor_factory=RealDictCursor) 
-
-	# Make a request for time range to plot
-	args = stream_args(request.args)
-	start_t = args['start']    # Start time
-	stop_t  = args['stop']     # Stop time
-
-	# Placeholder datetimes to be removed once working
-	# start_t = datetime.now()                         # Start time
-	# stop_t  = datetime.now() + timedelta(days=2)     # Stop time
 
 	t_interval = stop_t - start_t
 
@@ -81,7 +73,7 @@ def postgres_query(ID):
 			FROM SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME;""" % ( ID, t_interval )
 	
 	else:
-		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,FLOAT_VAL,NUM_VAL
+		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,NUM_VAL AS VALUE
 			FROM DCS_PRD.SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME"""% ( ID, t_interval )
 
 	cursor.execute(query)
@@ -95,8 +87,12 @@ def postgres_query(ID):
 # Gets the sample step size in unix miliseconds
 @app.route("/power_supply_step/<ID>")
 def power_supply_step(ID):
+
+	# Define time to request for the postgres database
+	start_t = datetime.now() - timedelta(days=2)    # Start time
+	stop_t  = datetime.now()    					# Stop time
 	
-	data = postgres_query(ID)
+	data = postgres_query(ID, start_t, stop_t)
 
 	# Get the sample size from last two values in query
 	step_size = data[len(data) - 1]['sample_time'] - data[len(data) - 2]['sample_time'] 
@@ -107,11 +103,24 @@ def power_supply_step(ID):
 @app.route("/power_supply_series/<ID>")
 def power_supply_series(ID):
     
-	data = postgres_query(ID)
+	# Make a request for time range
+	args = stream_args(request.args)
+	start_t = args['start']    # Start time
+	stop_t  = args['stop']     # Stop time
 
-	# setup the return dictionary
-	ret = { ID: data }
+	# Catch for if no stop time exits
+	if (stop_t == None): 
+		now = datetime.now() # time now
+		stop_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
 
-	return jsonify(values=ret)
+	data = postgres_query(ID, start_t, stop_t)
 
+	# Format the data from database query
+	data_list = []
+	for row in data:
+		data_list.append([row['sample_time'], row['value']])
 
+	# Setup the return dictionary
+	ret = dict(ID = data_list)
+
+	return jsonify(ret)
