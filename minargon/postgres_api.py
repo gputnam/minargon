@@ -65,7 +65,7 @@ def postgres_query(ID, start_t, stop_t):
 	# Make PostgresDB connection
 	cursor = connection.cursor(cursor_factory=RealDictCursor) 
 
-	t_interval = stop_t - start_t
+	t_interval = abs(stop_t - start_t) # Absolute value to fix stream args giving a negative value
 
 	# Database query to execute, times converted to unix [ms]
 	if (database == "SBNTESTSTAND"):
@@ -73,13 +73,18 @@ def postgres_query(ID, start_t, stop_t):
 			FROM SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME;""" % ( ID, t_interval )
 	
 	else:
-		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,NUM_VAL AS VALUE
+		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,NUM_VAL AS VALUE,FLOAT_VAL
 			FROM DCS_PRD.SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME"""% ( ID, t_interval )
 
-	cursor.execute(query)
-
-	# Grab the data
-	data = cursor.fetchall()
+	# Execute query, rollback connection if it fails
+	try:
+		cursor.execute(query)
+		data = cursor.fetchall()
+	except:
+		print "Error! Rolling back connection"
+		cursor.execute("ROLLBACK")
+		connection.commit()
+		data = []
 
 	return data
 
@@ -91,11 +96,18 @@ def power_supply_step(ID):
 	# Define time to request for the postgres database
 	start_t = datetime.now() - timedelta(days=2)    # Start time
 	stop_t  = datetime.now()    					# Stop time
-	
+
 	data = postgres_query(ID, start_t, stop_t)
 
 	# Get the sample size from last two values in query
-	step_size = data[len(data) - 1]['sample_time'] - data[len(data) - 2]['sample_time'] 
+	try:
+		step_size = data[len(data) - 1]['sample_time'] - data[len(data) - 2]['sample_time'] 
+	except:
+		print "Error in step size"
+
+	# Catch for if no step size exists
+	if (step_size == None):
+		step_size = 1e3
 
 	return jsonify(step=step_size)
 
@@ -108,7 +120,12 @@ def power_supply_series(ID):
 	start_t = args['start']    # Start time
 	stop_t  = args['stop']     # Stop time
 
-	# Catch for if no stop time exits
+	# Catch for if no stop time exists
+	if (start_t == None): 
+		now = datetime.now() - timedelta(days=2)  # time 2 days ago
+		start_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
+
+	# Catch for if no stop time exists
 	if (stop_t == None): 
 		now = datetime.now() # time now
 		stop_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
@@ -118,9 +135,20 @@ def power_supply_series(ID):
 	# Format the data from database query
 	data_list = []
 	for row in data:
-		data_list.append([row['sample_time'], row['value']])
+	
+		# Block works for Icarus
+		if (row['value'] == None):
+			row['value'] = row['float_val']
+			if (row['float_val'] == None):
+				row['value'] = 0
+		elif (row['sample_time'] == None):
+			row['sample_time'] = 0
+		
+		data_list.append( [ row['sample_time'], row['value'] ] )
 
-	# Setup the return dictionary
-	ret = dict(ID = data_list)
+	# Setup thes return dictionary
+	ret = {
+		ID: data_list
+	}
 
-	return jsonify(ret)
+	return jsonify(values=ret)
