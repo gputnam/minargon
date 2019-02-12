@@ -140,13 +140,13 @@ export class FieldData {
     // get the data link
     var link = new DataLink.MetricStreamLink($SCRIPT_ROOT + this.stream_link, this.stream, this.config.instance, this.config.fields, [this.metric]);
     // get the data poll
-    //var poll = new Data.D3DataPoll(new Data.D3DataLink(link), this.step);
+    var poll = new Data.D3DataPoll(new Data.D3DataLink(link), this.step);
 
     // data source
-    var source = new Data.D3DataSource(link, -1);
+    // var source = new Data.D3DataSource(link, -1);
 
     // get the data buffer
-    this.buffer = new Data.D3DataBuffer(source, 1, this.listeners); 
+    this.buffer = new Data.D3DataBuffer(poll, 1, this.listeners); 
     // run with the most recent data
     var start = new Date();
     // go just a little back in time to get the first data
