@@ -5,8 +5,10 @@ import json
 from tools import parseiso, parseiso_or_int, stream_args
 
 import redis_api
-
-redis = Redis(host=app.config["REDIS_HOST"], port=int(app.config["REDIS_PORT"]))
+if "REDIS_PASSWORD" in app.config:
+    redis = Redis(host=app.config["REDIS_HOST"], port=int(app.config["REDIS_PORT"]), password=app.config["REDIS_PASSWORD"])
+else:
+    redis = Redis(host=app.config["REDIS_HOST"], port=int(app.config["REDIS_PORT"]))
 PROGRAMS = []
 
 """
