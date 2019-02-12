@@ -152,16 +152,26 @@ def infer_step_size(stream_name=None, stream_type=None, metric_name=None, instan
         key = "%s:%s:%s:%s" % (instance_name, field_name, metric_name, stream_type)
     else: 
         key = stream_name
-    data = redis_api.get_last_streams(redis, [key], count=2)
+    data = redis_api.get_last_streams(redis, [key], count=3)
     times = [t for t, _ in data[key]] 
     
     if len(times) < 2:
         avg_delta_times = 0
     else:
         sum_delta_times = 0
+        n_differences = 0
         for i in range(len(times) - 1):
+            # HOTFIX -- TODO: make better
+            this_difference = int(times[i]) - int(times[i+1])
+            if this_difference < 10: 
+              continue
+
+            n_differences += 1
             sum_delta_times += int(times[i]) - int(times[i+1])
-        avg_delta_times = sum_delta_times / (len(times) - 1)
+        if n_differences > 0:
+            avg_delta_times = sum_delta_times / (len(times) - 1)
+        else:
+            avg_delta_times = 0
     return jsonify(step=avg_delta_times)
 
 # internal API for accessing series associated with an instance
