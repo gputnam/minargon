@@ -22,7 +22,7 @@ class ReverseProxied(object):
     :param app: the WSGI application
     '''
     def __init__(self, app):
-        Nself.app = app
+        self.app = app
 
     def __call__(self, environ, start_response):
         script_name = '/cgi-bin/minargon/minargon.wsgi'
