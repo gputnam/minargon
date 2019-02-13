@@ -52,4 +52,4 @@ app.url_map.converters['list'] = ListConverter
 
 # routes
 import minargon.sbnd.views
-import minargon.online_metrics
+import minargon.metrics.online_metrics

@@ -11,7 +11,7 @@ import sys
 
 from minargon.tools import parseiso
 from minargon.data_config import parse
-import minargon.online_metrics
+import minargon.metrics.online_metrics
 
 # load data configuration file
 DATA_CONFIG = parse.DataParser(app.config).config

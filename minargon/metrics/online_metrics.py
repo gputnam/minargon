@@ -1,8 +1,8 @@
-from . import app
+from minargon import app
 from flask import jsonify, Response, request
 from redis import Redis
 import json
-from tools import parseiso, parseiso_or_int, stream_args
+from minargon.tools import parseiso, parseiso_or_int, stream_args
 
 import redis_api
 if "REDIS_PASSWORD" in app.config:
