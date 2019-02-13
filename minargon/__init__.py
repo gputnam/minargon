@@ -22,7 +22,7 @@ class ReverseProxied(object):
     :param app: the WSGI application
     '''
     def __init__(self, app):
-        self.app = app
+        Nself.app = app
 
     def __call__(self, environ, start_response):
         script_name = '/cgi-bin/minargon/minargon.wsgi'
@@ -39,7 +39,7 @@ class ReverseProxied(object):
 
 app = Flask(__name__)
 
-app.config.from_envvar('MINARD_SETTINGS', silent=False)
+app.config.from_envvar('MINARGON_SETTINGS', silent=False)
 
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
