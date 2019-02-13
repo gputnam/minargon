@@ -56,4 +56,4 @@ if app.config["FRONT_END"] == "sbnd":
 elif app.config["FRONT_END"] == "icarus":
     import minargon.icarus.views
 import minargon.metrics.online_metrics
-import minargon.postgres_api
+import minargon.metrics.postgres_api
