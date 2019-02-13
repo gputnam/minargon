@@ -46,5 +46,5 @@ from .tools import ListConverter
 app.url_map.converters['list'] = ListConverter
 
 # routes
-import minargon.views
+import minargon.sbnd.views
 import minargon.online_metrics
