@@ -51,5 +51,8 @@ from .tools import ListConverter
 app.url_map.converters['list'] = ListConverter
 
 # routes
-import minargon.sbnd.views
+if app.config["FRONT_END"] == "sbnd":
+    import minargon.sbnd.views
+elif app.config["FRONT_END"] == "icarus":
+    import minargon.icarus.views
 import minargon.metrics.online_metrics
