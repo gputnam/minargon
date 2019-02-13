@@ -20,44 +20,40 @@ from datetime import datetime, timedelta # needed for testing only
 import time
 import calendar
 
-database = app.config["DATABASE"]
+# database connection configuration
+postgres_instances = app.config["POSTGRES_INSTANCES"]
+# storing different connections to be accessed by routes
+p_databases = {}
 
-# Only make the connection if we have a provided key
-# Read in file with user(u) and password(p)
-if (database == "SBNTESTSTAND"):
-	print "Using SBNTESTSTAND DB"
-	if "EPICS_SECRET_KEY" in app.config:
-		file = open(app.config["EPICS_SECRET_KEY"],"r") 
-		u = (file.readline()).strip(); # strip: removes leading and trailing chars
-		p = (file.readline()).strip()
-		file.close()
+# get the connections from the config
+for connection_name, config in postgres_instances.items():
+    key = config["epics_secret_key"]
+    database_name = config["name"]
+    host = config["host"]
+    port = config["port"]
+    with open(app.config["EPICS_SECRET_KEY"],"r") as f:
+       u = (file.readline()).strip() # strip: removes leading and trailing chars
+       p = (file.readline()).strip()
+    # Connect to the database
+    connection = psycopg2.connect(database=database_name, user=u, password=p, host=host, port=port)
+    # store it
+    p_databases[connection_name] = (connection, config)
 
-		# Connect to the database
-		connection = psycopg2.connect(database=app.config["SBNTESTSTAND_DB"], user=u, 
-			password=p,host=app.config["SBNTESTSTAND_HOST"], port=app.config["SBNTESTSTAND_PORT"])
-
-		app.config["SBNTESTSTAND_HOST"]
-	else:
-		connection = None
-else:
-	print "Using ICARUS DCS DB"
-	if "ICARUS_DCS_SECRET_KEY" in app.config:
-		file = open(app.config["ICARUS_DCS_SECRET_KEY"],"r") 
-		u = (file.readline()).strip(); # strip: removes leading and trailing chars
-		p = (file.readline()).strip()
-		file.close()
-
-		# Connect to the database
-		connection = psycopg2.connect(database=app.config["ICARUS_DCS_DB"], user=u, 
-			password=p,host=app.config["ICARUS_DCS_HOST"], port=app.config["ICARUS_DCS_PORT"])
-
-		app.config["ICARUS_DCS_HOST"]
-	else:
-		connection = None
-
+# decorator for getting the correct database from the provided link
+def postgres_route(func):
+    from functools import wraps
+    @wraps(func)
+    def wrapper(connection, *args, **kwargs):
+        if connection in p_databases:
+            connection = p_databases[connection]
+            return func(connection, *args, **kwargs)
+        else:
+            return abort(404)
+        
+    return wrapper
 
 # Make the DB query and return the data
-def postgres_query(ID, start_t, stop_t):
+def postgres_query(ID, start_t, stop_t, connection, config):
 	# return nothing if no connection
 	if connection is None:
 		return []
@@ -68,7 +64,7 @@ def postgres_query(ID, start_t, stop_t):
 	t_interval = abs(stop_t - start_t) # Absolute value to fix stream args giving a negative value
 
 	# Database query to execute, times converted to unix [ms]
-	if (database == "SBNTESTSTAND"):
+	if (config["name"] == "SBNTESTSTAND"):
 		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,FLOAT_VAL AS VALUE
 			FROM SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME;""" % ( ID, t_interval )
 	
@@ -90,14 +86,15 @@ def postgres_query(ID, start_t, stop_t):
 
 
 # Gets the sample step size in unix miliseconds
-@app.route("/power_supply_step/<ID>")
-def power_supply_step(ID):
+@app.route("/<connection>/ps_step/<ID>")
+@postgres_route
+def ps_step(connection, ID):
 
 	# Define time to request for the postgres database
 	start_t = datetime.now() - timedelta(days=2)    # Start time
 	stop_t  = datetime.now()    					# Stop time
 
-	data = postgres_query(ID, start_t, stop_t)
+	data = postgres_query(ID, start_t, stop_t, *connection)
 
 	# Get the sample size from last two values in query
 	try:
@@ -112,8 +109,9 @@ def power_supply_step(ID):
 	return jsonify(step=step_size)
 
 
-@app.route("/power_supply_series/<ID>")
-def power_supply_series(ID):
+@app.route("/<connection>/ps_series/<ID>")
+@postgres_route
+def ps_series(connection, ID):
     
 	# Make a request for time range
 	args = stream_args(request.args)
@@ -130,7 +128,7 @@ def power_supply_series(ID):
 		now = datetime.now() # time now
 		stop_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
 
-	data = postgres_query(ID, start_t, stop_t)
+	data = postgres_query(ID, start_t, stop_t, *connection)
 
 	# Format the data from database query
 	data_list = []
