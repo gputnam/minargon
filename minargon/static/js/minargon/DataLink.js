@@ -14,11 +14,11 @@ export class PostgresStreamLink {
   }
 
   step_link() {
-    return this.root + "/power_supply_step/" + this.ID;
+    return this.root + "/epics/ps_step/" + this.ID;
   }
 
   data_link(start, stop) {
-    return this.root + "/power_supply_series/" + this.ID + '?' + $.param(timeArgs(start, stop));
+    return this.root + "/epics/ps_series/" + this.ID + '?' + $.param(timeArgs(start, stop));
   }
 
   accessors() {
