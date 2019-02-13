@@ -1,30 +1,50 @@
-from . import app
-from flask import jsonify, Response, request
+from minargon import app
+from flask import jsonify, Response, request, abort
 from redis import Redis
 import json
-from tools import parseiso, parseiso_or_int, stream_args
+from minargon.tools import parseiso, parseiso_or_int, stream_args
+
+from functools import wraps
 
 import redis_api
 
-redis = Redis(host=app.config["REDIS_HOST"], port=int(app.config["REDIS_PORT"]))
-PROGRAMS = []
+# get the config to connect to redis databases
+redis_instances = app.config["REDIS_INSTANCES"]
+r_databases = {}
+for database_name, config in redis_instances.items():
+    this_redis = Redis(**config)
+    r_databases[database_name] = this_redis
 
+# decorator for getting the correct database from the provided link
+def redis_route(func):
+    @wraps(func)
+    def wrapper(redis, *args, **kwargs):
+        if redis in r_databases:
+            redis = r_databases[redis]
+            return func(redis, *args, **kwargs)
+        else:
+            return abort(404)
+        
+    return wrapper
 """
 	Routes for getting stuff from Redis
 """
 
-@app.route('/online/test_redis')
-def test_redis():
+@app.route('/<redis>/test_redis')
+@redis_route
+def test_redis(redis):
     try:
         x = redis.get("foo")
     except Exception, err:
-        sys.stderr.write('ERROR: %sn' % str(err))
+        import sys
+        sys.stderr.write('ERROR: %s' % str(err))
         raise Exception("Redis cannot get foo")
     return str(x)
 
 # get a datum stored in a snapshot
-@app.route('/online/snapshot/<data>')
-def snapshot(data):
+@app.route('/<redis>/snapshot/<data>')
+@redis_route
+def snapshot(redis, data):
     redis_key = "snapshot:%s" % data
     # args should be key-value pairs of specifiers in the redis keys
     # e.g. /snapshot/waveform?wire=1
@@ -59,8 +79,9 @@ def front_end_key_api(data):
     return ret
 
 # get data from a stream
-@app.route('/online/stream/<name>')
-def stream(name):
+@app.route('/<redis>/stream/<name>')
+@redis_route
+def stream(redis, name):
     args = stream_args(request.args)
     data = redis_api.get_streams(redis, [name], **args)
     min_end_time = get_min_end_time(data)
@@ -68,8 +89,9 @@ def stream(name):
     return jsonify(values=data,min_end_time=min_end_time)
 
 # get data and subscribe to a stream
-@app.route('/online/stream_subscribe/<name>')
-def stream_subscribe(name):
+@app.route('/<redis>/stream_subscribe/<name>')
+@redis_route
+def stream_subscribe(redis, name):
     args = stream_args(request.args)
     def event_stream():
         for data in redis_api.subscribe_streams(redis, [name], **args):
@@ -85,12 +107,14 @@ def stream_subscribe(name):
 
 # get a simple key
 @app.route("/key/<keyname>")
-def key(keyname):
+@redis_route
+def key(redis, keyname):
     return jsonify(value=redis_api.get_key(redis, keyname))
 
-@app.route('/online/stream_group_subscribe/<stream_type>/<list:metric_names>/<instance_name>/<int:field_start>/<int:field_end>')
-@app.route('/online/stream_group_subscribe/<stream_type>/<list:metric_names>/<instance_name>/<list:field_list>')
-def stream_group_subscribe(stream_type, metric_names, instance_name, field_start=None, field_end=None, field_list=None):
+@app.route('/<redis>/stream_group_subscribe/<stream_type>/<list:metric_names>/<instance_name>/<int:field_start>/<int:field_end>')
+@app.route('/<redis>/stream_group_subscribe/<stream_type>/<list:metric_names>/<instance_name>/<list:field_list>')
+@redis_route
+def stream_group_subscribe(redis, stream_type, metric_names, instance_name, field_start=None, field_end=None, field_list=None):
     args = stream_args(request.args)
 
     if field_list is not None:
@@ -118,9 +142,10 @@ def stream_group_subscribe(stream_type, metric_names, instance_name, field_start
     # TODO: how to detect?
     return Response(event_stream(), mimetype="text/event-stream")
 
-@app.route('/online/stream_group/<stream_type>/<list:metric_names>/<instance_name>/<int:field_start>/<int:field_end>')
-@app.route('/online/stream_group/<stream_type>/<list:metric_names>/<instance_name>/<list:field_list>')
-def stream_group(stream_type, metric_names, instance_name, field_start=None, field_end=None, field_list=None):
+@app.route('/<redis>/stream_group/<stream_type>/<list:metric_names>/<instance_name>/<int:field_start>/<int:field_end>')
+@app.route('/<redis>/stream_group/<stream_type>/<list:metric_names>/<instance_name>/<list:field_list>')
+@redis_route
+def stream_group(redis, stream_type, metric_names, instance_name, field_start=None, field_end=None, field_list=None):
     args = stream_args(request.args)
 
     if field_list is not None:
@@ -143,23 +168,34 @@ def stream_group(stream_type, metric_names, instance_name, field_start=None, fie
 
     return jsonify(values=values, min_end_time=min_end_time)
 
-@app.route('/online/infer_step_size/<stream_type>/<metric_name>/<instance_name>/<field_name>')
-@app.route('/online/infer_step_size/<stream_name>')
-def infer_step_size(stream_name=None, stream_type=None, metric_name=None, instance_name=None, field_name=None):
+@app.route('/<redis>/infer_step_size/<stream_type>/<metric_name>/<instance_name>/<field_name>')
+@app.route('/<redis>/infer_step_size/<stream_name>')
+@redis_route
+def infer_step_size(redis, stream_name=None, stream_type=None, metric_name=None, instance_name=None, field_name=None):
     if stream_name is None:
         key = "%s:%s:%s:%s" % (instance_name, field_name, metric_name, stream_type)
     else: 
         key = stream_name
-    data = redis_api.get_last_streams(redis, [key], count=2)
+    data = redis_api.get_last_streams(redis, [key], count=3)
     times = [t for t, _ in data[key]] 
     
     if len(times) < 2:
         avg_delta_times = 0
     else:
         sum_delta_times = 0
+        n_differences = 0
         for i in range(len(times) - 1):
+            # HOTFIX -- TODO: make better
+            this_difference = int(times[i]) - int(times[i+1])
+            if this_difference < 10: 
+              continue
+
+            n_differences += 1
             sum_delta_times += int(times[i]) - int(times[i+1])
-        avg_delta_times = sum_delta_times / (len(times) - 1)
+        if n_differences > 0:
+            avg_delta_times = sum_delta_times / (len(times) - 1)
+        else:
+            avg_delta_times = 0
     return jsonify(step=avg_delta_times)
 
 # internal API for accessing series associated with an instance
