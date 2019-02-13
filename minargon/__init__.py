@@ -2,6 +2,8 @@ from gevent import monkey
 monkey.patch_all()
 from flask.app import Flask
 
+import os
+
 class ReverseProxied(object):
     '''Wrap the application in this middleware and configure the 
     front-end server to add these headers, to let you quietly bind 
@@ -40,6 +42,9 @@ app = Flask(__name__)
 app.config.from_envvar('MINARD_SETTINGS', silent=False)
 
 app.wsgi_app = ReverseProxied(app.wsgi_app)
+
+# set location of tempaltes
+app.template_folder = os.path.join(app.config["FRONT_END"], "templates")
 
 # url converters
 from .tools import ListConverter
