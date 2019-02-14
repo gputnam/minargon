@@ -199,7 +199,10 @@ def infer_step_size(redis, stream_name=None, stream_type=None, metric_name=None,
     return jsonify(step=avg_delta_times)
 
 # internal API for accessing series associated with an instance
-def get_series(instance_link, field_link):
+def get_series(instance_link, field_link, redis_database="online"):
+    if redis_database not in r_databases:
+        return {}
+    redis = r_databases[redis_database]
     time_series = redis.keys("%s:%s:*" % (instance_link, field_link)) 
     ret = {}
     # name of api link to access the stream
