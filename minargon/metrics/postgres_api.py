@@ -15,7 +15,7 @@ from psycopg2.extras import RealDictCursor
 from minargon.tools import parseiso, parseiso_or_int, stream_args
 
 from minargon import app
-from flask import jsonify, request, render_template
+from flask import jsonify, request, render_template, abort
 from datetime import datetime, timedelta # needed for testing only
 import time
 import calendar
@@ -164,12 +164,12 @@ def test_pv(connection):
     cursor = connection.cursor() # Fancy way of using cursor
 
     # Database command to execute
-    if (database == "sbndtestatnd"):
+    if (database == "sbnteststand"):
         query="""
-        SELECT CHAN_GRP.NAME, SPLIT_PART(CHANNEL.NAME,'/',1), SPLIT_PART(CHANNEL.NAME,'/',2), CHANNEL_ID
-        FROM CHANNEL, CHAN_GRP
-        WHERE CHANNEL.GRP_ID = CHAN_GRP.GRP_ID 
-        ORDER BY CHAN_GRP.NAME, CHANNEL.NAME;
+        SELECT DCS_ARCHIVER.CHAN_GRP.NAME, SPLIT_PART(DCS_ARCHIVER.CHANNEL.NAME,'/',1), SPLIT_PART(DCS_ARCHIVER.CHANNEL.NAME,'/',2), DCS_ARCHIVER.CHANNEL_ID
+        FROM DCS_ARCHIVER.CHANNEL, DCS_ARCHIVER.CHAN_GRP
+        WHERE DCS_ARCHIVER.CHANNEL.GRP_ID = DCS_ARCHIVER.CHAN_GRP.GRP_ID 
+        ORDER BY DCS_ARCHIVER.CHAN_GRP.NAME, DCS_ARCHIVER.CHANNEL.NAME;
         """
     else:
         query="""
