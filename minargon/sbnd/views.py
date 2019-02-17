@@ -13,6 +13,11 @@ from minargon.tools import parseiso
 from minargon.data_config import parse
 from minargon.metrics import online_metrics
 
+# Postgres Requirements
+import subprocess 
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
 # load data configuration file
 DATA_CONFIG = parse.DataParser(app.config).config
 
@@ -126,6 +131,14 @@ def wireplane_view():
     plane = request.args.get('plane', 'combined')
     instance_name = "%s plane" % plane
     return timeseries_view(request.args, instance_name, "wire", "wireLink")
+
+@app.route('/power_supply_single_stream/<ID>')
+def power_supply_single_stream(ID):
+    render_args = {
+      "ID": ID
+    }
+    return render_template('power_supply_single_stream.html', **render_args)
+ 
 
 @app.route('/single_stream/<stream_name>/')
 def single_stream(stream_name):
