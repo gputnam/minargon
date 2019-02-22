@@ -1,7 +1,7 @@
 from redis import Redis
 from flask import jsonify
 
-import gevent
+# import gevent
 
 # get a single redis key value
 def get_key(rdb, key):
