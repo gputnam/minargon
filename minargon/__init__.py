@@ -2,6 +2,8 @@
 # monkey.patch_all()
 from flask.app import Flask
 
+import os
+
 class ReverseProxied(object):
     '''Wrap the application in this middleware and configure the 
     front-end server to add these headers, to let you quietly bind 
@@ -37,14 +39,21 @@ class ReverseProxied(object):
 
 app = Flask(__name__)
 
-app.config.from_envvar('MINARD_SETTINGS', silent=False)
+app.config.from_envvar('MINARGON_SETTINGS', silent=False)
 
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
+# set location of tempaltes
+app.template_folder = os.path.join(app.config["FRONT_END"], "templates")
+
 # url converters
-from .util import ListConverter
+from .tools import ListConverter
 app.url_map.converters['list'] = ListConverter
 
 # routes
-import minargon.views
-import minargon.online_metrics
+if app.config["FRONT_END"] == "sbnd":
+    import minargon.sbnd.views
+elif app.config["FRONT_END"] == "icarus":
+    import minargon.icarus.views
+import minargon.metrics.online_metrics
+import minargon.metrics.postgres_api

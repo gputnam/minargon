@@ -1,16 +1,27 @@
-Minargon - Detector Monitoring for VST
+Minargon - Detector Monitoring for SBN
 ============================================
 
-Minargon is a fork of Minard for SBND/the VST.
+Minargon is a website used for online monitoring in the SBN
+collaboration (in the SBND and ICARUS detectors)
 
 Quickstart
 ----------
+
+Note: to install minargon, you need recent versions of pip, virtualenv,
+and python. On the fermilab gpvm servers, setup python v2_7_14 through
+ups. Then, run the `virtualenv` commands below with `python
+~gputnam/virtualenv-15.1.0/virtualenv.py` (this is an instance of
+virtualenv that I have setup myself for use).
 
 To run a local copy of minargon, first create a virtual environment and activate
 it.
 
     $ virtualenv venv
     $ . venv/bin/activate
+
+Make sure you have a recent version of pip:
+
+    $ pip install --upgrade pip
 
 Now, clone the minard repository, and install the prerequisites:
 
@@ -23,7 +34,7 @@ the Redis Database is located. An example settings file is given in
 `example_settigns.conf`. Either use those settings, or make a new
 settings file (if your database in a different location). Then set:
 
-    $ export MINARD_SETTINGS=`pwd`/your_settings_file.conf
+    $ export MINARGON_SETTINGS=`pwd`/your_settings_file.conf
 
 Now, you can start up the webserver:
 
@@ -38,7 +49,7 @@ do this, when ssh-ing into the remote server, add in the parameter: `-L
 
 Authors
 -------
-Minard was originally written for the SNO+ experiment by T. LaTorre.
+Minard was originally written for the SNO+ experiment.
 
-This is the SBND variant, ported by A. Mastbaum and Gray Putnam.
-
+Minargon is a website inspired from Minard and using some of the same
+technologies. 

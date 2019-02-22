@@ -1,3 +1,37 @@
+// all the datalinks...
+
+
+
+// DataLink which connects a postgres stream given the ID
+
+// Arguments to constructor:
+// root: the root path wehre all of the API endpoints are defined
+// ID: the postgres table ID
+export class PostgresStreamLink {
+  constructor(root, ID) {
+    this.root = root;
+    this.ID = String(ID);
+  }
+
+  step_link() {
+    return this.root + "/epics/ps_step/" + this.ID;
+  }
+
+  data_link(start, stop) {
+    return this.root + "/epics/ps_series/" + this.ID + '?' + $.param(timeArgs(start, stop));
+  }
+
+  accessors() {
+    return [[this.ID]];
+  }
+
+  name() {
+    return this.ID;
+  }
+
+}
+
+
 // DataLink which connects a raw stream name with the backend API for online metrics
 
 // Arguments to constructor:

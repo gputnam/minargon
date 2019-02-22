@@ -1,0 +1,26 @@
+Minargon -- core website code
+-----------------------------
+
+This repository contains the core website code for running the minargon
+website. The contents of the directories are as follows:
+
+./
+  __init__.py: Initialization file for the website. Handles
+               configuration.
+  tools.py: Contains common tools/utilities for the website backend.
+  metrics: Contains backend code to get data from redis (online) and
+           postgres (archived) metrics.
+  sbnd: Contains the user-facing backend code for the SBND version of
+        the website. All user-facing routes are in sbnd/views.py. All
+        associated templates are in sbnd/templates.
+  icarus: Contains the user-facing backend code for the ICARUS version of
+          the website. All user-facing routes are in icarus/views.py. All
+          associated templates are in icarus/templates.
+  static: Contains other content such as images and javascript code
+          accessed by front-end users of the website. All javascript  
+          written for the website is contained in static/js/mianrgon.
+  data_config: Module for parsing configuration json file used to
+               specify organization of online metrics used by the 
+               website. Currently under development.
+
+

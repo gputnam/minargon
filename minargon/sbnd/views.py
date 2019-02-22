@@ -1,4 +1,4 @@
-from . import app
+from minargon import app
 from flask import render_template, jsonify, request, redirect, url_for, flash
 import time
 from os.path import join
@@ -9,9 +9,14 @@ import random
 import constants
 import sys
 
-from tools import parseiso
-from data_config import parse
-import online_metrics
+from minargon.tools import parseiso
+from minargon.data_config import parse
+from minargon.metrics import online_metrics
+
+# Postgres Requirements
+import subprocess 
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 # load data configuration file
 DATA_CONFIG = parse.DataParser(app.config).config
@@ -36,15 +41,6 @@ def index():
 @app.route('/introduction')
 def introduction():
     return render_template('introduction.html')
-
-@app.route('/nevis_readout')
-def nevis_readout():
-    render_args = {
-      'n_fem': constants.N_FEM,
-      'header_metrics': ["frame_no", "event_no", "trig_frame_no", "blocks"],
-      'fem_data': DATA_CONFIG.data_instance_field_data("crate"),
-    }
-    return render_template('nevis_readout.html', **render_args) 
 
 @app.route('/docs/')
 @app.route('/docs/<filename>')
@@ -135,6 +131,14 @@ def wireplane_view():
     plane = request.args.get('plane', 'combined')
     instance_name = "%s plane" % plane
     return timeseries_view(request.args, instance_name, "wire", "wireLink")
+
+@app.route('/power_supply_single_stream/<ID>')
+def power_supply_single_stream(ID):
+    render_args = {
+      "ID": ID
+    }
+    return render_template('power_supply_single_stream.html', **render_args)
+ 
 
 @app.route('/single_stream/<stream_name>/')
 def single_stream(stream_name):
