@@ -28,26 +28,25 @@
 </div>
 {%endblock%}
 {% block script %}
-<script defer>
-$(document).ready(function() {
-    import("{{ url_for('static', filename='js/minargon/timeseries.js') }}").then(function(module) {
-      // build the link
-      var link = new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{ID}}");
+<script defer type="module">
+import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
 
-      // build cubism controller
-      var controller = new module.CubismSingleStreamController("#cubism-timeseries", link, 25)
-        .heightController("#form-height")
-        .rangeController("#form-range-lo", "#form-range-hi");
+// build the link
+var link = new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{ID}}");
 
-      // start cubism
-      controller.run();
+// build cubism controller
+var controller = new module.CubismSingleStreamController("#cubism-timeseries", link, 25)
+  .heightController("#form-height")
+  .rangeController("#form-range-lo", "#form-range-hi");
 
-      // build plotly controller
-      var plotly_controller = new module.PlotlySingleStreamController("plotly-timeseries", link)
-        .timeRangeController("#start", "#end", "#toggle");
-      // start it
-      plotly_controller.run();
-    });
-});
+// start cubism
+controller.run();
+
+// build plotly controller
+var plotly_controller = new module.PlotlySingleStreamController("plotly-timeseries", link)
+  .timeRangeController("#start", "#end", "#toggle");
+
+// start it
+plotly_controller.run();
 </script>
 {% endblock %}

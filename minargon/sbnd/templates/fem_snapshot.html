@@ -20,7 +20,8 @@
 {%endblock%}
 {% block script %}
 <script src="{{ url_for('static', filename='js/minargon/draw_waveform.js') }}" defer></script>
-<script defer>
+<script defer type="module">
+import * as draw from "{{ url_for('static', filename='js/minargon/draw_waveform.js') }}";
 // get snapshot time
 d3.json($SCRIPT_ROOT + "/snapshot/time", function(err, data) {
   var time = moment(new Date(data.value * 1000));
@@ -31,14 +32,9 @@ d3.json($SCRIPT_ROOT + "/snapshot/sub_run", function(err, data) {
   $("#update-subrun").html("SubRun: "  + data.value);
 });
 
-$(document).ready(function() {
-  // draw waveform
-  import("{{ url_for('static', filename='js/minargon/draw_waveform.js') }}").then(function(module) { 
-    // draw waveform and fft
-    module.draw_waveform('waveform', {fem: {{fem}} });
-    module.draw_fft('fft', {fem: {{fem}} });
-  });
-});
+// draw waveform and fft
+draw.draw_waveform('waveform', {fem: {{fem}} });
+draw.draw_fft('fft', {fem: {{fem}} });
 
 function link_param() { return {}; }
 
