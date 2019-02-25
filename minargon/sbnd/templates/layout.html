@@ -8,6 +8,7 @@
         <meta name="author" content="">
 
         <title>SBN ONLINE | {% block title %}{% endblock %}</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.datetimepicker.css') }}" media="screen">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" media="screen">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/minard.css') }}" media="screen">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/minargon.css') }}" media="screen">
@@ -20,10 +21,35 @@
         <script src="{{ url_for('static', filename='js/library/bootstrap-treeview.js') }}"></script>
 	<script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script> 
 	<script src="{{ url_for('static', filename='js/moment/moment-timezone-with-data.min.js') }}" defer></script> 
+        <script src="{{ url_for('static', filename='js/library/jquery.datetimepicker.js') }}"></script>
 
         <!-- $SCRIPT_ROOT for app location -->
         <script type="text/javascript">
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+            // set locale for timepicker
+            jQuery.datetimepicker.setLocale('en');
+            // and setup date parsing
+            $.datetimepicker.setDateFormatter({
+              parseDate: function (date, format) {
+                var d = moment(date, format);
+              return d.isValid() ? d.toDate() : false;
+              },
+              formatDate: function (date, format) {
+                return moment(date).format(format);
+              },
+              //Optional if using mask input
+              formatMask: function(format){
+                return format
+		  .replace(/Y{4}/g, '9999')
+		  .replace(/Y{2}/g, '99')
+		  .replace(/M{2}/g, '19')
+		  .replace(/D{2}/g, '39')
+		  .replace(/H{2}/g, '29')
+		  .replace(/m{2}/g, '59')
+		  .replace(/s{2}/g, '59');
+              }          
+            });
+ 
 	    function update_page(args) {
 		var url_root = [location.protocol, '//', location.host, location.pathname].join('');
 		

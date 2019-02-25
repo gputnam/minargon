@@ -70,3 +70,83 @@
     </div>
 </div>
 {% endmacro %}
+
+{% macro time_range(id_start, id_end, id_toggle) %}
+<div class="form-group row">
+   <label class="col-sm-5 control-form-label col-form-label">Start Time</label> 
+   <div class="col-sm-7">
+     <input id="{{id_start}}">
+  </div>
+</div>
+<div class="form-group row">
+   <label class="col-sm-5 control-form-label col-form-label">End Time</label> 
+   <div class="col-sm-7">
+     <input id="{{id_end}}">
+  </div>
+</div>
+<div class="form-group row">
+<div class="col-sm-12">
+<div id="{{id_toggle}}" class="btn-group btn-group-toggle" data-toggle="buttons">
+  <label class="btn btn-secondary active" id="{{id_toggle}}-label-live">
+    <input type="radio" name="options" value="live" id="{{id_toggle}}-live" autocomplete="off"> Live
+  </label>
+  <label class="btn btn-secondary" id="{{id_toggle}}-label-lookback">
+    <input type="radio" name="options" value="lookback" id="{{id_toggle}}-lookback" autocomplete="off"> Lookback
+  </label>
+</div>
+</div>
+</div>
+<script>
+
+function updateToggle() {
+  if ($("#{{id_toggle}}-live").prop("checked")) {
+    $("#{{id_toggle}}").val("live");
+  }
+  else if ($("#{{id_toggle}}-lookback").prop("checked")) {
+    $("#{{id_toggle}}").val("lookback");
+  }
+  $("#{{id_toggle}}").trigger("date-change");
+}
+
+// when the selected date-time range is valid, toggle the live button
+function toggleLive(current_time, input) {
+  var this_start = moment($('#{{id_start}}').datetimepicker('getValue'));
+  var this_end = moment($('#{{id_end}}').datetimepicker('getValue'));
+  if (this_start.isBefore(this_end)) {
+    $("#{{id_toggle}}-label-live").removeClass("active");
+    $("#{{id_toggle}}-label-lookback").addClass("active");
+    $("#{{id_toggle}}-live").prop("checked", false);
+    $("#{{id_toggle}}-lookback").prop("checked", true);
+    updateToggle();
+  }
+}
+
+// setup the two datetimepickers
+jQuery('#{{id_start}}').datetimepicker({
+  mask:true,
+  format: 'MM/DD/YYYY HH:mm',
+  formatDate:'MM/DD/YYYY',
+  formatTime: 'HH:mm',
+  onClose: toggleLive
+});
+jQuery('#{{id_end}}').datetimepicker({
+  mask:true,
+  format: 'MM/DD/YYYY HH:mm',
+  formatDate:'MM/DD/YYYY',
+  formatTime: 'HH:mm',
+  onClose: toggleLive
+});
+
+// setup the toggle button to turn off the pickers
+$("#{{id_toggle}}-live").change(
+  function() {
+    if ($(this).prop('checked')) {
+      $('#{{id_end}}').datetimepicker('reset');
+      $('#{{id_start}}').datetimepicker('reset');
+      updateToggle();
+    }
+});
+
+</script>
+{% endmacro %}
+

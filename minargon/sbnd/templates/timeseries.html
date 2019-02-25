@@ -33,57 +33,53 @@
 </div>
 {%endblock%}
 {% block script %}
-<script defer>
+<script defer type="module">
+import * as fielddata from "{{ url_for('static', filename='js/minargon/field_data.js') }}";
+import * as timeseries from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
 // global cubism parameters
 var controller;
 // global field data controller
 var field_data;
 
-$(document).ready(function() {
-    // timeseries configuration
-    var config = {{timeseries.to_json()|safe}};
+// timeseries configuration
+var config = {{timeseries.to_json()|safe}};
 
-    // field data configuration
-    var field_data_config = {{field_data.to_json()|safe}};
+// field data configuration
+var field_data_config = {{field_data.to_json()|safe}};
 
-    // list of streams
-    var streams = {{streams|tojson|safe}};
+// list of streams
+var streams = {{streams|tojson|safe}};
 
-    // and stream links
-    var stream_links = {{stream_links|tojson|safe}};
+// and stream links
+var stream_links = {{stream_links|tojson|safe}};
 
-    // set up poll config
-    import("{{ url_for('static', filename='js/minargon/field_data.js') }}").then(function(module) {
-      field_data = new module.FieldData("{{title}}", field_data_config, "{{metric}}", streams[0], stream_links[0])
-	.metricController("#form-metric")
-	.rangeController("#form-range-lo", "#form-range-hi", false)
-	.warningrangeController("#form-warning-range-lo", "#form-warning-range-hi")
-	.set();
+// set up poll config
+field_data = new fielddata.FieldData("{{title}}", field_data_config, "{{metric}}", streams[0], stream_links[0])
+  .metricController("#form-metric")
+  .rangeController("#form-range-lo", "#form-range-hi", false)
+  .warningrangeController("#form-warning-range-lo", "#form-warning-range-hi")
+  .set();
 
-      // set up histogram to listen
-      field_data.addHistogram("histogram", "{{view_ident}}");
-      
-      // and scatter
-      field_data.addScatter("scatter", "{{view_ident}}");
-      
-      // begin
-      field_data.run();
-    });
+// set up histogram to listen
+field_data.addHistogram("histogram", "{{view_ident}}");
 
-    import("{{ url_for('static', filename='js/minargon/timeseries.js') }}").then(function(module) {
-      // build cubism controller
-      controller = new module.CubismController("#timeseries", config, "{{metric}}", stream_links, streams, 0, 25) 
-	.linkFunction({{link_function}})
-	.metricController("#form-metric")
-	.heightController("#form-height")
-	.streamController("#form-stream")
-	.rangeController("#form-range-lo", "#form-range-hi")
-	.set();
+// and scatter
+field_data.addScatter("scatter", "{{view_ident}}");
 
-      // start cubism
-      controller.run();
-    });
-});
+// begin
+field_data.run();
+
+// build cubism controller
+controller = new timeseries.CubismController("#timeseries", config, "{{metric}}", stream_links, streams, 0, 25) 
+  .linkFunction({{link_function}})
+  .metricController("#form-metric")
+  .heightController("#form-height")
+  .streamController("#form-stream")
+  .rangeController("#form-range-lo", "#form-range-hi")
+  .set();
+
+// start cubism
+controller.run();
 
 // function to update href
 function wireLink(instance, field) {
