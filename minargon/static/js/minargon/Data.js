@@ -21,19 +21,41 @@ export class D3DataBuffer {
     this.listeners = listeners;
   }
 
-  // run: start the Poll/Source and connect with the buffers
-  run(start) {
-    this.poll.run(start);
+  // start: start the Poll/Source and connect with the buffers
+  start(start) {
+    for (var i = 0; i < this.accessors.length; i++) {
+      this.buffers[i].reset();
+    }
+    this.poll.start(start);
   }
 
   // stop: stop the Poll/Source
   stop() {
+    for (var i = 0; i < this.accessors.length; i++) {
+      this.buffers[i].reset();
+    }
     this.poll.stop();
+  }
+
+  getData(start, stop) {
+    for (var i = 0; i < this.accessors.length; i++) {
+      this.buffers[i].reset();
+    }
+    this.poll.getData(start, stop);
+  }
+
+  isRunning() {
+    return this.poll.isRunning();
   }
 
 
   // internal function which updates the managed circular buffers with new data
-  updateBuffers(value) {
+  updateBuffers(value, do_append) {
+    if (!do_append) {
+      for (var i = 0; i < this.accessors.length; i++) {
+        this.buffers[i].reset();
+      }
+    }
     var data = value.values;
 
     for (var i = 0; i < this.accessors.length; i++) {
@@ -68,11 +90,28 @@ export class D3DataSource {
     this.link = link;
     this.timeout = timeout;
     this.listeners = listeners;
+    this.source = null;
   }
 
   // expose the link's accessors
   accessors() {
     return this.link.accessors();
+  }
+
+  getData(start, stop) {
+    var data = new D3DataLink(this.link, this.link.name());
+    var self = this;
+    data.get_data_promise(start, stop)
+      .then(function(value) {
+        for (var i = 0; i < self.listeners.length; i++) {
+          var func = self.listeners[i];
+          func(value, false);
+        }
+      });
+  }
+
+  start(start) {
+    this.run(start);
   }
 
   // input:
@@ -86,16 +125,28 @@ export class D3DataSource {
         var data = JSON.parse(event.data);
         for (var i = 0; i < self.listeners.length; i++) {
           var func = self.listeners[i];
-          func(data);
+          func(data, true);
         }
     };
+  }
+
+  isRunning() {
+    if (this.source !== null) {
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 
   // behavior: stops the D3DataSource from running
   // NOTE: you should always call this function when deleting an old Source.
   // Otherwise, it will run forever
   stop() {
-    this.source.close();
+    if (this.source !== null) {
+      this.source.close();
+      this.source = null;
+    }
   }
 
 }
@@ -117,6 +168,22 @@ export class D3DataPoll {
       return this.data.accessors();
     }
 
+    getData(start, stop) {
+      var self = this;
+      this.data.get_data_promise(start, stop)
+        .then(function(value) {
+          for (var i = 0; i < self.listeners.length; i++) {
+            var func = self.listeners[i];
+            func(value, false);
+          }
+        });
+    }
+    
+    start(start) {
+      this.running = true;
+      this.run(start);
+    }
+
     // input:
     // start: the start index into each time series for the first call to the D3DataLink/Chain
     // behavior: starts up the D3DataPoll -- repetitively polls the backend for data and on each 
@@ -130,14 +197,18 @@ export class D3DataPoll {
             .then(function(value) {
                 for (var i = 0; i < self.listeners.length; i++) {
                     var func = self.listeners[i];
-                    func(value);
+                    func(value, true);
                 }
                 // run again 
                 // determine the start
                 var next_start = start;
-                if (value.min_end_time != 0) next_start = value.min_end_time;
+                if (value.min_end_time != 0 && value.min_end_time != undefined) next_start = value.min_end_time;
                 setTimeout(function() { self.run(next_start); }, self.timeout);
             });
+    }
+
+    isRunning() {
+      return this.running;
     }
 
     // behavior: stops the D3DataPoll from running

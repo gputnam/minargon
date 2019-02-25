@@ -19,6 +19,7 @@
                 <form class="form" role="form">
                     {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
                     {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }}
+                    {{ stream_options.time_range("start", "end", "toggle") }}
 	        </form>
             </div>
         </div>
@@ -30,6 +31,7 @@
 <script defer>
 $(document).ready(function() {
     import("{{ url_for('static', filename='js/minargon/timeseries.js') }}").then(function(module) {
+      //$("#toggle").on("date-change", function() { alert($(this).val()); });
       // build the link
       var link = new module.DataLink.SingleStreamLink($SCRIPT_ROOT + '/online', "{{stream_name}}");
 
@@ -42,7 +44,8 @@ $(document).ready(function() {
       controller.run();
 
       // build plotly controller
-      var plotly_controller = new module.PlotlySingleStreamController("plotly-timeseries", link);
+      var plotly_controller = new module.PlotlySingleStreamController("plotly-timeseries", link)
+        .timeRangeController("#start", "#end", "#toggle");
       // start it
       plotly_controller.run();
     });

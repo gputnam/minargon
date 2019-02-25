@@ -32,6 +32,8 @@ export class TimeSeriesScatter {
     // data should be a single time stream
     updateData(buffers) {
       var buffer = buffers[0];
+      this.data.length = 0;
+      this.times.length = 0;
       for (var i = 0; i < buffer.size; i++) {
         var dat = buffer.get(i);
         this.times[i] = moment.unix(dat[0] / 1000) // ms -> s

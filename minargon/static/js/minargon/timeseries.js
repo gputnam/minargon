@@ -160,7 +160,35 @@ export class PlotlySingleStreamController {
 
     // wrap with a buffer
     this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.scatter.updateData.bind(this.scatter)]);
-    this.buffer.run(start);
+    this.buffer.start(start);
+  }
+
+  getData(start, stop) {
+    this.buffer.stop();
+    this.buffer.getData(start, stop);
+  }
+
+  timeRangeController(id_start, id_end, id_toggle) {
+    var self = this;
+    $(id_toggle).on("date-change", function() {
+      var toggle_val = $(id_toggle).val();
+      if (toggle_val == "live") {
+        if (!self.buffer.isRunning()) {
+          var start = new Date(); 
+          start.setSeconds(start.getSeconds() - self.step * self.max_data / 1000); // ms -> s
+          self.buffer.start(start);
+        }
+      }
+      else if (toggle_val == "lookback") {
+        if (self.buffer.isRunning()) {
+          self.buffer.stop();
+        }
+        var start = $(id_start).datetimepicker('getValue');
+        var end = $(id_end).datetimepicker('getValue');
+        self.buffer.getData(start, end);
+      }
+    });
+    return this;
   }
 }
 
@@ -266,7 +294,7 @@ export class CubismSingleStreamController {
     // wrap with a buffer
     this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.startCubism.bind(this)]);
     this.cubism_on = false;
-    this.buffer.run(start);
+    this.buffer.start(start);
   }
 
   // Internal function: build the function to link data between the D3DataBuffer and cubism
@@ -401,7 +429,7 @@ export class CubismMultiMetricController {
       this.step);
     // and the buffer
     this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.startCubism.bind(this)]);
-    this.buffer.run(start);
+    this.buffer.start(start);
   }
 
   // Internal function: build the functions to link data between the D3DataBuffer and cubism
@@ -653,7 +681,7 @@ export class CubismController {
 
     // wrap with a buffer
     this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.startCubism.bind(this)]);
-    this.buffer.run(start);
+    this.buffer.start(start);
   }
 
   // Internal function: build the functions to link data between the D3DataBuffer and cubism
