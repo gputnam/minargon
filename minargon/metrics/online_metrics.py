@@ -198,24 +198,43 @@ def infer_step_size(redis, stream_name=None, stream_type=None, metric_name=None,
             avg_delta_times = 0
     return jsonify(step=avg_delta_times)
 
-# internal API for accessing series associated with an instance
-def get_series(instance_link, field_link, redis_database="online"):
+def get_group_config(group_name, redis_database="online"):
+    # default ret
+    default = {
+      "group": group_name,
+      "instances": [],
+      "metric_list": [],
+      "metric_config": {},
+      "streams": [],
+      "stream_links": [],
+    }
     if redis_database not in r_databases:
-        return {}
+        return default
     redis = r_databases[redis_database]
-    time_series = redis.keys("%s:%s:*" % (instance_link, field_link)) 
-    ret = {}
-    # name of api link to access the stream
-    stream_link = "/online"
-    for key in time_series:
-        split = key.split(":")
-        metric = split[2]
-        stream_type = split[3]
-        if metric in ret:
-            ret[metric].append((stream_type, stream_link))
-        else:
-            ret[metric] = [(stream_type, stream_link)]
-    return ret
-    
 
+    # setup pipeline
+    pipeline = redis.pipeline()
+    # pull down the config and decode it
+    pipeline.get("GROUP_CONFIG:%s" % group_name)
+    # pull down the group members
+    pipeline.lrange("GROUP_MEMBERS:%s" % group_name, 0, -1)
 
+    # run the pipeline and get the results
+    result = pipeline.execute()
+    config = result[0]
+    instances = result[1]
+  
+    if config is None or instances is None:
+        return default
+    config = json.loads(config)
+
+    # set up the stream links
+    config["stream_links"] = [redis_database for s in config["streams"]]
+    # setup the instances
+    config["instances"] = list(instances)
+    # setup the metric list
+    config["metric_list"] = config["metric_config"].keys()
+    # set the group name
+    config["group"] = group_name
+
+    return config

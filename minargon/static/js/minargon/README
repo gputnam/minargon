@@ -43,16 +43,16 @@ by the backend. For example, lets say that the backend data was formatted as:
 {
   "values" : {
     "stream_1": [list_of_data],
-    "stream_group": {
-      "group_instance_1": [list_of_data],
-      "group_instance_2": [list_of_data]
+    "group_1": {
+      "instance_1": [list_of_data],
+      "instance_2": [list_of_data]
     }
   }
 }
 Then, accessors() would return: 
 [ ["stream_1"], 
-  ["stream_group", "group_instance_1"], 
-  ["stream_group", "group_instance_2"]
+  ["group_1", "instance_1"], 
+  ["group_1", "instance_2"]
 ] 
 
 
