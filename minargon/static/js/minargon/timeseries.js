@@ -8,20 +8,11 @@ export {DataLink};
 // This file contains a few classes for plotting time-series data using cubism strip charts
 
 // There are three available classes used for managing cubism:
-// CubismController: manages a list of strip charts using a
-//                   configuration provided by the "DataConfig" API in
-//                   the Flask backend. This class plots a list of
-//                   time-series corresponding to a list of instances for a
-//                   single group
-// CubismMultiMetricController: manages a list of strip charts using a
-//                              configuration procided by the
-//                              "DataConfig" API in the Flask backend.
-//                              This class plots a list of time-series
-//                              corresponding to a list of metrics for a
-//                              single instance in a single group. 
-// CubismSingleStreamController: manages a single strip chart with a
-//                               single time-series as input. Does not
-//                               use the "DataConfig" API.
+// CubismController: manages a list of strip charts from a provided
+//                   DataLink along with a provided metric_config object 
+//
+// PlotlyController: manages a time-series scatter plot from a provided 
+//                   DataLink along with a provided metric_config object 
 
 // Each of these classes manages a D3DataBuffer object to get data and
 // displays a number of strip charts to visualize the data. Each class
@@ -32,8 +23,15 @@ export {DataLink};
 // To set up each class, call the contructor, then connect a number UI
 // components (using the various "xxxController" functions), then call
 // run()
+//
+// Alternatively, you can also set them up through the
+// GroupConfigController if you want them to handle a group of metrics
 
 export class PlotlyController {
+  // target: the div-id (including the '#') where the cubism plots will
+  //         be drawn
+  // link: the DataLink object which will be used to get data to plot
+  // metric_config: The metric configuration for the associated plot
   constructor(target, link, metric_config) {
     this.link = link;
     this.target = target;
@@ -46,6 +44,8 @@ export class PlotlyController {
     this.scatter = new Chart.TimeSeriesScatter(target, this.layout);
   }
 
+  // Internal function: grap the time step from the server and run a
+  // callback
   getTimeStep(callback) {
     var self = this;
     d3.json(this.link.step_link(), function(data) {
@@ -61,19 +61,25 @@ export class PlotlyController {
     });
   }
 
+  // Functions called by the GroupConfigController
+
+  // update the metric config option
   updateMetricConfig(config) {
     this.metric_config = config;
   }
 
+  // update the data step
   updateStep(step) {
     if (step < 1000) step = 1000;
     this.step = step;
   }
 
+  // set the step for the first time
   setStep(step) {
     this.updateStep(step);
   }
 
+  // update the data link and start polling for new data
   updateData(link) {
     this.link = link;
     // make a new buffer
@@ -93,11 +99,21 @@ export class PlotlyController {
     this.buffer.start(start);
   }
 
+  // Tell the buffer to get data for a specific time range
   getData(start, stop) {
     this.buffer.stop();
     this.buffer.getData(start, stop);
   }
 
+  // Connect setting the time range of the data to be shown to an HTML
+  // form
+  // id_start: The id of the datatimepicker controlled form field which
+  //           holds the start time
+  // id_end: The id of the datatimepicker controlled form field which
+  //         folds the end time
+  // id_toggle: The id of the toggle object which could either specify
+  //            "live" -- update in real time, or "lookback" -- get data
+  //            from the id_start/id_end time range
   timeRangeController(id_start, id_end, id_toggle) {
     var self = this;
     $(id_toggle).on("date-change", function() {
@@ -123,7 +139,6 @@ export class PlotlyController {
 }
 
 
-// class for controlling parameters of cubism context
 export class CubismController {
   // target: the div-id (including the '#') where the cubism plots will
   //         be drawn
@@ -144,6 +159,8 @@ export class CubismController {
     this.max_data = 10000;
   }
 
+  // Internal function: grap the time step from the server and run a
+  // callback
   getTimeStep(callback) {
     var self = this;
     d3.json(this.data_link.step_link(), function(data) {
@@ -152,6 +169,7 @@ export class CubismController {
     });
   }
 
+  // set the step for the first time
   setStep(step) {
     this.step = step;
     this.context = create_cubism_context(this.target, this.step);
@@ -223,6 +241,8 @@ export class CubismController {
     }
   }
 
+  // set the link function to be used by this controller when the user
+  // clicks on one of the horizon charts
   setLinkFunction(func) {
     this.linkFunction = func;
   }
@@ -317,12 +337,16 @@ export class CubismController {
     this.buffer.start(start);
   }
 
+  // Functions called by the GroupConfigController
+
+  // update the data step
   updateStep(step) {
     if (step < 1000) step = 1000;
     this.step = step;
     this.context.step(step);
   }
 
+  // update the metric config option
   updateMetricConfig(metric_config) {
      this.metric_config = metric_config;
      this.metricParam();
@@ -355,6 +379,8 @@ export class CubismController {
 
 }
 
+// Helper functions used by the CubismController class
+
 // add in metrics w/ a horizon chart to the provided target
 function add_metrics(controller, data_links, title_format) {
   // add new metrics
@@ -368,8 +394,6 @@ function add_metrics(controller, data_links, title_format) {
   });
     return make_horizons(controller, data);
 }
-
-// BELOW: various helper functions used by the different Cubism*Controller classes
 
 // make new horizon objects
 function make_horizons(controller, data) {
@@ -399,6 +423,7 @@ function delete_horizons(controller) {
       .remove();
 }
 
+// create the cubism plots for the first time
 function create_cubism_context(target, step) {
   // if we couldn't figure out what the step size should be, default to 1s
   // any step less than 1s is a mistake
