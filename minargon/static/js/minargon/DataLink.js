@@ -167,6 +167,7 @@ function timeArgs(start, stop) {
     now: new Date().toISOString(),
   };
   if (start instanceof Date) {
+    // alert(start);
     ret.start = start.toISOString();
   }
   else {

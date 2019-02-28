@@ -34,56 +34,51 @@
 {%endblock%}
 {% block script %}
 <script defer type="module">
-import * as fielddata from "{{ url_for('static', filename='js/minargon/field_data.js') }}";
-import * as timeseries from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
+import * as Config from "{{ url_for('static', filename='js/minargon/config.js') }}";
 
 // get the configuration
 // var config = new timeseries.TimeSeries({{config|tojson|safe}});
 var config = {{config|tojson|safe}};
 
-// set up poll config
-var field_data = new fielddata.FieldData("{{title}}", config, "{{metric}}", config.streams[0], config.stream_links[0])
-  .metricController("#form-metric")
+var config_controller = new Config.GroupConfigController(config, {{link_function}}, ["{{metric}}"], undefined, 0)
+    .metricController("#form-metric")
+    .streamController("#form-stream"); 
+
+// add the scatter plot
+var scatter = config_controller.addGroupDataScatterController("scatter", "{{title}}")
   .rangeController("#form-range-lo", "#form-range-hi", false)
   .warningrangeController("#form-warning-range-lo", "#form-warning-range-hi")
   .set();
 
-// set up histogram to listen
-field_data.addHistogram("histogram", "{{view_ident}}");
-
-// and scatter
-field_data.addScatter("scatter", "{{view_ident}}");
-
-// begin
-field_data.run();
+// and histogram
+var histo = config_controller.addGroupDataHistoController("histogram", "{{title}}")
+  .rangeController("#form-range-lo", "#form-range-hi", false)
+  .set();
 
 // build cubism controller
-var controller = new timeseries.CubismController("#timeseries", config, "{{metric}}", 0, 25) 
-  .linkFunction({{link_function}})
-  .metricController("#form-metric")
+var cubism = config_controller.addCubismController("#timeseries", 25)
   .heightController("#form-height")
-  .streamController("#form-stream")
   .rangeController("#form-range-lo", "#form-range-hi")
   .set();
 
-// start cubism
-controller.run();
+// start the controllers
+config_controller.runAll();
 
 // function to update href
-function wireLink(instance, field) {
-  return "channel_snapshot?channel=" + field.link;
+function wireLink(group, instance) {
+  return "channel_snapshot?channel=" + instance;
 }
 
-function crateLink(instance, field) {
-  return "crate_view?crate=" + field.link;
+function crateLink(group, instance) {
+  return "crate_view?crate=" + instance;
 }
 
-function femLink(instance, field) {
-  return "fem_view?fem=" + field.link;
+function femLink(group, instance) {
+  return "fem_view?fem=" + instance;
 }
 
-function channelLink(instance, field) {
-  return "channel_snapshot?channel=" + field.link;
+function channelLink(group, instance) {
+  return "channel_snapshot?channel=" + instance;
 }
 
 </script>
