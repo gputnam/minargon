@@ -316,6 +316,9 @@ export class GroupDataScatterController {
     this.updateBuffer();
   }
 
+  // update titles -- noop
+  updateTitles() {}
+
 }
 
 // This class provides a histogram of all of the streams provided by
@@ -443,11 +446,18 @@ export class GroupDataHistoController {
   // by this class
   layoutHistogram(yLabel) {
     var n_data = this.nData();
-    var title = this.title + " " + this.metric;
+    var metric_name;
+    if (this.metric_config !== undefined && this.metric_config.name !== undefined) {
+      metric_name = this.metric_config.name;
+    }
+    else {
+      metric_name = "";
+    }
+    var title = this.title + " " + metric_name;
     var ret = {
       title: titleize(title),
       xaxis: {
-        title: this.metric,
+        title: metric_name,
         range: this.range
       },
       yaxis: {
@@ -555,6 +565,9 @@ export class GroupDataHistoController {
     this.data_link = data_link;
     this.updateBuffer();
   }
+
+  // update titles -- noop
+  updateTitles() {}
 
 
 }

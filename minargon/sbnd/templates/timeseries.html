@@ -14,6 +14,11 @@
     </div>
 </div>
 <div class="row">
+    <div class="col-md-10 vcenter" style="padding:0">
+      <div id ="time-scatter"></div>
+    </div>
+</div>
+<div class="row">
     <div class="col-md-8" style="padding:0" id="timeseries"></div>
     <div class="col-md-4 vcenter">
         <div class="card hcenter">
@@ -60,6 +65,9 @@ var cubism = config_controller.addCubismController("#timeseries", 25)
   .heightController("#form-height")
   .rangeController("#form-range-lo", "#form-range-hi")
   .set();
+
+// build plotly controller
+var plotly = config_controller.addPlotlyController("time-scatter");
 
 // start the controllers
 config_controller.runAll();

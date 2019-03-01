@@ -3,10 +3,19 @@
 
 // class managing a plotly timeseries scatter plot
 export class TimeSeriesScatter {
-    constructor(target, layout) {
+    constructor(target, layout, titles, n_data) {
       this.target = target;
+      this.n_data = n_data;
+      this.titles = titles;
+
       this.data = [];
       this.times = [];
+
+      for (var i = 0; i < n_data; i++) {
+        this.data.push( [] );
+        this.times.push( [] );
+      }
+      
       this.draw(layout);
     }
 
@@ -14,12 +23,21 @@ export class TimeSeriesScatter {
       Plotly.newPlot(this.target, this.trace(), layout);
     }
 
+    setTitles(titles) { 
+      this.titles = titles;
+    }
+
     trace() {
-      var ret = [{
-        x: this.times,
-        y: this.data,
-        type: 'scatter',
-      }];
+      var ret = [];
+      for (var i = 0; i < this.n_data; i++) {
+        var this_trace = {
+          y: this.data[i],
+          x: this.times[i],
+          type: 'scatter',
+          name: this.titles[i]
+        };
+        ret.push(this_trace);
+      } 
       return ret;
     }
 
@@ -31,14 +49,16 @@ export class TimeSeriesScatter {
     // update the data and redraw the plot
     // data should be a single time stream
     updateData(buffers) {
-      var buffer = buffers[0];
-      this.data.length = 0;
-      this.times.length = 0;
-      for (var i = 0; i < buffer.size; i++) {
-        var dat = buffer.get(i);
-        this.times[i] = moment.unix(dat[0] / 1000) // ms -> s
-          .format("YYYY-MM-DD HH:mm:ss");
-        this.data[i] = dat[1];
+      for (var i = 0; i < this.n_data; i++) {
+        var buffer = buffers[i];
+        this.data[i].length = 0;
+        this.times[i].length = 0;
+        for (var j = 0; j < buffer.size; j++) {
+          var dat = buffer.get(j);
+          this.times[i][j] = moment.unix(dat[0] / 1000) // ms -> s
+            .format("YYYY-MM-DD HH:mm:ss");
+          this.data[i][j] = dat[1];
+         }
       }
       this.redraw();
     }

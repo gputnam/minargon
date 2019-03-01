@@ -32,7 +32,7 @@ export class PlotlyController {
   //         be drawn
   // link: the DataLink object which will be used to get data to plot
   // metric_config: The metric configuration for the associated plot
-  constructor(target, link, metric_config) {
+  constructor(target, link, titles, metric_config) {
     this.link = link;
     this.target = target;
     this.max_data = 1000;
@@ -41,7 +41,7 @@ export class PlotlyController {
       title: link.name()
     };
     // make a new plotly scatter plot
-    this.scatter = new Chart.TimeSeriesScatter(target, this.layout);
+    this.scatter = new Chart.TimeSeriesScatter(target, this.layout, titles, this.link.accessors().length);
   }
 
   // Internal function: grap the time step from the server and run a
@@ -72,6 +72,11 @@ export class PlotlyController {
   updateStep(step) {
     if (step < 1000) step = 1000;
     this.step = step;
+  }
+
+  // update the titles
+  updateTitles(titles) {
+    this.scatter.updateTitles(titles);
   }
 
   // set the step for the first time
@@ -147,8 +152,9 @@ export class CubismController {
   //                    constructor
   // metric: the name of the metric to be shown in each time-series 
   // height: the height of the cubism time strip plot to be drawn
-  constructor(target, data_link, metric_config, height) {
+  constructor(target, data_link, titles, metric_config, height) {
     this.height = height;
+    this.titles = titles;
     this.metric_config = metric_config;
     this.data_link = data_link;
     this.target = target;
@@ -346,6 +352,11 @@ export class CubismController {
     this.context.step(step);
   }
 
+  // update the titles
+  updateTitles(titles) {
+    this.titles = titles;
+  }
+
   // update the metric config option
   updateMetricConfig(metric_config) {
      this.metric_config = metric_config;
@@ -365,7 +376,7 @@ export class CubismController {
   // Internal function: run cubism for the first time
   startCubism(buffers) {
     if (!this.cubism_on) {
-      this.cubism_metrics = add_metrics(this, this.dataLinks(buffers));
+      this.cubism_metrics = add_metrics(this, this.dataLinks(buffers), this.titles);
       this.cubism_on = true;
     }
   }
@@ -382,12 +393,11 @@ export class CubismController {
 // Helper functions used by the CubismController class
 
 // add in metrics w/ a horizon chart to the provided target
-function add_metrics(controller, data_links, title_format) {
+function add_metrics(controller, data_links, titles) {
   // add new metrics
   var data = data_links.map(function(data_link, i) { 
     // use the provided title if there is one
-    // TODO: way to add titles
-    var metric = controller.context.metric(data_link.bind(data_link), String(i));
+    var metric = controller.context.metric(data_link.bind(data_link), titles[i]);
     //var metric = controller.context.metric(data_link.bind(data_link));
     //metric.on("change", function(start, stop) {});
     return metric;

@@ -68,6 +68,30 @@ export class GroupConfigController {
         this.config.group, instances, metric_list, false);
   }
 
+
+  data_titles(metric_list, instance_list) {
+    if (metric_list === undefined) {
+      metric_list = this.config.metric_list;
+    }
+    if (instance_list === undefined) {
+      var instances = this.config.instances;
+    }
+    else {
+      var instances = [];
+      for (var i = 0; i < instance_list.length; i++) {
+        instances.push( this.config.instances[instance_list[i]] );
+      }
+    }
+    var use_metric_name_as_backup = instances.length == 1;
+    var ret = [];
+    for (var i = 0; i < metric_list.length; i++) {
+      for (var j = 0; j < instances.length; j++) {
+        ret.push(this.getTitle(metric_list[i], instances[j], use_metric_name_as_backup));
+      }
+    }
+    return ret;
+  }
+
   // Get the time step value corresponding to a certain stream
   // stream_index: the index into the streams/stream_links list of the
   //               `stream to be inspected.
@@ -129,12 +153,23 @@ export class GroupConfigController {
     return this;
   }
 
-  getTitle(metric_name, instance_index) {
+  getTitle(metric_name, instance, use_metric_as_backup) {
     var config = this.config.metric_config[metric_name];
-    var instance = this.config.instances[instance_index];
-    var title = this.config.metric_config[metric_name].title;
-    if (title !== undefined) {
-      title = title.replace("%(instance)s", instance).replace("%(group)s", this.config.group);    
+    var title;
+    if (config !== undefined) {
+      title = this.config.metric_config[metric_name].title;
+      if (title !== undefined) {
+        title = title.replace("%(instance)s", instance).replace("%(group)s", this.config.group);    
+      }
+    }
+    if (title === undefined) {
+     // use metric as backup title
+     if (use_metric_as_backup) {
+       title = metric_name;
+     }
+     else {
+       title = instance;
+     }
     }
     return title;
   }
@@ -150,9 +185,11 @@ export class GroupConfigController {
     }
 
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
+    var data_titles = this.data_titles(this.metrics, this.instances);
      
     for (var i = 0; i < this.controllers.length; i++) {
       this.controllers[i].updateMetricConfig(this.metric_config);
+      this.controllers[i].updateTitles(data_titles);
       this.controllers[i].updateData(data_link, true);
     }
   } 
@@ -174,10 +211,10 @@ export class GroupConfigController {
   // add a cubism controller 
   addCubismController(target, height) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
-    var controller = new TimeSeriesControllers.CubismController(target, data_link, this.metric_config, height);
+    var data_titles = this.data_titles(this.metrics, this.instances);
+    var controller = new TimeSeriesControllers.CubismController(target, data_link, data_titles, this.metric_config, height);
     if (this.href !== undefined ) {
       controller.setLinkFunction(this.getLink.bind(this));
-      controller.setGetTitle(this.getTitle.bind(this));
     }
     this.controllers.push(controller);
     return controller;
@@ -186,7 +223,8 @@ export class GroupConfigController {
   // add a plotly controller
   addPlotlyController(target) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
-    var controller = new TimeSeriesControllers.PlotlyController(target, data_link, this.metric_config);
+    var data_titles = this.data_titles(this.metrics, this.instances);
+    var controller = new TimeSeriesControllers.PlotlyController(target, data_link, data_titles, this.metric_config);
     this.controllers.push(controller);
     return controller;
   }
@@ -202,14 +240,8 @@ export class GroupConfigController {
   // add a group data controller
   addGroupDataHistoController(target, title) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
-    var controller = new GroupDataControllers.GroupDataHistoController(target, data_link, this.metric_config, title, this.config.group);
-    this.controllers.push(controller);
-    return controller;
-  }
-  // add a group data controller
-  addGroupDataScatterController(target, title) {
-    var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
-    var controller = new GroupDataControllers.GroupDataScatterController(target, data_link, this.metric_config, title, this.config.group);
+    var data_titles = this.data_titles(this.metrics, this.instances);
+    var controller = new GroupDataControllers.GroupDataHistoController(target, data_link, this.metric_config, title, "# " + this.config.group);
     this.controllers.push(controller);
     return controller;
   }
