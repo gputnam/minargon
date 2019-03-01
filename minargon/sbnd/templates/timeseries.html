@@ -14,8 +14,18 @@
     </div>
 </div>
 <div class="row">
-    <div class="col-md-10 vcenter" style="padding:0">
+    <div class="col-md-8 vcenter" style="padding:0">
       <div id ="time-scatter"></div>
+    </div>
+    <div class="col-md-4 vcenter">
+        <div class="card hcenter">
+            <div class="card-header">TimeSeries Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
+                    {{ stream_options.time_range("start", "end", "toggle") }}
+	        </form>
+            </div>
+        </div>
     </div>
 </div>
 <div class="row">
@@ -67,7 +77,8 @@ var cubism = config_controller.addCubismController("#timeseries", 25)
   .set();
 
 // build plotly controller
-var plotly = config_controller.addPlotlyController("time-scatter");
+var plotly = config_controller.addPlotlyController("time-scatter")
+  .timeRangeController("#start", "#end", "#toggle");
 
 // start the controllers
 config_controller.runAll();

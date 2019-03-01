@@ -42,6 +42,8 @@ export class PlotlyController {
     };
     // make a new plotly scatter plot
     this.scatter = new Chart.TimeSeriesScatter(target, this.layout, titles, this.link.accessors().length);
+
+    this.is_live = true;
   }
 
   // Internal function: grap the time step from the server and run a
@@ -88,9 +90,6 @@ export class PlotlyController {
   updateData(link) {
     this.link = link;
     // make a new buffer
-    // to be on the safe side, get back to ~1000 data points
-    var start = new Date(); 
-    start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
 
     var data = new Data.D3DataLink(this.link);
     // get the poll
@@ -101,7 +100,8 @@ export class PlotlyController {
 
     // wrap with a buffer
     this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.scatter.updateData.bind(this.scatter)]);
-    this.buffer.start(start);
+    // run it
+    this.runBuffer();
   }
 
   // Tell the buffer to get data for a specific time range
@@ -124,23 +124,36 @@ export class PlotlyController {
     $(id_toggle).on("date-change", function() {
       var toggle_val = $(id_toggle).val();
       if (toggle_val == "live") {
-        if (!self.buffer.isRunning()) {
-          var start = new Date(); 
-          start.setSeconds(start.getSeconds() - self.step * self.max_data / 1000); // ms -> s
-          self.buffer.start(start);
-        }
+        self.is_live = true;
       }
       else if (toggle_val == "lookback") {
-        if (self.buffer.isRunning()) {
-          self.buffer.stop();
-        }
-        var start = $(id_start).datetimepicker('getValue');
-        var end = $(id_end).datetimepicker('getValue');
-        self.buffer.getData(start, end);
+        self.start = $(id_start).datetimepicker('getValue');
+        self.end = $(id_end).datetimepicker('getValue');
+        self.is_live = false;
       }
+      self.runBuffer();
     });
     return this;
   }
+
+  runBuffer() {
+    if (this.is_live) {
+      if (!this.buffer.isRunning()) {
+        // set the start
+        // to be on the safe side, get back to ~1000 data points
+        this.start = new Date(); 
+        this.start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
+        this.buffer.start(this.start);
+      }
+    }
+    else {
+      if (this.buffer.isRunning()) {
+        this.buffer.stop();
+      }
+      this.buffer.getData(this.start, this.end);
+    }
+  }
+
 }
 
 

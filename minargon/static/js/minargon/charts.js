@@ -23,8 +23,14 @@ export class TimeSeriesScatter {
       Plotly.newPlot(this.target, this.trace(), layout);
     }
 
-    setTitles(titles) { 
+    updateTitles(titles) { 
       this.titles = titles;
+      for (var i = 0; i < this.titles.length; i++) {
+        var trace_update = {
+          name: this.titles
+        }
+        Plotly.restyle(this.target, trace_update);
+      }
     }
 
     trace() {
