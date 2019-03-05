@@ -15,7 +15,7 @@
         {% endblock %}
         <script src="{{ url_for('static', filename='js/library/jquery.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
-	    <script src="{{ url_for('static', filename='js/moment/moment.min.js') }}"></script> 
+	<script src="{{ url_for('static', filename='js/moment/moment.min.js') }}"></script> 
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <script src="{{ url_for('static', filename='js/library/bootstrap.min.js') }}" defer></script>
         <script src="{{ url_for('static', filename='js/library/bootstrap-treeview.js') }}"></script>
@@ -100,19 +100,11 @@
                   {{ nav_link('fem_snapshot', 'FEM Snapshot') }}
                 </ul>
               </li>
-              <li class='dropdown nav-item'>
-              <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>Detector + Readout<b class='caret'></b></a>
-                <ul class='dropdown-menu bg-maroon'>
-                  {{ nav_link('crate_view', 'Readout View') }}
-                  {{ nav_link('wireplane_view', 'Wire Plane View') }}
-                </ul>
-              </li>
-              <li class='dropdown nav-item'>
-              <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>Nearline<b class='caret'></b></a>
-                <ul class='dropdown-menu bg-maroon'>
-	          {{ nav_link('purity', 'Purity')}}
-                </ul>
-              </li>
+              {{ nav_link('wireplane_view', 'Wire Plane View') }}
+              {{ nav_link('single_stream', 'Example Metric', stream_name='example_metric:slow') }}
+              {{ nav_link('online_group', 'Example Group', group_name='example') }}
+              {{ nav_link('online_group', 'DAQ', group_name='DABBoardReader') }}
+              {{ nav_link('test_pv', 'ICARUS EPICS', connection='epics') }}
             </ul>
           </div><!--/.navbar-collapse -->
         </nav>

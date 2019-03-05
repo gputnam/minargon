@@ -2092,7 +2092,7 @@
     return time;
   }
   function d3_format_precision(x, p) {
-    return p - (x ? Math.ceil(Math.log(x) / Math.LN10) : 1);
+    return p - (x && x > 0.00001 ? Math.ceil(Math.log(x) / Math.LN10) : 1);
   }
   d3.round = function(x, n) {
     return n ? Math.round(x * (n = Math.pow(10, n))) / n : Math.round(x);
@@ -2100,12 +2100,29 @@
   var d3_formatPrefixes = [ "y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y" ].map(d3_formatPrefix);
   d3.formatPrefix = function(value, precision) {
     var i = 0;
+    var temp = value;
     if (value) {
       if (value < 0) value *= -1;
       if (precision) value = d3.round(value, d3_format_precision(value, precision));
       i = 1 + Math.floor(1e-12 + Math.log(value) / Math.LN10);
       i = Math.max(-24, Math.min(24, Math.floor((i - 1) / 3) * 3));
     }
+    /*
+    if (d3_formatPrefixes[8 + i / 3] === undefined) {
+      alert("Index:");
+      alert(i);
+      alert("Value:");
+      alert(value);
+      alert("Precision:");
+      alert(precision);
+      alert("Old value:");
+      alert(temp);
+      alert("Transformed:");
+      alert( d3.round(temp, d3_format_precision(temp, precision)))
+      alert("Process:")
+      alert( d3_format_precision(temp, precision));
+      //alert( Math.round(temp * (n = Math.pow(10, n))) / n);
+    }*/
     return d3_formatPrefixes[8 + i / 3];
   };
   function d3_formatPrefix(d, i) {
@@ -2187,6 +2204,13 @@
         var negative = value < 0 || value === 0 && 1 / value < 0 ? (value = -value, "-") : sign === "-" ? "" : sign;
         if (scale < 0) {
           var unit = d3.formatPrefix(value, precision);
+/*
+          if (unit === undefined) {
+            alert("Bad unit!");
+            alert(value);
+            alert(precision);
+          }
+*/
           value = unit.scale(value);
           fullSuffix = unit.symbol + suffix;
         } else {

@@ -10,7 +10,7 @@ import constants
 import sys
 
 from minargon.tools import parseiso
-from minargon.data_config import parse
+# from minargon.data_config import parse
 from minargon.metrics import online_metrics
 
 # Postgres Requirements
@@ -19,7 +19,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 # load data configuration file
-DATA_CONFIG = parse.DataParser(app.config).config
+# DATA_CONFIG = parse.DataParser(app.config).config
 
 """
 	Routes intented to be seen by the user	
@@ -81,55 +81,22 @@ def channel_snapshot():
     view_ind = {'channel': channel}
     view_ind_opts = {'channel': range(constants.N_CHANNELS)}
 
-    instance_name = "combined plane"
-    instance = DATA_CONFIG.get_instance(instance_name)
-
-    metrics_to_streams = online_metrics.get_series(instance.link, instance.fields.items()[0][1].link)
-    # turn dict into list of metrics and list of streams
-    # require any used stream by used by all metrics
-    metric_list = [key for key,_ in metrics_to_streams.items()] 
-    if len(metric_list) > 0:
-        stream_list, stream_links = zip(*metrics_to_streams[metric_list[0]])
-    else:
-        stream_list = []
-        stream_links = []
+    instance_name = "wireplane"
+    config = online_metrics.get_group_config(instance_name)
 
     template_args = {
         'channel': channel,
-        'timeseries': DATA_CONFIG.data_field_timeseries(instance, "wire %i" % channel),
+        'config': config,
         'view_ind': view_ind,
         'view_ind_opts': view_ind_opts,
-        'streams': stream_list,
-        'stream_links': stream_links,
     }
     return render_template('channel_snapshot.html', **template_args)
-
-# the view associated with a number of channels on an fem 
-@app.route('/fem_view')
-def fem_view():
-    fem = request.args.get('fem', 0, type=int)
-    instance_name = "fem %i" % fem
-    return timeseries_view(request.args, instance_name, "channel", "wireLink")
-
-# view of a number of fem's on a readout crate
-@app.route('/crate_view')
-def crate_view():
-    #crate = request.args.get('crate', 0, type=int)
-    #instance_name = "crate %i" % crate
-    instance_name = "crate"
-    return timeseries_view(request.args, instance_name, "FEM", "femLink")
-
-# view of a number of crates in the readout
-@app.route('/readout_view')
-def readout_view():
-    instance_name = "readout"
-    return timeseries_view(request.args, instance_name, "crate", "crateLink")
 
 # view of a number of wires on a wireplane
 @app.route('/wireplane_view')
 def wireplane_view():
     plane = request.args.get('plane', 'combined')
-    instance_name = "%s plane" % plane
+    instance_name = "wireplane" 
     return timeseries_view(request.args, instance_name, "wire", "wireLink")
 
 @app.route('/power_supply_single_stream/<ID>')
@@ -138,7 +105,10 @@ def power_supply_single_stream(ID):
       "ID": ID
     }
     return render_template('power_supply_single_stream.html', **render_args)
- 
+
+@app.route('/online_group/<group_name>')
+def online_group(group_name):
+    return timeseries_view(request.args, group_name)
 
 @app.route('/single_stream/<stream_name>/')
 def single_stream(stream_name):
@@ -146,42 +116,20 @@ def single_stream(stream_name):
         "stream_name": stream_name,
     }
     return render_template('single_stream.html', **render_args) 
-    
 
 def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
-    instance = DATA_CONFIG.get_instance(instance_name)
-    metrics_to_streams = online_metrics.get_series(instance.link, instance.fields.items()[0][1].link)
-    # turn dict into list of metrics and list of streams
-    # require any used stream by used by all metrics
-    metric_list = [key for key,_ in metrics_to_streams.items()] 
-    if len(metric_list) > 0:
-        stream_list, stream_links = zip(*metrics_to_streams[metric_list[0]])
-    else:
-        stream_list = []
-        stream_links = []
-    # get the config associated with each metric
-    master_config = DATA_CONFIG.get_metrics()
-    metric_config = {}
-    for metric in metric_list:
-        if metric in master_config:
-            metric_config[metric] = master_config[metric]
-        else:
-            metric_config[metric] = []
-
-    instance = DATA_CONFIG.get_instance(instance_name)
-    timeseries = DATA_CONFIG.data_instance_timeseries(instance, metric_config, maxn=25)
-    field_data = DATA_CONFIG.data_instance_field_data(instance, metric_config)
+    # TODO: what to do with this?
     initial_datum = args.get('data', 'rms')
+    
+    # get the config for this group from redis
+    config = online_metrics.get_group_config(instance_name)
 
     render_args = {
-        'metric': initial_datum,
-        'timeseries': timeseries,
         'title': instance_name,
-        'field_data': field_data,
-        'view_ident': view_ident,
         'link_function': link_function,
-        'streams': stream_list,
-        'stream_links': stream_links
+        'view_ident': view_ident,
+        'config': config,
+        'metric': initial_datum
     }
 
     return render_template('timeseries.html', **render_args)
@@ -189,10 +137,10 @@ def timeseries_view(args, instance_name, view_ident="", link_function="undefined
 
 @app.route('/purity')
 def purity():
-    timeseries = DATA_CONFIG.data_field_timeseries("TPC", "TPC")
+    config = online_metrics.get_group_config("TPC")
 
     render_args = {
-      'timeseries': timeseries
+      'config': config
     }
 
     return render_template('purity.html', **render_args)

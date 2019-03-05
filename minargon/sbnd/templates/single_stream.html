@@ -33,7 +33,7 @@ import * as module from "{{ url_for('static', filename='js/minargon/timeseries.j
 var link = new module.DataLink.SingleStreamLink($SCRIPT_ROOT + '/online', "{{stream_name}}");
 
 // build cubism controller
-var controller = new module.CubismSingleStreamController("#cubism-timeseries", link, 25)
+var controller = new module.CubismController("#cubism-timeseries", link, ["{{stream_name}}"], undefined, 25)
   .heightController("#form-height")
   .rangeController("#form-range-lo", "#form-range-hi");
 
@@ -41,7 +41,7 @@ var controller = new module.CubismSingleStreamController("#cubism-timeseries", l
 controller.run();
 
 // build plotly controller
-var plotly_controller = new module.PlotlySingleStreamController("plotly-timeseries", link)
+var plotly_controller = new module.PlotlyController("plotly-timeseries", link, "{{stream_name}}", undefined) 
   .timeRangeController("#start", "#end", "#toggle");
 
 // start it

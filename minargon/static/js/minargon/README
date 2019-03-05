@@ -43,16 +43,16 @@ by the backend. For example, lets say that the backend data was formatted as:
 {
   "values" : {
     "stream_1": [list_of_data],
-    "stream_group": {
-      "group_instance_1": [list_of_data],
-      "group_instance_2": [list_of_data]
+    "group_1": {
+      "instance_1": [list_of_data],
+      "instance_2": [list_of_data]
     }
   }
 }
 Then, accessors() would return: 
 [ ["stream_1"], 
-  ["stream_group", "group_instance_1"], 
-  ["stream_group", "group_instance_2"]
+  ["group_1", "instance_1"], 
+  ["group_1", "instance_2"]
 ] 
 
 
@@ -137,11 +137,11 @@ provided list of timeseries.
 LineChart: Plots a scatter plot of the most recent data from a provided
 list of timeseries.
 
-field_data.js:
+group_data.js:
 
 Manages function (1, 2, 3, 4):
 
-This file, along with timeseries.js, contains the glue code that
+This file, along with timeseries.js and config.js, contains the glue code that
 connects the data retreival operations (function 1) with displaying data
 to the user (function 2) while also managing user input and
 configuration of different time series (functions 3 and 4). 
@@ -155,8 +155,16 @@ timeseries.js:
 Manages functions (1, 2, 3, 4):
 
 This file is glue code for interfacing with cubism plots. Similar to
-field_data.js, it takes in a list of time series and displays them in
+group_data.js, it takes in a list of time series and displays them in
 cubism while also managing UI for the user.
+
+config.js
+
+Manages functins (1, 2, 3, 4):
+
+This file handles the config interface for groups of metrics fetched
+through redis. It wraps all of the controllers defined in timeseries.js
+and group_data.js and provides them with configuration information. 
 
 draw_waveform.js:
 

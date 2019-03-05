@@ -71,10 +71,10 @@ def front_end_key_api(data):
     for key, series in data.items():
         info = key.split(":")
         metric = info[2]
-        field = info[1]
+        instance = info[1]
         if metric not in ret:
             ret[metric] = {}
-        ret[metric][field] = series
+        ret[metric][instance] = series
 
     return ret
 
@@ -111,21 +111,21 @@ def stream_subscribe(redis, name):
 def key(redis, keyname):
     return jsonify(value=redis_api.get_key(redis, keyname))
 
-@app.route('/<redis>/stream_group_subscribe/<stream_type>/<list:metric_names>/<instance_name>/<int:field_start>/<int:field_end>')
-@app.route('/<redis>/stream_group_subscribe/<stream_type>/<list:metric_names>/<instance_name>/<list:field_list>')
+@app.route('/<redis>/stream_group_subscribe/<stream_type>/<list:metric_names>/<group_name>/<int:instance_start>/<int:instance_end>')
+@app.route('/<redis>/stream_group_subscribe/<stream_type>/<list:metric_names>/<group_name>/<list:instance_list>')
 @redis_route
-def stream_group_subscribe(redis, stream_type, metric_names, instance_name, field_start=None, field_end=None, field_list=None):
+def stream_group_subscribe(redis, stream_type, metric_names, group_name, instance_start=None, instance_end=None, instance_list=None):
     args = stream_args(request.args)
 
-    if field_list is not None:
-        fields = field_list
+    if instance_list is not None:
+        instances = instance_list
     else: 
-        fields = [str(x) for x in range(field_start, field_end)]
+        instances = [str(x) for x in range(instance_start, instance_end)]
 
     stream_names = []
     for metric in metric_names:
-        for inst in fields:
-            this_stream_name = "%s:%s:%s:%s" % (instance_name, inst, metric, stream_type)
+        for inst in instances:
+            this_stream_name = "%s:%s:%s:%s" % (group_name, inst, metric, stream_type)
             stream_names.append( this_stream_name )
 
     def event_stream():
@@ -142,21 +142,21 @@ def stream_group_subscribe(redis, stream_type, metric_names, instance_name, fiel
     # TODO: how to detect?
     return Response(event_stream(), mimetype="text/event-stream")
 
-@app.route('/<redis>/stream_group/<stream_type>/<list:metric_names>/<instance_name>/<int:field_start>/<int:field_end>')
-@app.route('/<redis>/stream_group/<stream_type>/<list:metric_names>/<instance_name>/<list:field_list>')
+@app.route('/<redis>/stream_group/<stream_type>/<list:metric_names>/<group_name>/<int:instance_start>/<int:instance_end>')
+@app.route('/<redis>/stream_group/<stream_type>/<list:metric_names>/<group_name>/<list:instance_list>')
 @redis_route
-def stream_group(redis, stream_type, metric_names, instance_name, field_start=None, field_end=None, field_list=None):
+def stream_group(redis, stream_type, metric_names, group_name, instance_start=None, instance_end=None, instance_list=None):
     args = stream_args(request.args)
 
-    if field_list is not None:
-        fields = field_list
+    if instance_list is not None:
+        instances = instance_list
     else: 
-        fields = [str(x) for x in range(field_start, field_end)]
+        instances = [str(x) for x in range(instance_start, instance_end)]
 
     stream_names = []
     for metric in metric_names:
-        for inst in fields:
-            this_stream_name = "%s:%s:%s:%s" % (instance_name, inst, metric, stream_type)
+        for inst in instances:
+            this_stream_name = "%s:%s:%s:%s" % (group_name, inst, metric, stream_type)
             stream_names.append( this_stream_name )
 
     data = redis_api.get_streams(redis, stream_names, **args)
@@ -168,12 +168,12 @@ def stream_group(redis, stream_type, metric_names, instance_name, field_start=No
 
     return jsonify(values=values, min_end_time=min_end_time)
 
-@app.route('/<redis>/infer_step_size/<stream_type>/<metric_name>/<instance_name>/<field_name>')
+@app.route('/<redis>/infer_step_size/<stream_type>/<metric_name>/<group_name>/<instance_name>')
 @app.route('/<redis>/infer_step_size/<stream_name>')
 @redis_route
-def infer_step_size(redis, stream_name=None, stream_type=None, metric_name=None, instance_name=None, field_name=None):
+def infer_step_size(redis, stream_name=None, stream_type=None, metric_name=None, group_name=None, instance_name=None):
     if stream_name is None:
-        key = "%s:%s:%s:%s" % (instance_name, field_name, metric_name, stream_type)
+        key = "%s:%s:%s:%s" % (group_name, instance_name, metric_name, stream_type)
     else: 
         key = stream_name
     data = redis_api.get_last_streams(redis, [key], count=3)
@@ -198,24 +198,43 @@ def infer_step_size(redis, stream_name=None, stream_type=None, metric_name=None,
             avg_delta_times = 0
     return jsonify(step=avg_delta_times)
 
-# internal API for accessing series associated with an instance
-def get_series(instance_link, field_link, redis_database="online"):
+def get_group_config(group_name, redis_database="online"):
+    # default ret
+    default = {
+      "group": group_name,
+      "instances": [],
+      "metric_list": [],
+      "metric_config": {},
+      "streams": [],
+      "stream_links": [],
+    }
     if redis_database not in r_databases:
-        return {}
+        return default
     redis = r_databases[redis_database]
-    time_series = redis.keys("%s:%s:*" % (instance_link, field_link)) 
-    ret = {}
-    # name of api link to access the stream
-    stream_link = "/online"
-    for key in time_series:
-        split = key.split(":")
-        metric = split[2]
-        stream_type = split[3]
-        if metric in ret:
-            ret[metric].append((stream_type, stream_link))
-        else:
-            ret[metric] = [(stream_type, stream_link)]
-    return ret
-    
 
+    # setup pipeline
+    pipeline = redis.pipeline()
+    # pull down the config and decode it
+    pipeline.get("GROUP_CONFIG:%s" % group_name)
+    # pull down the group members
+    pipeline.lrange("GROUP_MEMBERS:%s" % group_name, 0, -1)
 
+    # run the pipeline and get the results
+    result = pipeline.execute()
+    config = result[0]
+    instances = result[1]
+  
+    if config is None or instances is None:
+        return default
+    config = json.loads(config)
+
+    # set up the stream links
+    config["stream_links"] = [redis_database for s in config["streams"]]
+    # setup the instances
+    config["instances"] = list(instances)
+    # setup the metric list
+    config["metric_list"] = config["metric_config"].keys()
+    # set the group name
+    config["group"] = group_name
+
+    return config

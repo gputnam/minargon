@@ -69,40 +69,40 @@ export class SingleStreamLink {
 // Arguments to constructor:
 // root: the root path where all of the API endpoints are defined
 // stream: the name of the stream
-// instance: the instance object provided by the configuration backend
-// fields: a list of field objects provided by the configuration backend 
+// group: the group object provided by the configuration backend
+// instances: a list of instances provided by the configuration backend 
 // metrics: a list of metrics
 // sequence: you should set this to false unless you know what you are doing
 export class MetricStreamLink {
-  constructor(root, stream, instance, fields, metrics, sequence) {
+  constructor(root, stream, group, instances, metrics, sequence) {
     this.root = root;
     this.stream = stream;
-    this.instance = instance;
+    this.group = group;
     this.metrics = metrics;
     if (sequence === true) {
       this.sequence = true;
-      this.field_start = String(fields[0]);
-      this.field_end = String(fields[1]);
+      this.field_start = String(instances[0]);
+      this.field_end = String(instances[1]);
     }
     else {
       this.sequence = false;
-      this.fields = fields;
+      this.instances = instances;
     }
   }
  
   step_link() {
-    var link = this.root + '/infer_step_size/' + this.stream + '/' + this.metrics[0] + '/' + this.instance.link + '/' + this.fields[0].link;
+    var link = this.root + '/infer_step_size/' + this.stream + '/' + this.metrics[0] + '/' + this.group + '/' + this.instances[0];
     return link;
   }
   
   data_link_internal(base, start, stop) {
     if (this.sequence) {
-      var fields = '/' + this.field_start + '/' + this.field_end; 
+      var instances = '/' + this.field_start + '/' + this.field_end; 
     }
     else {
-      var fields = "";
-      for (var i = 0; i < this.fields.length; i++) {
-        fields = fields + this.fields[i].link + ',';
+      var instances = "";
+      for (var i = 0; i < this.instances.length; i++) {
+        instances = instances + this.instances[i] + ',';
       }
     }
     var metrics = "";
@@ -110,7 +110,7 @@ export class MetricStreamLink {
       metrics = metrics + this.metrics[i] + ',';
     }
 
-    var ret = this.root + base + this.stream + '/' + metrics + '/' + this.instance.link + '/' + fields;
+    var ret = this.root + base + this.stream + '/' + metrics + '/' + this.group + '/' + instances;
     var args = timeArgs(start, stop);
     if (!(args === null)) {
       ret = ret + '?' + $.param(args);
@@ -130,7 +130,7 @@ export class MetricStreamLink {
     var ret = [];
     // iterate first over each metric
     for (var i = 0; i < this.metrics.length; i++) {
-      // iterate over the fields
+      // iterate over the instances
     
       // sequence
       if (this.sequence) {
@@ -138,9 +138,9 @@ export class MetricStreamLink {
           ret.push( [this.metrics[i], String(field)] );
         }
       }
-      // not a sequence -- iterate over the provided fields
-      for (var j = 0; j < this.fields.length; j++) {
-        ret.push( [this.metrics[i], this.fields[j].link] );
+      // not a sequence -- iterate over the provided instances
+      for (var j = 0; j < this.instances.length; j++) {
+        ret.push( [this.metrics[i], this.instances[j]] );
       }
     }
     return ret;
@@ -149,8 +149,8 @@ export class MetricStreamLink {
 
   name() {
     if (this.metrics.length == 1) return this.metrics[0];
-    if (!this.sequence && this.fields.length == 1)  return this.fields[0].name;
-    return this.instance.name;
+    if (!this.sequence && this.instances.length == 1)  return this.instances[0].name;
+    return this.group.name;
   }
 
 }
@@ -167,6 +167,7 @@ function timeArgs(start, stop) {
     now: new Date().toISOString(),
   };
   if (start instanceof Date) {
+    // alert(start);
     ret.start = start.toISOString();
   }
   else {

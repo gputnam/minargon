@@ -14,8 +14,8 @@
             <div class="card-header">Display Options</div>
             <div class="card-body">
                 <form class="form" role="form">
-		    {{ stream_options.stream_option(streams, streams[0], "form-stream") }} 
-                    {{ stream_options.height_option([40, 60, 80, 100], 40, "form-height") }}
+                    {{ stream_options.stream_option(config.streams, config.streams[0], "form-stream") }}
+                    {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
 	        </form>
             </div>
         </div>
@@ -36,7 +36,7 @@
 {%endblock%}
 {% block script %}
 <script defer type="module">
-import * as timeseries from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
+import * as Config from "{{ url_for('static', filename='js/minargon/config.js') }}";
 import * as draw from "{{ url_for('static', filename='js/minargon/draw_waveform.js') }}";
 
 // get snapshot time
@@ -52,11 +52,20 @@ d3.json($SCRIPT_ROOT + "/online/snapshot/sub_run", function(err, data) {
 draw.draw_waveform('waveform', {wire: {{channel}} });
 draw.draw_fft('fft', {wire: {{channel}} });
 
-var controller = new timeseries.CubismMultiMetricController("#timeseries", {{timeseries.to_json()|safe}}, 0, {{stream_links|tojson|safe}}, {{streams|tojson|safe}}, 0, 40)
+var config = {{config|tojson|safe}};
+
+var config_controller = new Config.GroupConfigController(config, undefined, undefined, [{{view_ind.channel}}], 0)
+    .metricController("#form-metric")
+    .streamController("#form-stream"); 
+
+// build cubism controller
+var cubism = config_controller.addCubismController("#timeseries", 25)
   .heightController("#form-height")
-  .streamController("#form-stream"); 
-// start polling for data
-controller.run();
+  .rangeController("#form-range-lo", "#form-range-hi")
+  .set();
+
+config_controller.runAll();
+
 
 </script> 
 {% endblock %}
