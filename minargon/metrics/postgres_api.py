@@ -66,11 +66,11 @@ def postgres_query(ID, start_t, stop_t, connection, config):
 	# Database query to execute, times converted to unix [ms]
 	if (config["name"] == "sbnteststand"):
 		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,FLOAT_VAL AS VALUE, FLOAT_VAL
-			FROM DCS_ARCHIVER.SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME;""" % ( ID, t_interval )
+			FROM DCS_ARCHIVER.SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME;""" % ( ID, t_interval / 1000.)
 	
 	else:
 		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,NUM_VAL AS VALUE,FLOAT_VAL
-			FROM DCS_PRD.SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME"""% ( ID, t_interval )
+			FROM DCS_PRD.SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME"""% ( ID, t_interval / 1000. )
 
 	# Execute query, rollback connection if it fails
 	try:
@@ -93,6 +93,9 @@ def ps_step(connection, ID):
 	# Define time to request for the postgres database
 	start_t = datetime.now() - timedelta(days=2)    # Start time
 	stop_t  = datetime.now()    					# Stop time
+
+	start_t = calendar.timegm(start_t.timetuple()) *1e3 + start_t.microsecond/1e3 # convert to unix ms
+	stop_t = calendar.timegm(stop_t.timetuple()) *1e3 + stop_t.microsecond/1e3 
 
 	data = postgres_query(ID, start_t, stop_t, *connection)
 
