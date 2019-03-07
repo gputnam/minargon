@@ -13,11 +13,6 @@ from minargon.tools import parseiso
 # from minargon.data_config import parse
 from minargon.metrics import online_metrics
 
-# Postgres Requirements
-import subprocess 
-import psycopg2
-from psycopg2.extras import RealDictCursor
-
 # load data configuration file
 # DATA_CONFIG = parse.DataParser(app.config).config
 
