@@ -127,8 +127,9 @@ export class PlotlyController {
         self.is_live = true;
       }
       else if (toggle_val == "lookback") {
-        self.start = $(id_start).datetimepicker('getValue');
-        self.end = $(id_end).datetimepicker('getValue');
+        // TODO: fix naming
+        self.end = $(id_start).datetimepicker('getValue');
+        self.start = $(id_end).datetimepicker('getValue');
         self.is_live = false;
       }
       self.runBuffer();
@@ -142,7 +143,7 @@ export class PlotlyController {
         // set the start
         // to be on the safe side, get back to ~1000 data points
         this.start = new Date(); 
-        this.start.setSeconds(start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
+        this.start.setSeconds(this.start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
         this.buffer.start(this.start);
       }
     }
