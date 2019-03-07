@@ -127,9 +127,8 @@ export class PlotlyController {
         self.is_live = true;
       }
       else if (toggle_val == "lookback") {
-        // TODO: fix naming
-        self.end = $(id_start).datetimepicker('getValue');
-        self.start = $(id_end).datetimepicker('getValue');
+        self.start = $(id_start).datetimepicker('getValue');
+        self.end = $(id_end).datetimepicker('getValue');
         self.is_live = false;
       }
       self.runBuffer();
