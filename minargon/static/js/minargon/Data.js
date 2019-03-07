@@ -160,7 +160,7 @@ export class D3DataPoll {
         this.data = data;
         this.timeout = timeout;
         this.listeners = listeners;
-        this.running = true;
+        this.running = false;
     }
 
     // expose the data object accessors

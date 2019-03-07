@@ -58,6 +58,7 @@ export class PlotlyController {
 
   // start running
   run() {
+    this.is_live = true;
     this.getTimeStep(function(self) {
       self.updateData(self.link);
     });
