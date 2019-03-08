@@ -51,15 +51,15 @@ export class PlotlyController {
   getTimeStep(callback) {
     var self = this;
     d3.json(this.link.step_link(), function(data) {
-        self.step = data.step;
-        callback(self);
+        callback(self, data.step);
     });
   }
 
   // start running
   run() {
     this.is_live = true;
-    this.getTimeStep(function(self) {
+    this.getTimeStep(function(self, step) {
+      self.updateStep(step);
       self.updateData(self.link);
     });
   }
@@ -90,6 +90,12 @@ export class PlotlyController {
   // update the data link and start polling for new data
   updateData(link) {
     this.link = link;
+
+    // reset the poll
+    if (!(this.buffer === undefined) && this.buffer.isRunning()) {
+      this.buffer.stop();
+    }
+
     // make a new buffer
 
     var data = new Data.D3DataLink(this.link);
@@ -131,6 +137,10 @@ export class PlotlyController {
         self.start = $(id_start).datetimepicker('getValue');
         self.end = $(id_end).datetimepicker('getValue');
         self.is_live = false;
+        // stop the buffer
+        if (self.buffer.isRunning()) {
+          self.buffer.stop();
+        }
       }
       self.runBuffer();
     });
@@ -139,18 +149,13 @@ export class PlotlyController {
 
   runBuffer() {
     if (this.is_live) {
-      if (!this.buffer.isRunning()) {
-        // set the start
-        // to be on the safe side, get back to ~1000 data points
-        this.start = new Date(); 
-        this.start.setSeconds(this.start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
-        this.buffer.start(this.start);
-      }
+      // set the start
+      // to be on the safe side, get back to ~1000 data points
+      this.start = new Date(); 
+      this.start.setSeconds(this.start.getSeconds() - this.step * this.max_data / 1000); // ms -> s
+      this.buffer.start(this.start);
     }
     else {
-      if (this.buffer.isRunning()) {
-        this.buffer.stop();
-      }
       this.buffer.getData(this.start, this.end);
     }
   }
@@ -184,21 +189,21 @@ export class CubismController {
   getTimeStep(callback) {
     var self = this;
     d3.json(this.data_link.step_link(), function(data) {
-        self.step = data.step;
-        callback(self);
+        callback(self, data.step);
     });
   }
 
   // set the step for the first time
   setStep(step) {
+    if (step < 1000) step = 1000;
     this.step = step;
     this.context = create_cubism_context(this.target, this.step);
   }
 
   // Internal function: get the time step and build the cubism context 
   buildContext(callback) {
-    this.getTimeStep(function(self) {
-      self.setStep(self.step);
+    this.getTimeStep(function(self, step) {
+      self.setStep(step);
       callback(self);
     });
   }
