@@ -114,10 +114,16 @@ def single_stream(stream_name):
 
 def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
     # TODO: what to do with this?
-    initial_datum = args.get('data', 'rms')
+    initial_datum = args.get('data', None)
     
     # get the config for this group from redis
     config = online_metrics.get_group_config(instance_name)
+
+    if initial_datum is None:
+        if len(config["metric_list"]) > 0:
+            initial_datum = config["metric_list"][0]
+        else:
+            intial_datum = "rms"
 
     render_args = {
         'title': instance_name,
