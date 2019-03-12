@@ -70,7 +70,10 @@ export class D3DataBuffer {
         continue;
       }
       for (var j = 0; j < this_data.length; j++) {
-        this.buffers[i].push(this_data[j]);
+        // only push new data
+        if (this.buffers[i].size == 0 || this.buffers[i].get_last()[0] < this_data[j][0]) {
+          this.buffers[i].push(this_data[j]);
+        }
       }
     }
     for (var i = 0; i < this.listeners.length; i++) {
