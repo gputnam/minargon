@@ -101,7 +101,7 @@ export class GroupConfigController {
   infer_step(stream_index, callback) {
     if (this.config.stream_links.length == 0) return callback(0);
  
-    var link = new DataLink.MetricStreamLink($SCRIPT_ROOT + this.config.stream_links[stream_index], this.config.streams[stream_index],
+    var link = new DataLink.MetricStreamLink($SCRIPT_ROOT + '/' + this.config.stream_links[stream_index], this.config.streams[stream_index],
         this.config.group, this.config.instances, this.config.metric_list, false);
 
     return d3.json(link.step_link(), function(data) { callback(data.step); });
