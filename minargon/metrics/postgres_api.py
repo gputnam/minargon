@@ -61,7 +61,11 @@ def postgres_query(ID, start_t, stop_t, connection, config):
 	# Make PostgresDB connection
 	cursor = connection.cursor(cursor_factory=RealDictCursor) 
 
-	t_interval = abs(stop_t - start_t) # Absolute value to fix stream args giving a negative value
+	t_interval = abs(stop_t - start_t) # Absolute value to fix stream args giving a negative value -- depreciated for ICARUS
+
+	print "start: ", start_t, " stop: ", stop_t
+
+	# cursor.execute("SET TIME ZONE 'America/Chicago';")
 
 	# Database query to execute, times converted to unix [ms]
 	if (config["name"] == "sbnteststand"):
@@ -69,9 +73,9 @@ def postgres_query(ID, start_t, stop_t, connection, config):
 			FROM DCS_ARCHIVER.SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME;""" % ( ID, t_interval / 1000.)
 	
 	else:
-		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,NUM_VAL AS VALUE,FLOAT_VAL
-			FROM DCS_PRD.SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME"""% ( ID, t_interval / 1000. )
-
+		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME, NUM_VAL AS VALUE, FLOAT_VAL
+			FROM DCS_PRD.SAMPLE WHERE CHANNEL_ID=%s AND SMPL_TIME BETWEEN to_timestamp(%s) AND to_timestamp(%s) ORDER BY SAMPLE_TIME"""% ( ID , start_t / 1000., stop_t / 1000. )
+	
 	# Execute query, rollback connection if it fails
 	try:
 		cursor.execute(query)
@@ -114,6 +118,36 @@ def ps_step(connection, ID):
 
 	return jsonify(step=step_size)
 
+# Function to get the metadata for the PV
+@app.route("/<connection>/pv_meta/<ID>")
+@postgres_route
+def pv_meta(connection, ID):
+	
+	database = connection[1]["name"]
+	connection = connection[0]
+
+	# return nothing if no connection
+	if connection is None:
+		return []
+	
+	# Make PostgresDB connection
+	cursor = connection.cursor(cursor_factory=RealDictCursor) 
+
+	# Only implemented for Icarus epics right now
+	query="""SELECT low_disp_rng, high_disp_rng, low_warn_lmt, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, prec, unit
+	FROM DCS_PRD.num_metadata WHERE CHANNEL_ID=%s;""" % (ID)
+
+	# Execute query, rollback connection if it fails
+	try:
+		cursor.execute(query)
+		data = cursor.fetchall()
+	except:
+		print "Error! Rolling back connection"
+		cursor.execute("ROLLBACK")
+		connection.commit()
+		data = []
+
+	return jsonify(metadata=data)
 
 @app.route("/<connection>/ps_series/<ID>")
 @postgres_route
@@ -125,11 +159,6 @@ def ps_series(connection, ID):
 	stop_t  = args['stop']     # Stop time
 
 	# Catch for if no stop time exists
-	if (start_t == None): 
-		now = datetime.now() - timedelta(days=2)  # time 2 days ago
-		start_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
-
-	# Catch for if no stop time exists
 	if (stop_t == None): 
 		now = datetime.now() # time now
 		stop_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
@@ -138,25 +167,32 @@ def ps_series(connection, ID):
 
 	# Format the data from database query
 	data_list = []
+
 	for row in data:
 	
-		# Block for switching between values in ICARUS DB,
-		# shouldnt affect the sbnteststand database
+		# Switch between value and float value, if both null then skip
 		if (row['value'] == None):
 			row['value'] = row['float_val']
 			
-			if (row['float_val'] == None):
-				row['value'] = 0
+		if (row['float_val'] == None):
+			# row['value'] = 0
+			continue # skip null values
 		
-		elif (row['sample_time'] == None):
-			row['sample_time'] = 0 # probably not the best way of setting the sample time
+		# Throw out values > 1e30 which seem to be an error
+		if (row['value'] > 1e30):
+			continue
+
+		# if row['sample_time'] > start_t:
+		# 	continue
 
 		# Add the data to the list
 		data_list.append( [ row['sample_time'], row['value'] ] )
+	
+	# If the data is empty then return the time now and a zero
+	if len(data_list) == 0:
+		now = datetime.now() + timedelta(hours=5) # correct time zone for now, will need to avoid this hard coded value in the future
+		data_list.append([calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3, 0] )
 
-	# If the data is empty, just return the time now and a zero
-	if not data_list:
-		data_list.append([calendar.timegm(datetime.now().timetuple()) *1e3 + datetime.now().microsecond/1e3,0] )
 
 	# Setup thes return dictionary
 	ret = {
