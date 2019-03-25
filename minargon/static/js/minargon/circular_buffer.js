@@ -66,10 +66,10 @@ export class CircularBuffer{
       }
 
       if (this.first + end < this.capacity)
-          return this.buffer.slice(this.first+start, this.first+end+1);
+          return this.buffer.slice(this.first+start, this.first+end);
       else 
           return this.buffer.slice(this.first+start, this.capacity)
-              .concat(this.buffer.slice(0, this.first + end + 1 - this.capacity));
+              .concat(this.buffer.slice(0, this.first + end - this.capacity));
     }
     else {
       if (this.size == 0 && start == 0 && (end == undefined || end == 0)) return [];
@@ -77,7 +77,7 @@ export class CircularBuffer{
       if (end == undefined) return this.buffer[start];
       if (end > this.size) throw new RangeError("Index past end of buffer: " + end);
 
-      return this.buffer.slice(start, end+1);
+      return this.buffer.slice(start, end);
     }
   }
 
