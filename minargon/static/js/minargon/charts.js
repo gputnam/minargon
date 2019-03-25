@@ -61,7 +61,7 @@ export class TimeSeriesScatter {
         this.times[i].length = 0;
         for (var j = 0; j < buffer.size; j++) {
           var dat = buffer.get(j);
-          this.times[i][j] = moment.unix(dat[0] / 1000) // ms -> s
+          this.times[i][j] = moment.unix(Math.round(dat[0] / 1000)) // ms -> s
             .format("YYYY-MM-DD HH:mm:ss");
           this.data[i][j] = dat[1];
          }
