@@ -183,12 +183,6 @@ def ps_series(connection, ID):
 		# Add the data to the list
 		data_list.append( [ row['sample_time'], row['value'] ] )
 	
-	# If the data is empty then return the time now and a zero
-	if len(data_list) == 0:
-		now = datetime.now() + timedelta(hours=5) # correct time zone for now, will need to avoid this hard coded value in the future
-		data_list.append([calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3, 0] ) # add in an error time
-
-
 	# Setup thes return dictionary
 	ret = {
 		ID: data_list
