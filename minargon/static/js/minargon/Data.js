@@ -39,7 +39,7 @@ export class D3DataBuffer {
 
   getData(start, stop) {
     for (var i = 0; i < this.accessors.length; i++) {
-      this.buffers[i].reset();
+      this.buffers[i].reset(true); // set buffer to linear mode
     }
     this.poll.getData(start, stop);
   }
@@ -50,12 +50,7 @@ export class D3DataBuffer {
 
 
   // internal function which updates the managed circular buffers with new data
-  updateBuffers(value, do_append) {
-    if (!do_append) {
-      for (var i = 0; i < this.accessors.length; i++) {
-        this.buffers[i].reset();
-      }
-    }
+  updateBuffers(value) {
     var data = value.values;
 
     for (var i = 0; i < this.accessors.length; i++) {
@@ -108,7 +103,7 @@ export class D3DataSource {
       .then(function(value) {
         for (var i = 0; i < self.listeners.length; i++) {
           var func = self.listeners[i];
-          func(value, false);
+          func(value);
         }
       });
   }
@@ -128,7 +123,7 @@ export class D3DataSource {
         var data = JSON.parse(event.data);
         for (var i = 0; i < self.listeners.length; i++) {
           var func = self.listeners[i];
-          func(data, true);
+          func(data);
         }
     };
   }

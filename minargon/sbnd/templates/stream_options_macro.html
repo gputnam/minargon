@@ -71,6 +71,14 @@
 </div>
 {% endmacro %}
 
+{% macro download(id) %}
+<div class="form-group row">
+  <div class="col-sm-12">
+    <button type="button" class="btn btn-link" id="{{id}}">Download Data</button>
+  </div>
+</div>
+{% endmacro %}
+
 {% macro time_range(id_start, id_end, id_toggle) %}
 <div class="form-group row">
    <label class="col-sm-5 control-form-label col-form-label">Start Time</label> 

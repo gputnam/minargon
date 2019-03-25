@@ -40,6 +40,7 @@ export class PlotlyController {
     this.layout = {
       title: link.name()
     };
+    this.titles = titles;
     // make a new plotly scatter plot
     this.scatter = new Chart.TimeSeriesScatter(target, this.layout, titles, this.link.accessors().length);
 
@@ -79,6 +80,7 @@ export class PlotlyController {
 
   // update the titles
   updateTitles(titles) {
+    this.titles = titles;
     this.scatter.updateTitles(titles);
   }
 
@@ -106,7 +108,7 @@ export class PlotlyController {
     //var source = new Data.D3DataSource(this.link, -1);
 
     // wrap with a buffer
-    this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.scatter.updateData.bind(this.scatter)]);
+    this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.scatter.updateData.bind(this.scatter), this.setTimeAxes.bind(this)]);
     // run it
     this.runBuffer();
   }
@@ -147,6 +149,14 @@ export class PlotlyController {
     return this;
   }
 
+  downloadDataController(id) {
+    var self = this;
+    $(id).click(function() {
+      self.download("data.json", JSON.stringify(self.downloadFormat()));
+    });
+    return this;
+  }
+
   runBuffer() {
     if (this.is_live) {
       // set the start
@@ -160,6 +170,49 @@ export class PlotlyController {
     }
   }
 
+  setTimeAxes() {
+    if (this.is_live) {
+      // reset range if live
+      this.scatter.reLayout({
+        xaxis: {
+          range: undefined
+        }
+      });
+
+    }
+    else {
+      this.scatter.reLayout({
+        xaxis: {
+          range: [moment(this.start).format("YYYY-MM-DD HH:mm:ss"), moment(this.end).format("YYYY-MM-DD HH:mm:ss")]
+        }
+      });
+    }
+  }
+
+  downloadFormat() {
+    // get the number of input streams controlled by this plot
+    var n_data = this.link.accessors().length;
+    var ret = {};
+    for (var i = 0; i < n_data; i++) {
+      ret[this.titles[i]] = this.buffer.buffers[i].get(0, this.buffer.buffers[i].size);
+    }
+    return ret;
+  }
+
+  download(filename, data) {
+    var blob = new Blob([data], {type: 'text/csv'});
+    if(window.navigator.msSaveOrOpenBlob) {
+      window.navigator.msSaveBlob(blob, filename);
+    }
+    else{
+      var elem = window.document.createElement('a');
+      elem.href = window.URL.createObjectURL(blob);
+      elem.download = filename;        
+      document.body.appendChild(elem);
+      elem.click();        
+      document.body.removeChild(elem);
+    }
+  }
 }
 
 
