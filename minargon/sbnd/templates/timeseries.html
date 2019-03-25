@@ -23,6 +23,7 @@
             <div class="card-body">
                 <form class="form" role="form">
                     {{ stream_options.time_range("start", "end", "toggle") }}
+                    {{ stream_options.download("download") }}
 	        </form>
             </div>
         </div>
@@ -78,7 +79,8 @@ var cubism = config_controller.addCubismController("#timeseries", 25)
 
 // build plotly controller
 var plotly = config_controller.addPlotlyController("time-scatter")
-  .timeRangeController("#start", "#end", "#toggle");
+  .timeRangeController("#start", "#end", "#toggle")
+  .downloadDataController("#download");
 
 // start the controllers
 config_controller.runAll();

@@ -1,7 +1,7 @@
 {% import "stream_options_macro.html" as stream_options %}
 
 {% extends "layout.html" %}
-{% block title %}Stream: {{stream_name}}{% endblock %}
+{% block title %}Stream: {{ID}}{% endblock %}
 {% block body %}
 {{ super() }}
 <div class="container">
@@ -20,6 +20,7 @@
                     {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
                     {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }}
                     {{ stream_options.time_range("start", "end", "toggle") }}
+                    {{ stream_options.download("download") }}
 	        </form>
             </div>
         </div>
@@ -35,16 +36,17 @@ import * as module from "{{ url_for('static', filename='js/minargon/timeseries.j
 var link = new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{ID}}");
 
 // build cubism controller
-var controller = new module.CubismController("#cubism-timeseries", link, "{{stream_name}}", undefined, 25)
+var controller = new module.CubismController("#cubism-timeseries", link, ["{{ID}}"], undefined, 25)
   .heightController("#form-height")
   .rangeController("#form-range-lo", "#form-range-hi");
 
 // start cubism
-controller.run();
+// controller.run();
 
 // build plotly controller
-var plotly_controller = new module.PlotlyController("plotly-timeseries", link, "{{stream_name}}", undefined) 
-  .timeRangeController("#start", "#end", "#toggle");
+var plotly_controller = new module.PlotlyController("plotly-timeseries", link, ["{{ID}}"], undefined) 
+  .timeRangeController("#start", "#end", "#toggle")
+  .downloadDataController("#download");
 
 // start it
 plotly_controller.run();
