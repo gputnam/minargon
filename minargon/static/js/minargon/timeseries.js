@@ -161,13 +161,22 @@ export class PlotlyController {
   }
 
   setTimeAxes() {
-    if (this.is_live) return;
+    if (this.is_live) {
+      // reset range if live
+      this.scatter.reLayout({
+        xaxis: {
+          range: undefined
+        }
+      });
 
-    this.scatter.reLayout({
-      xaxis: {
-        range: [moment(this.start).format("YYYY-MM-DD HH:mm:ss"), moment(this.end).format("YYYY-MM-DD HH:mm:ss")]
-      }
-    });
+    }
+    else {
+      this.scatter.reLayout({
+        xaxis: {
+          range: [moment(this.start).format("YYYY-MM-DD HH:mm:ss"), moment(this.end).format("YYYY-MM-DD HH:mm:ss")]
+        }
+      });
+    }
   }
 
 }
