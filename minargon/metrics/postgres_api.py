@@ -34,8 +34,10 @@ for connection_name, config in postgres_instances.items():
 	with open(key) as f:
 		u = (f.readline()).strip() # strip: removes leading and trailing chars
 		p = (f.readline()).strip()
+	
 	# Connect to the database
 	connection = psycopg2.connect(database=database_name, user=u, password=p, host=host, port=port)
+	
 	# store it
 	p_databases[connection_name] = (connection, config)
 
@@ -61,16 +63,10 @@ def postgres_query(ID, start_t, stop_t, connection, config):
 	# Make PostgresDB connection
 	cursor = connection.cursor(cursor_factory=RealDictCursor) 
 
-	t_interval = abs(stop_t - start_t) # Absolute value to fix stream args giving a negative value -- depreciated for ICARUS
-
-	print "start: ", start_t, " stop: ", stop_t
-
-	# cursor.execute("SET TIME ZONE 'America/Chicago';")
-
 	# Database query to execute, times converted to unix [ms]
 	if (config["name"] == "sbnteststand"):
 		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,FLOAT_VAL AS VALUE, FLOAT_VAL
-			FROM DCS_ARCHIVER.SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME;""" % ( ID, t_interval / 1000.)
+			FROM DCS_ARCHIVER.SAMPLE WHERE CHANNEL_ID=%s AND SMPL_TIME BETWEEN to_timestamp(%s) AND to_timestamp(%s) ORDER BY SAMPLE_TIME"""% ( ID , start_t / 1000., stop_t / 1000. )
 	
 	else:
 		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME, NUM_VAL AS VALUE, FLOAT_VAL
@@ -160,7 +156,7 @@ def ps_series(connection, ID):
 
 	# Catch for if no stop time exists
 	if (stop_t == None): 
-		now = datetime.now() # time now
+		now = datetime.now() + timedelta(hours=5) # correct time zone for now, will need to avoid this hard coded value in the future
 		stop_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
 
 	data = postgres_query(ID, start_t, stop_t, *connection)
@@ -173,17 +169,14 @@ def ps_series(connection, ID):
 		# Switch between value and float value, if both null then skip
 		if (row['value'] == None):
 			row['value'] = row['float_val']
-			
+		
+		# skip null values
 		if (row['float_val'] == None):
-			# row['value'] = 0
-			continue # skip null values
+			continue 
 		
 		# Throw out values > 1e30 which seem to be an error
 		if (row['value'] > 1e30):
 			continue
-
-		# if row['sample_time'] > start_t:
-		# 	continue
 
 		# Add the data to the list
 		data_list.append( [ row['sample_time'], row['value'] ] )
@@ -191,7 +184,7 @@ def ps_series(connection, ID):
 	# If the data is empty then return the time now and a zero
 	if len(data_list) == 0:
 		now = datetime.now() + timedelta(hours=5) # correct time zone for now, will need to avoid this hard coded value in the future
-		data_list.append([calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3, 0] )
+		data_list.append([calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3, 0] ) # add in an error time
 
 
 	# Setup thes return dictionary
