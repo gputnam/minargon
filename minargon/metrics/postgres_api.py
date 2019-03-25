@@ -34,8 +34,10 @@ for connection_name, config in postgres_instances.items():
 	with open(key) as f:
 		u = (f.readline()).strip() # strip: removes leading and trailing chars
 		p = (f.readline()).strip()
+	
 	# Connect to the database
 	connection = psycopg2.connect(database=database_name, user=u, password=p, host=host, port=port)
+	
 	# store it
 	p_databases[connection_name] = (connection, config)
 
@@ -61,17 +63,15 @@ def postgres_query(ID, start_t, stop_t, connection, config):
 	# Make PostgresDB connection
 	cursor = connection.cursor(cursor_factory=RealDictCursor) 
 
-	t_interval = abs(stop_t - start_t) # Absolute value to fix stream args giving a negative value
-
 	# Database query to execute, times converted to unix [ms]
 	if (config["name"] == "sbnteststand"):
 		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,FLOAT_VAL AS VALUE, FLOAT_VAL
-			FROM DCS_ARCHIVER.SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME;""" % ( ID, t_interval / 1000.)
+			FROM DCS_ARCHIVER.SAMPLE WHERE CHANNEL_ID=%s AND SMPL_TIME BETWEEN to_timestamp(%s) AND to_timestamp(%s) ORDER BY SAMPLE_TIME"""% ( ID , start_t / 1000., stop_t / 1000. )
 	
 	else:
-		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,NUM_VAL AS VALUE,FLOAT_VAL
-			FROM DCS_PRD.SAMPLE WHERE CHANNEL_ID=%s AND (NOW()-SMPL_TIME)<('%s') ORDER BY SMPL_TIME"""% ( ID, t_interval / 1000. )
-
+		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME, NUM_VAL AS VALUE, FLOAT_VAL
+			FROM DCS_PRD.SAMPLE WHERE CHANNEL_ID=%s AND SMPL_TIME BETWEEN to_timestamp(%s) AND to_timestamp(%s) ORDER BY SAMPLE_TIME"""% ( ID , start_t / 1000., stop_t / 1000. )
+	
 	# Execute query, rollback connection if it fails
 	try:
 		cursor.execute(query)
@@ -89,7 +89,6 @@ def postgres_query(ID, start_t, stop_t, connection, config):
 @app.route("/<connection>/ps_step/<ID>")
 @postgres_route
 def ps_step(connection, ID):
-
 	# Define time to request for the postgres database
 	start_t = datetime.now() - timedelta(days=2)    # Start time
 	stop_t  = datetime.now()    					# Stop time
@@ -114,6 +113,39 @@ def ps_step(connection, ID):
 
 	return jsonify(step=step_size)
 
+# Function to get the metadata for the PV
+@app.route("/<connection>/pv_meta/<ID>")
+def pv_meta(connection, ID):
+	return jsonify(metadata=pv_meta_internal(connection, ID))
+
+@postgres_route
+def pv_meta_internal(connection, ID):
+	
+	database = connection[1]["name"]
+	connection = connection[0]
+
+	# return nothing if no connection
+	if connection is None:
+		return []
+	
+	# Make PostgresDB connection
+	cursor = connection.cursor(cursor_factory=RealDictCursor) 
+
+	# Only implemented for Icarus epics right now
+	query="""SELECT low_disp_rng, high_disp_rng, low_warn_lmt, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, prec, unit
+	FROM DCS_PRD.num_metadata WHERE CHANNEL_ID=%s;""" % (ID)
+
+	# Execute query, rollback connection if it fails
+	try:
+		cursor.execute(query)
+		data = cursor.fetchall()
+	except:
+		print "Error! Rolling back connection"
+		cursor.execute("ROLLBACK")
+		connection.commit()
+		data = []
+	return data
+
 
 @app.route("/<connection>/ps_series/<ID>")
 @postgres_route
@@ -125,38 +157,37 @@ def ps_series(connection, ID):
 	stop_t  = args['stop']     # Stop time
 
 	# Catch for if no stop time exists
-	if (start_t == None): 
-		now = datetime.now() - timedelta(days=2)  # time 2 days ago
-		start_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
-
-	# Catch for if no stop time exists
 	if (stop_t == None): 
-		now = datetime.now() # time now
+		now = datetime.now() + timedelta(hours=5) # correct time zone for now, will need to avoid this hard coded value in the future
 		stop_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
 
 	data = postgres_query(ID, start_t, stop_t, *connection)
 
 	# Format the data from database query
 	data_list = []
+
 	for row in data:
 	
-		# Block for switching between values in ICARUS DB,
-		# shouldnt affect the sbnteststand database
+		# Switch between value and float value, if both null then skip
 		if (row['value'] == None):
 			row['value'] = row['float_val']
-			
-			if (row['float_val'] == None):
-				row['value'] = 0
 		
-		elif (row['sample_time'] == None):
-			row['sample_time'] = 0 # probably not the best way of setting the sample time
+		# skip null values
+		if (row['float_val'] == None):
+			continue 
+		
+		# Throw out values > 1e30 which seem to be an error
+		if (row['value'] > 1e30):
+			continue
 
 		# Add the data to the list
 		data_list.append( [ row['sample_time'], row['value'] ] )
+	
+	# If the data is empty then return the time now and a zero
+	if len(data_list) == 0:
+		now = datetime.now() + timedelta(hours=5) # correct time zone for now, will need to avoid this hard coded value in the future
+		data_list.append([calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3, 0] ) # add in an error time
 
-	# If the data is empty, just return the time now and a zero
-	if not data_list:
-		data_list.append([calendar.timegm(datetime.now().timetuple()) *1e3 + datetime.now().microsecond/1e3,0] )
 
 	# Setup thes return dictionary
 	ret = {
