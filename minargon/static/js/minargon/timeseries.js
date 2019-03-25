@@ -106,7 +106,7 @@ export class PlotlyController {
     //var source = new Data.D3DataSource(this.link, -1);
 
     // wrap with a buffer
-    this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.scatter.updateData.bind(this.scatter)]);
+    this.buffer = new Data.D3DataBuffer(poll, this.max_data, [this.scatter.updateData.bind(this.scatter), this.setTimeAxes.bind(this)]);
     // run it
     this.runBuffer();
   }
@@ -158,6 +158,16 @@ export class PlotlyController {
     else {
       this.buffer.getData(this.start, this.end);
     }
+  }
+
+  setTimeAxes() {
+    if (this.is_live) return;
+
+    this.scatter.reLayout({
+      xaxis: {
+        range: [moment(this.start).format("YYYY-MM-DD HH:mm:ss"), moment(this.end).format("YYYY-MM-DD HH:mm:ss")]
+      }
+    });
   }
 
 }
