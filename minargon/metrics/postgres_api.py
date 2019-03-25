@@ -89,7 +89,6 @@ def postgres_query(ID, start_t, stop_t, connection, config):
 @app.route("/<connection>/ps_step/<ID>")
 @postgres_route
 def ps_step(connection, ID):
-
 	# Define time to request for the postgres database
 	start_t = datetime.now() - timedelta(days=2)    # Start time
 	stop_t  = datetime.now()    					# Stop time
@@ -116,8 +115,11 @@ def ps_step(connection, ID):
 
 # Function to get the metadata for the PV
 @app.route("/<connection>/pv_meta/<ID>")
-@postgres_route
 def pv_meta(connection, ID):
+	return jsonify(metadata=pv_meta_internal(connection, ID))
+
+@postgres_route
+def pv_meta_internal(connection, ID):
 	
 	database = connection[1]["name"]
 	connection = connection[0]
@@ -142,8 +144,8 @@ def pv_meta(connection, ID):
 		cursor.execute("ROLLBACK")
 		connection.commit()
 		data = []
+	return data
 
-	return jsonify(metadata=data)
 
 @app.route("/<connection>/ps_series/<ID>")
 @postgres_route
