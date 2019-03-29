@@ -167,23 +167,30 @@ def pv_meta_internal(connection, ID):
 		DispRange.append(row['high_disp_rng'])
 
 		# Add the data to the list only if it has a value andlow != high otherwise just give empty
+		
+		# Unit
 		if CheckVal(row['unit']) == False:
 			data_list.append( {"unit" : row['unit']})
-		else:
-			data_list.append( {"unit" : "" })
-			
+		#else:
+			#data_list.append( {"unit" : "" })
+
+		# y Title	
 		data_list.append( { "y_title" : row['y_title'] })
+		
+		# Title
 		data_list.append( { "title" : row['title'] } )
 		
+		# Display Range
 		if (CheckVal(row['low_disp_rng']) == False and CheckVal(row['high_disp_rng']) == False) and row['low_disp_rng'] != row['high_disp_rng']:
 			data_list.append({ "Range" : DispRange })
-		else:
-			data_list.append({ "Range" : [] })
+		#else:
+			#data_list.append({ "Range" : [] })
 		
+		# Warning Range
 		if  (CheckVal(row['low_warn_lmt']) == False and CheckVal(row['high_warn_lmt']) == False) and row['low_warn_lmt'] != row['high_warn_lmt']:
 			data_list.append({ "WarningRange" : warningRange } )
-		else:
-			data_list.append({ "WarningRange" : [] } )
+		#else:
+			#data_list.append({ "WarningRange" : [] } )
 
 	# Setup the return dictionary
 	ret = {
