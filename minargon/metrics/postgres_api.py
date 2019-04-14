@@ -19,6 +19,7 @@ from flask import jsonify, request, render_template, abort
 from datetime import datetime, timedelta # needed for testing only
 import time
 import calendar
+from pytz import timezone
 
 # database connection configuration
 postgres_instances = app.config["POSTGRES_INSTANCES"]
@@ -90,11 +91,11 @@ def postgres_query(ID, start_t, stop_t, connection, config):
 @postgres_route
 def ps_step(connection, ID):
 	# Define time to request for the postgres database
-	start_t = datetime.now() - timedelta(days=2)    # Start time
-	stop_t  = datetime.now()    					# Stop time
+	start_t = datetime.now(timezone('UTC')) - timedelta(days=1)  # Start time
+	stop_t  = datetime.now(timezone('UTC'))    	                 # Stop time
 
 	start_t = calendar.timegm(start_t.timetuple()) *1e3 + start_t.microsecond/1e3 # convert to unix ms
-	stop_t = calendar.timegm(stop_t.timetuple()) *1e3 + stop_t.microsecond/1e3 
+	stop_t  = calendar.timegm(stop_t.timetuple())  *1e3 + stop_t.microsecond/1e3 
 
 	data = postgres_query(ID, start_t, stop_t, *connection)
 
@@ -113,6 +114,13 @@ def ps_step(connection, ID):
 
 	return jsonify(step=step_size)
 
+# Function to check None Values and empty unit
+def CheckVal(var):
+	if var == None or var == " ":
+		return True
+	else:
+		return False
+	
 # Function to get the metadata for the PV
 @app.route("/<connection>/pv_meta/<ID>")
 def pv_meta(connection, ID):
@@ -132,8 +140,9 @@ def pv_meta_internal(connection, ID):
 	cursor = connection.cursor(cursor_factory=RealDictCursor) 
 
 	# Only implemented for Icarus epics right now
-	query="""SELECT low_disp_rng, high_disp_rng, low_warn_lmt, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, prec, unit
-	FROM DCS_PRD.num_metadata WHERE CHANNEL_ID=%s;""" % (ID)
+	query="""SELECT low_disp_rng, high_disp_rng, low_warn_lmt, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, unit, SPLIT_PART(DCS_PRD.CHANNEL.NAME,'/',1) AS title, SPLIT_PART(DCS_PRD.CHANNEL.NAME,'/',2) AS y_title
+	FROM DCS_PRD.num_metadata, DCS_PRD.CHANNEL
+	WHERE DCS_PRD.CHANNEL.CHANNEL_ID=%s AND DCS_PRD.num_metadata.CHANNEL_ID=%s """ % (ID, ID)
 
 	# Execute query, rollback connection if it fails
 	try:
@@ -144,8 +153,51 @@ def pv_meta_internal(connection, ID):
 		cursor.execute("ROLLBACK")
 		connection.commit()
 		data = []
-	return data
+	
+	# Format the data from database query
+	data_list = []
+	warningRange = []
+	DispRange = []
 
+	for row in data:
+
+		warningRange.append(row['low_warn_lmt'])
+		warningRange.append(row['high_warn_lmt'])
+		DispRange.append(row['low_disp_rng'])
+		DispRange.append(row['high_disp_rng'])
+
+		# Add the data to the list only if it has a value andlow != high otherwise just give empty
+		
+		# Unit
+		if CheckVal(row['unit']) == False:
+			data_list.append( {"unit" : row['unit']})
+		#else:
+			#data_list.append( {"unit" : "" })
+
+		# y Title	
+		data_list.append( { "y_title" : row['y_title'] })
+		
+		# Title
+		data_list.append( { "title" : row['title'] } )
+		
+		# Display Range
+		if (CheckVal(row['low_disp_rng']) == False and CheckVal(row['high_disp_rng']) == False) and row['low_disp_rng'] != row['high_disp_rng']:
+			data_list.append({ "Range" : DispRange })
+		#else:
+			#data_list.append({ "Range" : [] })
+		
+		# Warning Range
+		if  (CheckVal(row['low_warn_lmt']) == False and CheckVal(row['high_warn_lmt']) == False) and row['low_warn_lmt'] != row['high_warn_lmt']:
+			data_list.append({ "WarningRange" : warningRange } )
+		#else:
+			#data_list.append({ "WarningRange" : [] } )
+
+	# Setup the return dictionary
+	ret = {
+		ID: data_list
+	}
+	
+	return ret
 
 @app.route("/<connection>/ps_series/<ID>")
 @postgres_route
@@ -158,7 +210,7 @@ def ps_series(connection, ID):
 
 	# Catch for if no stop time exists
 	if (stop_t == None): 
-		now = datetime.now() + timedelta(hours=5) # correct time zone for now, will need to avoid this hard coded value in the future
+		now = datetime.now(timezone('UTC')) # Get the time now in UTC
 		stop_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
 
 	data = postgres_query(ID, start_t, stop_t, *connection)
@@ -183,7 +235,7 @@ def ps_series(connection, ID):
 		# Add the data to the list
 		data_list.append( [ row['sample_time'], row['value'] ] )
 	
-	# Setup thes return dictionary
+	# Setup the return dictionary
 	ret = {
 		ID: data_list
 	}
