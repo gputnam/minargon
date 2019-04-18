@@ -15,7 +15,7 @@ CONFIG = {
       BoardReader0Fragment_Rate = {
         "unit": "Hz",
         "yTitle": "Fragment Rate",
-        "title" : "Board Reader Fragment Rate",
+        "title" : "%(instance)s Fragment Rate",
       },
       BoardReader0Data_Rate = {},
       BoardReader0pmtx01Last_Timestamp = {},
