@@ -89,9 +89,13 @@ export class PlotlyController {
       if (this.metric_config.title !== undefined) {
         scatter_update["title"] = this.metric_config.title;
       }
-
       scatter_update["xaxis.title"] = "Time";
       this.scatter.reLayout(scatter_update);
+
+      if (this.metric_config.warningRange !== undefined) {
+        this.scatter.updateRange(this.metric_config.warningRange);        
+      }
+
     }
   }
 

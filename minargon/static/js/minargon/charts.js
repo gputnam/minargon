@@ -10,10 +10,12 @@ export class TimeSeriesScatter {
 
       this.data = [];
       this.times = [];
+      this.timestamps = [];
 
       for (var i = 0; i < n_data; i++) {
         this.data.push( [] );
         this.times.push( [] );
+        this.timestamps.push( [] );
       }
       
       this.draw(layout);
@@ -29,7 +31,7 @@ export class TimeSeriesScatter {
         var trace_update = {
           name: this.titles
         }
-        Plotly.restyle(this.target, trace_update);
+        Plotly.restyle(this.target, trace_update, i);
       }
     }
 
@@ -59,18 +61,90 @@ export class TimeSeriesScatter {
         var buffer = buffers[i];
         this.data[i].length = 0;
         this.times[i].length = 0;
+        this.timestamps[i].length = 0;
         for (var j = 0; j < buffer.size; j++) {
           var dat = buffer.get(j);
+          this.timestamps[i][j] = Math.round(dat[0] / 1000); // ms -> s
           this.times[i][j] = moment.unix(Math.round(dat[0] / 1000)) // ms -> s
             .format("YYYY-MM-DD HH:mm:ss");
           this.data[i][j] = dat[1];
          }
       }
       this.redraw();
+      this.updateRange(this.range);
     }
 
     redraw() {
          Plotly.redraw(this.target);
+    }
+
+    updateRange(range) {
+        if (range === undefined) {
+            if (this.range !== undefined ) {
+              Plotly.deleteTraces(this.target, [this.n_data, this.n_data+1]);
+            }
+            this.range = undefined;
+            this.min = undefined;
+            this.max = undefined;
+            return;
+        }
+        var new_trace = (this.range === undefined);
+        this.range = range;
+        this.range_trace();
+        if (new_trace) Plotly.addTraces(this.target, [this.max, this.min]);
+        else Plotly.redraw(this.target);
+    }
+
+    // Internal function: reset the data for the "Warning Hi/Lo" plots 
+    range_trace() {
+        var min_times = [];
+        var max_times = [];
+        for (var i = 0; i < this.n_data; i++) {
+          if (this.times[i].length > 0) min_times.push(this.timestamps[i][0]);
+        }
+        for (var i = 0; i < this.n_data; i++) {
+          if (this.times[i].length > 0) max_times.push(this.timestamps[i][this.times[i].length-1]);
+        }
+        var min_time; var max_time;
+        if (min_times.length > 0) {
+          min_time = moment.unix(Math.min(...min_times)).format("YYYY-MM-DD HH:mm:ss");
+        }
+        else min_time = -1;
+        if (max_times.length > 0) { 
+          max_time = moment.unix(Math.max(...max_times)).format("YYYY-MM-DD HH:mm:ss");
+        }
+        else max_time = 10;
+        
+        if (this.min === undefined) {
+            this.min = {
+                x: [min_time, max_time],
+                y: [this.range[0], this.range[0]],
+	        type: "scatter", 
+                name: "Warning Low",
+                marker: { color: "green"},
+            };
+        }
+        else {
+            this.min.y[0] = this.range[0];
+            this.min.y[1] = this.range[0];
+            this.min.x[0] = min_time;
+            this.min.x[1] = max_time;
+        }
+        if (this.max === undefined) {
+            this.max = {
+                x: [min_time, max_time],
+                y: [this.range[1], this.range[1]],
+	        type: "scatter", 
+                name: "Warning High",
+                marker: { color: "red"},
+            };
+        }
+        else {
+            this.max.y[0] = this.range[1];
+            this.max.y[1] = this.range[1];
+            this.max.x[0] = min_time;
+            this.max.x[1] = max_time;
+        }
     }
 
 }
