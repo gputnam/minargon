@@ -174,6 +174,16 @@ export class GroupConfigController {
     return title;
   }
 
+
+  processMetricConfig() {
+    var ret = $.extend({}, this.metric_config);
+    // fix the title
+    if (this.metric_config !== undefined && this.metric_config.title !== undefined) {
+      ret.title = this.metric_config.title.replace("%(instance)s", this.config.group).replace("%(group)s", this.config.group);
+    }
+    return ret;
+  }
+
   // Internal function: change the metric name being shown in the cubism charts
   updateMetric(metrics) {
     this.metrics = metrics;
@@ -186,9 +196,11 @@ export class GroupConfigController {
 
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
     var data_titles = this.data_titles(this.metrics, this.instances);
+
+    var metric_config = this.processMetricConfig();
      
     for (var i = 0; i < this.controllers.length; i++) {
-      this.controllers[i].updateMetricConfig(this.metric_config);
+      this.controllers[i].updateMetricConfig(metric_config);
       this.controllers[i].updateTitles(data_titles);
       this.controllers[i].updateData(data_link, true);
     }
@@ -212,7 +224,7 @@ export class GroupConfigController {
   addCubismController(target, height) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
     var data_titles = this.data_titles(this.metrics, this.instances);
-    var controller = new TimeSeriesControllers.CubismController(target, data_link, data_titles, this.metric_config, height);
+    var controller = new TimeSeriesControllers.CubismController(target, data_link, data_titles, this.processMetricConfig(), height);
     if (this.href !== undefined ) {
       controller.setLinkFunction(this.getLink.bind(this));
     }
@@ -224,7 +236,7 @@ export class GroupConfigController {
   addPlotlyController(target) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
     var data_titles = this.data_titles(this.metrics, this.instances);
-    var controller = new TimeSeriesControllers.PlotlyController(target, data_link, data_titles, this.metric_config);
+    var controller = new TimeSeriesControllers.PlotlyController(target, data_link, data_titles, this.processMetricConfig());
     this.controllers.push(controller);
     return controller;
   }
@@ -232,7 +244,7 @@ export class GroupConfigController {
   // add a group data controller
   addGroupDataScatterController(target, title) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
-    var controller = new GroupDataControllers.GroupDataScatterController(target, data_link, this.metric_config, title, this.config.group);
+    var controller = new GroupDataControllers.GroupDataScatterController(target, data_link, this.processMetricConfig(), title, this.config.group);
     this.controllers.push(controller);
     return controller;
   }
@@ -241,7 +253,7 @@ export class GroupConfigController {
   addGroupDataHistoController(target, title) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
     var data_titles = this.data_titles(this.metrics, this.instances);
-    var controller = new GroupDataControllers.GroupDataHistoController(target, data_link, this.metric_config, title, "# " + this.config.group);
+    var controller = new GroupDataControllers.GroupDataHistoController(target, data_link, this.processMetricConfig(), title, "# " + this.config.group);
     this.controllers.push(controller);
     return controller;
   }
