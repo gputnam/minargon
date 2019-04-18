@@ -36,6 +36,7 @@ for connection_name, config in postgres_instances.items():
 		u = (f.readline()).strip() # strip: removes leading and trailing chars
 		p = (f.readline()).strip()
 	
+        config["web_name"] = connection_name
 	# Connect to the database
 	connection = psycopg2.connect(database=database_name, user=u, password=p, host=host, port=port)
 	
@@ -240,6 +241,7 @@ def ps_series(connection, ID):
 def test_pv(connection):
 
 	database = connection[1]["name"]
+	config = connection[1]
 	connection = connection[0]
 
 	# Cursor allows python to execute a postgres command in the database session. 
@@ -303,7 +305,7 @@ def test_pv(connection):
 			old[1] = row[1]
 
 		# Push back every time       
-		pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])] , "href" : "/cgi-bin/minargon/minargon.wsgi/power_supply_single_stream/"+str(row[3]) }) # Level 3
+		pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])] , "href" : "/cgi-bin/minargon/minargon.wsgi/power_supply_single_stream/"+config["web_name"] +"/"+str(row[3]) }) # Level 3
 		index[2] = index[2] + 1
 		tags[1] = tags[1] + 1
 
