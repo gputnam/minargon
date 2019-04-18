@@ -12,7 +12,11 @@ CONFIG = {
       BoardReader0Avg_Input_Wait_Time = {},
       BoardReader0Fragment_Count = {},
       BoardReader0Average_Fragment_Size = {},
-      BoardReader0Fragment_Rate = {},
+      BoardReader0Fragment_Rate = {
+        "unit": "Hz",
+        "yTitle": "Fragment Rate",
+        "title" : "Board Reader Fragment Rate",
+      },
       BoardReader0Data_Rate = {},
       BoardReader0pmtx01Last_Timestamp = {},
       BoardReader0Avg_BoardReader_Sync_Wait_Time = {},
