@@ -8,6 +8,7 @@ import sys
 import random
 import constants
 import sys
+from minargon.metrics import postgres_api
 
 from minargon.tools import parseiso
 # from minargon.data_config import parse
@@ -94,10 +95,14 @@ def wireplane_view():
     instance_name = "wireplane" 
     return timeseries_view(request.args, instance_name, "wire", "wireLink")
 
-@app.route('/power_supply_single_stream/<ID>')
-def power_supply_single_stream(ID):
+@app.route('/power_supply_single_stream/<database>/<ID>')
+def power_supply_single_stream(database, ID):
+    # get the config
+    config = postgres_api.pv_meta_internal(database, ID)
+    # print config
     render_args = {
-      "ID": ID
+      "ID": ID,
+      "config": config,
     }
     return render_template('power_supply_single_stream.html', **render_args)
 

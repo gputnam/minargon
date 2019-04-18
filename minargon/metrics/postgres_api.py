@@ -134,7 +134,7 @@ def pv_meta_internal(connection, ID):
 
 	# return nothing if no connection
 	if connection is None:
-		return []
+		return {}
 	
 	# Make PostgresDB connection
 	cursor = connection.cursor(cursor_factory=RealDictCursor) 
@@ -155,12 +155,10 @@ def pv_meta_internal(connection, ID):
 		data = []
 	
 	# Format the data from database query
-	data_list = []
+	ret = {}
 	warningRange = []
 	DispRange = []
-
 	for row in data:
-
 		warningRange.append(row['low_warn_lmt'])
 		warningRange.append(row['high_warn_lmt'])
 		DispRange.append(row['low_disp_rng'])
@@ -170,33 +168,26 @@ def pv_meta_internal(connection, ID):
 		
 		# Unit
 		if CheckVal(row['unit']) == False:
-			data_list.append( {"unit" : row['unit']})
-		#else:
-			#data_list.append( {"unit" : "" })
+			ret["unit"] = row["unit"]
 
 		# y Title	
-		data_list.append( { "y_title" : row['y_title'] })
+		ret["yTitle"] = row['y_title']
 		
 		# Title
-		data_list.append( { "title" : row['title'] } )
+		ret["title"] = row["title"]
 		
 		# Display Range
 		if (CheckVal(row['low_disp_rng']) == False and CheckVal(row['high_disp_rng']) == False) and row['low_disp_rng'] != row['high_disp_rng']:
-			data_list.append({ "Range" : DispRange })
-		#else:
-			#data_list.append({ "Range" : [] })
+			ret["range"] = DispRange
 		
 		# Warning Range
 		if  (CheckVal(row['low_warn_lmt']) == False and CheckVal(row['high_warn_lmt']) == False) and row['low_warn_lmt'] != row['high_warn_lmt']:
-			data_list.append({ "WarningRange" : warningRange } )
-		#else:
-			#data_list.append({ "WarningRange" : [] } )
+			ret["warningRange"] = warningRange
+
+		# only take the first row of data -- there should really only be one configuration per id
+		break
 
 	# Setup the return dictionary
-	ret = {
-		ID: data_list
-	}
-	
 	return ret
 
 @app.route("/<connection>/ps_series/<ID>")

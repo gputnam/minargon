@@ -43,6 +43,8 @@ export class PlotlyController {
     this.titles = titles;
     // make a new plotly scatter plot
     this.scatter = new Chart.TimeSeriesScatter(target, this.layout, titles, this.link.accessors().length);
+    this.updateMetricConfig(metric_config);
+    this.updateTitles(titles);
 
     this.is_live = true;
   }
@@ -70,6 +72,27 @@ export class PlotlyController {
   // update the metric config option
   updateMetricConfig(config) {
     this.metric_config = config;
+    if (this.metric_config !== undefined) {
+      // set it for the scatter plot
+      var scatter_update = {};
+      if (this.metric_config.range !== undefined && this.metric_config.range.length == 2) {
+        scatter_update["yaxis.range"] = this.metric_config.range;
+      }
+      if (this.metric_config.yTitle !== undefined) {
+        if (this.metric_config.unit !== undefined) {
+          scatter_update["yaxis.title"] = this.metric_config.yTitle + " [" + this.metric_config.unit + "]";
+        }
+        else {
+          scatter_update["yaxis.title"] = this.metric_config.yTitle;
+        }
+      }
+      if (this.metric_config.title !== undefined) {
+        scatter_update["title"] = this.metric_config.title;
+      }
+
+      scatter_update["xaxis.title"] = "Time";
+      this.scatter.reLayout(scatter_update);
+    }
   }
 
   // update the data step
@@ -175,7 +198,8 @@ export class PlotlyController {
       // reset range if live
       this.scatter.reLayout({
         xaxis: {
-          range: undefined
+          range: undefined,
+          title: "Time"
         }
       });
 
@@ -183,7 +207,8 @@ export class PlotlyController {
     else {
       this.scatter.reLayout({
         xaxis: {
-          range: [moment(this.start).format("YYYY-MM-DD HH:mm:ss"), moment(this.end).format("YYYY-MM-DD HH:mm:ss")]
+          range: [moment(this.start).format("YYYY-MM-DD HH:mm:ss"), moment(this.end).format("YYYY-MM-DD HH:mm:ss")],
+          title: "Time"
         }
       });
     }
