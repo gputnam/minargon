@@ -8,17 +8,18 @@
 // root: the root path wehre all of the API endpoints are defined
 // ID: the postgres table ID
 export class PostgresStreamLink {
-  constructor(root, ID) {
+  constructor(root, database, ID) {
     this.root = root;
+    this.database = database;
     this.ID = String(ID);
   }
 
   step_link() {
-    return this.root + "/epics/ps_step/" + this.ID;
+    return this.root + "/" + this.database + "/ps_step/" + this.ID;
   }
 
   data_link(start, stop) {
-    return this.root + "/epics/ps_series/" + this.ID + '?' + $.param(timeArgs(start, stop));
+    return this.root + "/" + this.database + "/ps_series/" + this.ID + '?' + $.param(timeArgs(start, stop));
   }
 
   accessors() {
