@@ -103,6 +103,7 @@ def power_supply_single_stream(database, ID):
     render_args = {
       "ID": ID,
       "config": config,
+      "database": database,
     }
     return render_template('power_supply_single_stream.html', **render_args)
 
