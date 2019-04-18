@@ -19,6 +19,9 @@ export class D3DataBuffer {
     }
     this.poll.listeners = [this.updateBuffers.bind(this)];
     this.listeners = listeners;
+
+    // whether the buffer should be reset when new data shows up
+    this.reset_buffers = false;
   }
 
   // start: start the Poll/Source and connect with the buffers
@@ -26,6 +29,7 @@ export class D3DataBuffer {
     for (var i = 0; i < this.accessors.length; i++) {
       this.buffers[i].reset();
     }
+    this.reset_buffers = false;
     this.poll.start(start);
   }
 
@@ -38,9 +42,7 @@ export class D3DataBuffer {
   }
 
   getData(start, stop) {
-    for (var i = 0; i < this.accessors.length; i++) {
-      this.buffers[i].reset(true); // set buffer to linear mode
-    }
+    this.reset_buffers = true;
     this.poll.getData(start, stop);
   }
 
@@ -51,6 +53,12 @@ export class D3DataBuffer {
 
   // internal function which updates the managed circular buffers with new data
   updateBuffers(value) {
+    if (this.reset_buffers) {
+      for (var i = 0; i < this.accessors.length; i++) {
+        this.buffers[i].reset(true); // set buffer to linear mode
+      }
+    }
+
     var data = value.values;
 
     for (var i = 0; i < this.accessors.length; i++) {
