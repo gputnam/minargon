@@ -92,7 +92,7 @@ def channel_snapshot():
 @app.route('/wireplane_view')
 def wireplane_view():
     plane = request.args.get('plane', 'combined')
-    instance_name = "wireplane" 
+    instance_name = "tpc_channel" 
     return timeseries_view(request.args, instance_name, "wire", "wireLink")
 
 @app.route('/power_supply_single_stream/<database>/<ID>')
