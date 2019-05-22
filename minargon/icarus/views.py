@@ -1,5 +1,9 @@
 from minargon import app
 from flask import render_template, jsonify, request, redirect, url_for, flash
+from minargon.metrics import postgres_api
+
+from minargon.tools import parseiso
+from minargon.metrics import online_metrics
 
 """
 	Routes intented to be seen by the user	
@@ -7,8 +11,44 @@ from flask import render_template, jsonify, request, redirect, url_for, flash
 
 @app.route('/')
 def index():
-    return redirect(url_for('introduction'))
+    return redirect(url_for('introduction2'))
 
-@app.route('/introduction')
+@app.route('/introduction2')
 def introduction():
     return render_template('introduction.html')
+
+@app.route('/online_group/<group_name>')
+def online_group(group_name):
+    return timeseries_view(request.args, group_name)
+
+@app.route('/single_stream/<stream_name>/')
+def single_stream(stream_name):
+    render_args = {
+        "stream_name": stream_name,
+    }
+    return render_template('single_stream.html', **render_args) 
+
+def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
+    # TODO: what to do with this?
+    initial_datum = args.get('data', None)
+    
+    # get the config for this group from redis
+    config = online_metrics.get_group_config(instance_name)
+
+    if initial_datum is None:
+        if len(config["metric_list"]) > 0:
+            initial_datum = config["metric_list"][0]
+        else:
+            intial_datum = "rms"
+
+    render_args = {
+        'title': instance_name,
+        'link_function': link_function,
+        'view_ident': view_ident,
+        'config': config,
+        'metric': initial_datum
+    }
+
+    return render_template('timeseries.html', **render_args)
+
+

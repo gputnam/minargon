@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        {% block head %}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>SBN ONLINE | {% block title %}{% endblock %}</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.datetimepicker.css') }}" media="screen">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" media="screen">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/minard.css') }}" media="screen">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/minargon.css') }}" media="screen">
+        {% endblock %}
+        <script src="{{ url_for('static', filename='js/library/jquery.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/library/d3.js') }}"></script>
+	<script src="{{ url_for('static', filename='js/moment/moment.min.js') }}"></script> 
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script src="{{ url_for('static', filename='js/library/bootstrap.min.js') }}" defer></script>
+        <script src="{{ url_for('static', filename='js/library/bootstrap-treeview.js') }}"></script>
+	<script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script> 
+	<script src="{{ url_for('static', filename='js/moment/moment-timezone-with-data.min.js') }}" defer></script> 
+        <script src="{{ url_for('static', filename='js/library/jquery.datetimepicker.js') }}"></script>
+
+        <!-- $SCRIPT_ROOT for app location -->
+        <script type="text/javascript">
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+            // set locale for timepicker
+            jQuery.datetimepicker.setLocale('en');
+            // and setup date parsing
+            $.datetimepicker.setDateFormatter({
+              parseDate: function (date, format) {
+                var d = moment(date, format);
+              return d.isValid() ? d.toDate() : false;
+              },
+              formatDate: function (date, format) {
+                return moment(date).format(format);
+              },
+              //Optional if using mask input
+              formatMask: function(format){
+                return format
+		  .replace(/Y{4}/g, '9999')
+		  .replace(/Y{2}/g, '99')
+		  .replace(/M{2}/g, '19')
+		  .replace(/D{2}/g, '39')
+		  .replace(/H{2}/g, '29')
+		  .replace(/m{2}/g, '59')
+		  .replace(/s{2}/g, '59');
+              }          
+            });
+ 
+	    function update_page(args) {
+		var url_root = [location.protocol, '//', location.host, location.pathname].join('');
+		
+		var selectors = $("#data-header-parent").find("select");
+		selectors.each(function(index) {
+		    args[$(this).attr("id")] = $(this).val();
+		});
+		
+		window.location.href = url_root + "?" + $.param(args);
+	    }
+        </script>
+
+        {% block script %}{% endblock %}
+
+    </head>
+    <body>
+        {% block body %}
+        {% macro nav_link(endpoint, name) -%}
+            {% if request.endpoint == endpoint %}
+                <li class="nav-item active"><a class="nav-link" href="{{ url_for(endpoint, **kwargs) }}">{{ name }}</a></li>
+            {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for(endpoint, **kwargs) }}">{{ name }}</a></li>
+            {% endif %}
+        {%- endmacro %}
+        {% macro dropdown_link(endpoint, name) -%}
+            {% if request.endpoint == endpoint %}
+                <a class="dropdown-item" href="{{ url_for(endpoint, **kwargs) }}">{{ name }}</a>
+            {% else %}
+                <a class="dropdown-item" href="{{ url_for(endpoint, **kwargs) }}">{{ name }}</a>
+            {% endif %}
+        {%- endmacro %}
+        <nav class="navbar navbar-expand-md bg-maroon navbar-dark fixed-top">
+          <a class="navbar-brand" href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='images/image_icarus.png') }}" width="30" height="30" class="d-inline-block align-top" alt="">
+            &nbsp;ICARUS Monitoring
+          </a>
+          <!--<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" 
+                  aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>-->
+          <div class="navbar-collapse collapse" id="navbar">
+            <ul class="navbar-nav mr-auto">
+            {{ nav_link('online_group', 'TPC', group_name='tpc_channel') }}
+             {{ nav_link('test_pv', 'ICARUS EPICS', connection='epics') }}
+             {{ nav_link('online_group', 'Side CRT', group_name='CRT_board') }}
+           </ul>
+          </div><!--/.navbar-collapse -->
+        </nav>
+
+<!--
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <div class="container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissable" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+-->
+        {% endblock %}
+    </body>
+</html>
+
