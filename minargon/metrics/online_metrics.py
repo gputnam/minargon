@@ -34,7 +34,7 @@ def redis_route(func):
 @redis_route
 def test_redis(redis):
     try:
-        x = redis.get("foo")
+	x = redis.ping()
     except Exception, err:
         import sys
         sys.stderr.write('ERROR: %s' % str(err))
