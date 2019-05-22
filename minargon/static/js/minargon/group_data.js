@@ -35,6 +35,11 @@ export class GroupDataScatterController {
     this.makeScatter(target, title, xLabel)
   }
 
+  // commuicate to the "config" wrapper -- whether or not the # of instances in this class should be restricted
+  restrictNumInstances() {
+    return false;
+  }
+
   // "set" the configuration after constructing the class and calling
   // the various "xxxController" functions
   set() {
@@ -350,6 +355,11 @@ export class GroupDataHistoController {
 
     this.metricParam();
     this.makeHistogram(target, title, yLabel)
+  }
+
+  // commuicate to the "config" wrapper -- whether or not the # of instances in this class should be restricted
+  restrictNumInstances() {
+    return false;
   }
 
   // "set" the configuration after constructing the class and calling

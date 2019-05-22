@@ -21,11 +21,12 @@ class ReverseProxied(object):
 
     :param app: the WSGI application
     '''
-    def __init__(self, app):
+    def __init__(self, app, web_root):
         self.app = app
+        self.web_root = web_root
 
     def __call__(self, environ, start_response):
-        script_name = '/cgi-bin/minargon/minargon.wsgi'
+        script_name = self.web_root
         if script_name:
             environ['SCRIPT_NAME'] = script_name
             path_info = environ['PATH_INFO']
@@ -41,7 +42,13 @@ app = Flask(__name__)
 
 app.config.from_envvar('MINARGON_SETTINGS', silent=False)
 
-app.wsgi_app = ReverseProxied(app.wsgi_app)
+if "WEB_ROOT" in app.config:
+    web_root = app.config["WEB_ROOT"]
+else:
+    web_root = "/"
+
+# pass the location of the web root
+app.wsgi_app = ReverseProxied(app.wsgi_app, web_root)
 
 # set location of tempaltes
 app.template_folder = os.path.join(app.config["FRONT_END"], "templates")
