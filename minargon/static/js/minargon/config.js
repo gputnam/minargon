@@ -19,7 +19,7 @@ export class GroupConfigController {
   //        return a URL string that the user will navigate to. If
   //        nothing is passed, then nothing will happen when the user
   //        clicks on a strip chart
-  constructor(config, href, metrics, instances, stream_index) {
+  constructor(config, href, metrics, instances, stream_index, max_n_instances) {
     this.config = config;
     this.href = href;
 
@@ -32,6 +32,20 @@ export class GroupConfigController {
     }
     this.instances = instances;
     this.stream_index = stream_index;
+
+    // set the number of instances to skip each time
+    if (max_n_instances !== undefined) {
+      if (this.instances === undefined) {
+        var number_instances = this.config.instances.length;
+      }
+      else {
+       var number_instances = this.instances.length;
+      }
+      this.instance_skip = Math.ceil(number_instances / max_n_instances);
+    }
+    else {
+      this.instance_skip = 1;
+    }
 
     this.controllers = [];
 
@@ -51,37 +65,35 @@ export class GroupConfigController {
   // metric_list and the instance_list. I.e. if len(metric_list) = 3 and
   // len(instance_list) = 5 then there will be 15 total time-series
   // generated
-  data_link(stream_index, metric_list, instance_list) {
+  data_link(stream_index, metric_list, instance_list, instance_skip) {
     if (metric_list === undefined) {
       metric_list = this.config.metric_list;
     }
     if (instance_list === undefined) {
-      var instances = this.config.instances;
+      instance_list = [...Array(this.config.instances.length).keys()];
     }
-    else {
-      var instances = [];
-      for (var i = 0; i < instance_list.length; i++) {
-        instances.push( this.config.instances[instance_list[i]] );
-      }
+    var instances = [];
+    for (var i = 0; i < instance_list.length; i+= instance_skip) {
+      instances.push(this.config.instances[instance_list[i]]);
     }
+    console.log(instances);
     return new DataLink.MetricStreamLink($SCRIPT_ROOT + "/" + this.config.stream_links[stream_index], this.config.streams[stream_index], 
         this.config.group, instances, metric_list, false);
   }
 
 
-  data_titles(metric_list, instance_list) {
+  data_titles(metric_list, instance_list, instance_skip) {
     if (metric_list === undefined) {
       metric_list = this.config.metric_list;
     }
     if (instance_list === undefined) {
-      var instances = this.config.instances;
+      instance_list = [...Array(this.config.instances.length).keys()];
     }
-    else {
-      var instances = [];
-      for (var i = 0; i < instance_list.length; i++) {
-        instances.push( this.config.instances[instance_list[i]] );
-      }
+    var instances = [];
+    for (var i = 0; i < instance_list.length; i+= instance_skip) {
+      instances.push(this.config.instances[instance_list[i]]);
     }
+    
     var use_metric_name_as_backup = instances.length == 1;
     var ret = [];
     for (var i = 0; i < metric_list.length; i++) {
@@ -114,11 +126,17 @@ export class GroupConfigController {
       return;
     }
     var self = this;
-    var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
+    var data_link_restricted = this.data_link(this.stream_index, this.metrics, this.instances, this.instance_skip);
+    var data_link = this.data_link(this.stream_index, this.metrics, this.instances, 1);
     this.infer_step(0, function(step) {
       for (var i = 0; i < self.controllers.length; i++) {
         self.controllers[i].setStep(step);
-        self.controllers[i].updateData(data_link);
+        if (self.controllers[i].restrictNumInstances()) {
+          self.controllers[i].updateData(data_link_restricted);
+        }
+        else {
+          self.controllers[i].updateData(data_link);
+        }
       }
     });
   }
@@ -194,15 +212,24 @@ export class GroupConfigController {
       this.metric_config = undefined;
     }
 
-    var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
-    var data_titles = this.data_titles(this.metrics, this.instances);
+    var data_link_restricted = this.data_link(this.stream_index, this.metrics, this.instances, this.instance_skip);
+    var data_link = this.data_link(this.stream_index, this.metrics, this.instances, 1);
+
+    var data_titles_restricted = this.data_titles(this.metrics, this.instances, this.instance_skip);
+    var data_titles = this.data_titles(this.metrics, this.instances, 1);
 
     var metric_config = this.processMetricConfig();
      
     for (var i = 0; i < this.controllers.length; i++) {
       this.controllers[i].updateMetricConfig(metric_config);
-      this.controllers[i].updateTitles(data_titles);
-      this.controllers[i].updateData(data_link, true);
+      if (this.controllers[i].restrictNumInstances()) {
+        this.controllers[i].updateData(data_link_restricted, true);
+        this.controllers[i].updateTitles(data_titles_restricted);
+      }
+      else {
+        this.controllers[i].updateData(data_link, true);
+        this.controllers[i].updateTitles(data_titles);
+      }
     }
   } 
 
@@ -212,18 +239,24 @@ export class GroupConfigController {
     this.stream_index = input;
     var self = this;
     this.infer_step(input, function(step) {
-      var data_link = self.data_link(self.stream_index, self.metrics, self.instances);
+      var data_link = self.data_link(self.stream_index, self.metrics, self.instances, 1);
+      var data_link_restricted = self.data_link(self.stream_index, self.metrics, self.instances, self.instance_skip);
       for (var i = 0; i < self.controllers.length; i++) {
-         self.controllers[i].updateStep(step);
-         self.controllers[i].updateData(data_link, true);
+        self.controllers[i].updateStep(step);
+        if (self.controllers[i].restrictNumInstances()) {
+          self.controllers[i].updateData(data_link_restricted, true);
+        }
+        else {
+          self.controllers[i].updateData(data_link, true);
+        }
       }
     });
   }
 
   // add a cubism controller 
   addCubismController(target, height) {
-    var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
-    var data_titles = this.data_titles(this.metrics, this.instances);
+    var data_link = this.data_link(this.stream_index, this.metrics, this.instances, this.instance_skip);
+    var data_titles = this.data_titles(this.metrics, this.instances, this.instance_skip);
     var controller = new TimeSeriesControllers.CubismController(target, data_link, data_titles, this.processMetricConfig(), height);
     if (this.href !== undefined ) {
       controller.setLinkFunction(this.getLink.bind(this));
@@ -234,8 +267,8 @@ export class GroupConfigController {
 
   // add a plotly controller
   addPlotlyController(target) {
-    var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
-    var data_titles = this.data_titles(this.metrics, this.instances);
+    var data_link = this.data_link(this.stream_index, this.metrics, this.instances, this.instance_skip);
+    var data_titles = this.data_titles(this.metrics, this.instances, this.instance_skip);
     var controller = new TimeSeriesControllers.PlotlyController(target, data_link, data_titles, this.processMetricConfig());
     this.controllers.push(controller);
     return controller;
@@ -243,7 +276,7 @@ export class GroupConfigController {
 
   // add a group data controller
   addGroupDataScatterController(target, title) {
-    var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
+    var data_link = this.data_link(this.stream_index, this.metrics, this.instances, 1);
     var controller = new GroupDataControllers.GroupDataScatterController(target, data_link, this.processMetricConfig(), title, this.config.group);
     this.controllers.push(controller);
     return controller;
@@ -251,8 +284,8 @@ export class GroupConfigController {
 
   // add a group data controller
   addGroupDataHistoController(target, title) {
-    var data_link = this.data_link(this.stream_index, this.metrics, this.instances);
-    var data_titles = this.data_titles(this.metrics, this.instances);
+    var data_link = this.data_link(this.stream_index, this.metrics, this.instances, 1);
+    var data_titles = this.data_titles(this.metrics, this.instances, 1);
     var controller = new GroupDataControllers.GroupDataHistoController(target, data_link, this.processMetricConfig(), title, "# " + this.config.group);
     this.controllers.push(controller);
     return controller;

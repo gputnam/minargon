@@ -49,6 +49,11 @@ export class PlotlyController {
     this.is_live = true;
   }
 
+  // commuicate to the "config" wrapper -- whether or not the # of instances in this class should be restricted
+  restrictNumInstances() {
+    return true;
+  }
+
   // Internal function: grap the time step from the server and run a
   // callback
   getTimeStep(callback) {
@@ -260,6 +265,11 @@ export class CubismController {
 
     // max data
     this.max_data = 10000;
+  }
+
+  // commuicate to the "config" wrapper -- whether or not the # of instances in this class should be restricted
+  restrictNumInstances() {
+    return true;
   }
 
   // Internal function: grap the time step from the server and run a
