@@ -32,7 +32,7 @@ def single_stream(stream_name):
 # and also updates the script to be more compatible with python
 @app.route('/<connection>/test_pv')
 def test_pv(connection):
-    return render_template('test_pvs.html', data=test_pv_internal(connection))
+    return render_template('test_pvs.html', data=postgres_api.test_pv_internal(connection))
 
 def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
     # TODO: what to do with this?
