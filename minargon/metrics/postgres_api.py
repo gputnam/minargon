@@ -234,12 +234,9 @@ def ps_series(connection, ID):
 
 	return jsonify(values=ret)
 
-# A test func for the PV Lists this translates the page made by bill to the Minargon webpage
-# and also updates the script to be more compatible with python
-@app.route('/<connection>/test_pv')
 @postgres_route
-def test_pv(connection):
-
+def test_pv_internal(connection):
+        config = connection[1]
 	database = connection[1]["name"]
 	config = connection[1]
 	connection = connection[0]
@@ -308,13 +305,13 @@ def test_pv(connection):
 		if str(row[2]) == "timestamp": continue
 
 		# Push back every time       
-		pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])] , "href" : "/cgi-bin/minargon/minargon.wsgi/power_supply_single_stream/"+config["web_name"] +"/"+str(row[3]) }) # Level 3
+		# pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])] , "href" : "/cgi-bin/minargon/minargon.wsgi/power_supply_single_stream/"+config["web_name"] +"/"+str(row[3]) }) # Level 3
+		pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "database": config["web_name"], "ID": str(row[3]), "name": str(row[2])  }) # Level 3
 		index[2] = index[2] + 1
 		tags[1] = tags[1] + 1
 
-	data = json.dumps(pydict) # convert python dictonary to json format
+        return pydict
 
-	return render_template('test_pvs.html', data=data)
  
 
 

@@ -28,6 +28,12 @@ def single_stream(stream_name):
     }
     return render_template('single_stream.html', **render_args) 
 
+# A test func for the PV Lists this translates the page made by bill to the Minargon webpage
+# and also updates the script to be more compatible with python
+@app.route('/<connection>/test_pv')
+def test_pv(connection):
+    return render_template('test_pvs.html', data=test_pv_internal(connection))
+
 def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
     # TODO: what to do with this?
     initial_datum = args.get('data', None)

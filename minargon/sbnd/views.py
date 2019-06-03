@@ -46,6 +46,12 @@ def docs(dir='', subdir='', filename='index.html'):
     path = join('docs', dir, subdir, filename)
     return app.send_static_file(path)
 
+# A test func for the PV Lists this translates the page made by bill to the Minargon webpage
+# and also updates the script to be more compatible with python
+@app.route('/<connection>/test_pv')
+def test_pv(connection):
+    return render_template('test_pvs.html', data=test_pv_internal(connection))
+
 # snapshot of noise (currently just correlation matrix)
 @app.route('/noise_snapshot')
 def noise_snapshot():
@@ -99,11 +105,14 @@ def wireplane_view():
 def power_supply_single_stream(database, ID):
     # get the config
     config = postgres_api.pv_meta_internal(database, ID)
+    # get the list of other data
+    tree = postgres_api.test_pv_internal(database)
     # print config
     render_args = {
       "ID": ID,
       "config": config,
       "database": database,
+      "tree": tree
     }
     return render_template('power_supply_single_stream.html', **render_args)
 
