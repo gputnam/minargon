@@ -57,4 +57,15 @@ def timeseries_view(args, instance_name, view_ident="", link_function="undefined
 
     return render_template('timeseries.html', **render_args)
 
+@app.route('/power_supply_single_stream/<database>/<ID>')
+def power_supply_single_stream(database, ID):
+    # get the config
+    config = postgres_api.pv_meta_internal(database, ID)
+    # print config
+    render_args = {
+      "ID": ID,
+      "config": config,
+      "database": database,
+    }
+    return render_template('power_supply_single_stream.html', **render_args)
 

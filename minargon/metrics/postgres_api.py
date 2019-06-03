@@ -305,7 +305,6 @@ def test_pv_internal(connection):
 		if str(row[2]) == "timestamp": continue
 
 		# Push back every time       
-		# pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])] , "href" : "/cgi-bin/minargon/minargon.wsgi/power_supply_single_stream/"+config["web_name"] +"/"+str(row[3]) }) # Level 3
 		pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "database": config["web_name"], "ID": str(row[3]), "name": str(row[2])  }) # Level 3
 		index[2] = index[2] + 1
 		tags[1] = tags[1] + 1
