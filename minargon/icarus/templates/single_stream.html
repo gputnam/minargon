@@ -30,7 +30,7 @@
 {% block script %}
 <script defer type="module">
 import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
-var link = new module.DataLink.SingleStreamLink($SCRIPT_ROOT + '/online', "{{stream_name}}");
+var link = new module.Data.D3DataLink(new module.DataLink.SingleStreamLink($SCRIPT_ROOT + '/online', "{{stream_name}}"));
 
 // build cubism controller
 var controller = new module.CubismController("#cubism-timeseries", link, ["{{stream_name}}"], undefined, 25)

@@ -1,3 +1,22 @@
+{% macro tree_select(data, id) %}
+<div class="form-group row">
+  <label class="col-sm-12 control-form-label col-form-label">Add Data:</label>
+</div>
+<div class="form-group row">
+  <div class="col-sm-12" id={{id}}></div>
+</div>
+<script>
+// Generate the treeview
+$('#{{id}}').treeview( {
+  levels: 4,
+  color: '#428bca',
+  data: {{data|tojson}},
+  enableLinks: false
+});
+
+</script>
+{% endmacro %}
+
 {% macro metric_option(metrics, default_metric, id) %}
 <div class="form-group row">
     <label class="col-sm-4 control-form-label col-form-label">Data</label>

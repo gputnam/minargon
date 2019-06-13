@@ -4,6 +4,7 @@
 {% block title %}Stream: {{ID}}{% endblock %}
 {% block body %}
 {{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
 <div class="container">
 <div class="row">
     <div class="col-md-8">
@@ -26,16 +27,28 @@
         </div>
     </div>
 </div>
+<div class="row">
+  <div class="col-md-6 vcenter hcenter">
+    <div class="card">
+    <div class="card-header">Tree Select</div>
+    <div class="card-body">
+      <form class="form" role="form">
+      {{ stream_options.tree_select([tree], "tree") }}
+      </form>
+    </div>
+  </div>
+  </div>
+</div>
 </div>
 {%endblock%}
 {% block script %}
 <script defer type="module">
 import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
 // build the link
-var link = new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{database}}", "{{ID}}");
+var link = new module.Data.D3DataLink(new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{database}}", "{{ID}}"));
 
 // build cubism controller
-var controller = new module.CubismController("#cubism-timeseries", link, ["{{ID}}"], {{config|tojson}}, 25)
+var controller = new module.CubismController("#cubism-timeseries", link, ["{{config['yTitle']}}"], {{config|tojson}}, 25)
   .heightController("#form-height")
   .rangeController("#form-range-lo", "#form-range-hi");
 
@@ -43,9 +56,10 @@ var controller = new module.CubismController("#cubism-timeseries", link, ["{{ID}
 // controller.run();
 
 // build plotly controller
-var plotly_controller = new module.PlotlyController("plotly-timeseries", link, ["{{ID}}"], {{config|tojson}})
+var plotly_controller = new module.PlotlyController("plotly-timeseries", link, ["{{config['yTitle']}}"], {{config|tojson}})
   .timeRangeController("#start", "#end", "#toggle")
-  .downloadDataController("#download");
+  .downloadDataController("#download")
+  .treeSelectController("#tree", "postgres");
 
 // start it
 plotly_controller.run();

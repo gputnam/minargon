@@ -1,9 +1,10 @@
 import * as Data from "./Data.js";
 import * as DataLink from "./DataLink.js";
 import * as Chart from "./charts.js";
+import {ScatterYAxis} from "./chart_proto.js";
 
 // re-export DataLink
-export {DataLink};
+export {DataLink, Data};
 
 // This file contains a few classes for plotting time-series data using cubism strip charts
 
@@ -30,21 +31,24 @@ export {DataLink};
 export class PlotlyController {
   // target: the div-id (including the '#') where the cubism plots will
   //         be drawn
-  // link: the DataLink object which will be used to get data to plot
+  // links: the DataLink object which will be used to get data to plot
   // metric_config: The metric configuration for the associated plot
   constructor(target, link, titles, metric_config) {
     this.link = link;
     this.target = target;
     this.max_data = 1000;
-    // setup layout
-    this.layout = {
-      title: link.name()
-    };
     this.titles = titles;
+    // title of plot is link name
+    var plot_title = link.name();
     // make a new plotly scatter plot
-    this.scatter = new Chart.TimeSeriesScatter(target, this.layout, titles, this.link.accessors().length);
-    this.updateMetricConfig(metric_config);
+    //
+    // first make the y-axes
+    this.updateMetricConfig(metric_config, false);
     this.updateTitles(titles);
+
+    var scatter_axes = this.buildScatterAxes();
+    this.scatter = new Chart.TimeSeriesScatter(target, plot_title, titles, this.link.accessors().length, scatter_axes);
+    this.updateScatter();
 
     this.is_live = true;
   }
@@ -54,11 +58,33 @@ export class PlotlyController {
     return true;
   }
 
+  buildScatterAxes() {
+    var ret = [];
+    for (var i = 0; i < this.metric_config.length; i++) {
+      var title;
+      if (this.metric_config[i].yTitle !== undefined) {
+        if (this.metric_config[i].unit !== undefined) {
+          title = this.metric_config[i].yTitle + " [" + this.metric_config[i].unit + "]";
+        }
+        else {
+          title = this.metric_config[i].yTitle;
+        }
+      }
+      var range;
+      if (this.metric_config[i].range !== undefined && this.metric_config[i].range.length == 2) {
+        range = this.metric_config[i].range;
+      }
+    
+      ret.push(new ScatterYAxis(title, range, i));
+    }
+    return ret;
+  }
+
   // Internal function: grap the time step from the server and run a
   // callback
   getTimeStep(callback) {
     var self = this;
-    d3.json(this.link.step_link(), function(data) {
+    this.link.get_step(function(data) {
         callback(self, data.step);
     });
   }
@@ -75,33 +101,24 @@ export class PlotlyController {
   // Functions called by the GroupConfigController
 
   // update the metric config option
-  updateMetricConfig(config) {
-    this.metric_config = config;
-    if (this.metric_config !== undefined) {
-      // set it for the scatter plot
-      var scatter_update = {};
-      if (this.metric_config.range !== undefined && this.metric_config.range.length == 2) {
-        scatter_update["yaxis.range"] = this.metric_config.range;
-      }
-      if (this.metric_config.yTitle !== undefined) {
-        if (this.metric_config.unit !== undefined) {
-          scatter_update["yaxis.title"] = this.metric_config.yTitle + " [" + this.metric_config.unit + "]";
-        }
-        else {
-          scatter_update["yaxis.title"] = this.metric_config.yTitle;
-        }
-      }
-      if (this.metric_config.title !== undefined) {
-        scatter_update["title"] = this.metric_config.title;
-      }
-      scatter_update["xaxis.title"] = "Time";
-      this.scatter.reLayout(scatter_update);
-
-      if (this.metric_config.warningRange !== undefined) {
-        this.scatter.updateRange(this.metric_config.warningRange);        
-      }
-
+  updateMetricConfig(config, do_append) {
+    if (do_append === undefined || !do_append) {
+      this.metric_config = [config];
     }
+    else {
+      this.metric_config.push(config);
+    }
+  }
+
+  updateScatter() {
+    // update the warning lines
+    this.scatter.deleteWarningLines();
+    if (this.metric_config.length == 1 && this.metric_config[0].warningRange !== undefined) {
+      this.scatter.addWarningLine(this.metric_config[0].yTitle, this.metric_config[0].warningRange);
+    }
+    // update the y-axes
+    this.scatter.updateTitles(this.titles);
+    this.scatter.set_y_axes(this.buildScatterAxes());
   }
 
   // update the data step
@@ -113,7 +130,6 @@ export class PlotlyController {
   // update the titles
   updateTitles(titles) {
     this.titles = titles;
-    this.scatter.updateTitles(titles);
   }
 
   // set the step for the first time
@@ -131,10 +147,8 @@ export class PlotlyController {
     }
 
     // make a new buffer
-
-    var data = new Data.D3DataLink(this.link);
     // get the poll
-    var poll = new Data.D3DataPoll(data, this.step, []);
+    var poll = new Data.D3DataPoll(this.link, this.step, []);
 
     // get the data source
     //var source = new Data.D3DataSource(this.link, -1);
@@ -189,6 +203,32 @@ export class PlotlyController {
     return this;
   }
 
+  treeSelectController(id, type) {
+    var self = this;
+    $(id).on('nodeSelected', function(event, node) {
+      if (type == "postgres") {
+        if (node.ID === undefined) return;
+        // collapse the tree
+        $(id).treeview('collapseAll', { silent: true });
+        // make the link and get the config object
+        var postgres_link = new DataLink.PostgresStreamLink($SCRIPT_ROOT, node.database, node.ID)
+
+        // get the config and then finish updating the plot
+        d3.json(postgres_link.config_link(), function(config) {
+          self.link = self.link.add(new Data.D3DataLink(postgres_link));
+          self.updateMetricConfig(config.metadata, true);
+          self.updateScatter();
+          // update the chart
+          self.scatter.add_trace(node.name, self.metric_config.length - 1);
+          self.updateScatter();
+          // update the data
+          self.updateData(self.link);
+        });
+      }
+    });
+    return this;
+  }
+
   runBuffer() {
     if (this.is_live) {
       // set the start
@@ -204,22 +244,12 @@ export class PlotlyController {
 
   setTimeAxes() {
     if (this.is_live) {
-      // reset range if live
-      this.scatter.reLayout({
-        xaxis: {
-          range: undefined,
-          title: "Time"
-        }
-      });
-
+      // let plotly set the x-range
+      this.scatter.setXRange(undefined);
     }
     else {
-      this.scatter.reLayout({
-        xaxis: {
-          range: [moment(this.start).format("YYYY-MM-DD HH:mm:ss"), moment(this.end).format("YYYY-MM-DD HH:mm:ss")],
-          title: "Time"
-        }
-      });
+      // set it ourselves
+      this.scatter.setXRange([moment(this.start).format("YYYY-MM-DD HH:mm:ss"), moment(this.end).format("YYYY-MM-DD HH:mm:ss")]);
     }
   }
 
@@ -280,7 +310,7 @@ export class CubismController {
   // callback
   getTimeStep(callback) {
     var self = this;
-    d3.json(this.data_link.step_link(), function(data) {
+    this.data_link.get_step(function(data) {
         callback(self, data.step);
     });
   }
@@ -444,7 +474,7 @@ export class CubismController {
     this.cubism_on = false;
 
     // first build the poll
-    var poll = new Data.D3DataPoll(new Data.D3DataLink(this.data_link), this.step, []);
+    var poll = new Data.D3DataPoll(this.data_link, this.step, []);
 
     // get the data source
     //var source = new Data.D3DataSource(this.data_link, -1);

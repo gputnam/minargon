@@ -22,6 +22,10 @@ export class PostgresStreamLink {
     return this.root + "/" + this.database + "/ps_series/" + this.ID + '?' + $.param(timeArgs(start, stop));
   }
 
+  config_link() {
+    return this.root + "/" + this.database + "/pv_meta/" + this.ID;
+  }
+
   accessors() {
     return [[this.ID]];
   }

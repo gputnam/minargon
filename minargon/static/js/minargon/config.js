@@ -76,8 +76,8 @@ export class GroupConfigController {
     for (var i = 0; i < instance_list.length; i+= instance_skip) {
       instances.push(this.config.instances[instance_list[i]]);
     }
-    return new DataLink.MetricStreamLink($SCRIPT_ROOT + "/" + this.config.stream_links[stream_index], this.config.streams[stream_index], 
-        this.config.group, instances, metric_list, false);
+    return new Data.D3DataLink(new DataLink.MetricStreamLink($SCRIPT_ROOT + "/" + this.config.stream_links[stream_index], this.config.streams[stream_index], 
+        this.config.group, instances, metric_list, false));
   }
 
 

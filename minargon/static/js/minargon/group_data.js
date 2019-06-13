@@ -128,7 +128,7 @@ export class GroupDataScatterController {
     // which method to use
 
     // get the data poll
-    var poll = new Data.D3DataPoll(new Data.D3DataLink(this.data_link), this.step);
+    var poll = new Data.D3DataPoll(this.data_link, this.step);
 
     // data source
     // var source = new Data.D3DataSource(this.data_link, -1);
@@ -155,7 +155,7 @@ export class GroupDataScatterController {
     }
 
     // get the step size 
-    d3.json(this.data_link.step_link(), function(data) {
+    this.data_link.get_step(function(data) {
       self.updateStep(step);
       self.updateBuffer();
     });
@@ -418,7 +418,7 @@ export class GroupDataHistoController {
     // which method to use
 
     // get the data poll
-    var poll = new Data.D3DataPoll(new Data.D3DataLink(this.data_link), this.step);
+    var poll = new Data.D3DataPoll(this.data_link, this.step);
 
     // data source
     // var source = new Data.D3DataSource(this.data_link, -1);
@@ -445,7 +445,7 @@ export class GroupDataHistoController {
     }
 
     var self = this;
-    d3.json(this.data_link.step_link(), function(data) {
+    this.data_link.get_step(function(data) {
       self.step = data.step; 
       if (self.step < 1000) self.step = 1000;
       self.updateBuffer();

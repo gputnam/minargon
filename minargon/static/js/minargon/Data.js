@@ -22,6 +22,7 @@ export class D3DataBuffer {
 
     // whether the buffer should be reset when new data shows up
     this.reset_buffers = false;
+
   }
 
   // start: start the Poll/Source and connect with the buffers
@@ -205,6 +206,7 @@ export class D3DataPoll {
                     var func = self.listeners[i];
                     func(value, true);
                 }
+
                 // run again 
                 // determine the start
                 var next_start = start;
@@ -239,33 +241,69 @@ export class D3DataChain {
     this.local_name = name;
   }
 
+  add(link) {
+    return new D3DataChain(this.data_links.concat(link.data_links), this.local_name);
+  }
+
   // expose the list of each data_link's accessors()
   accessors() {
     var ret = [];
     for (var i = 0; i < this.data_links.length; i ++) {
-      ret = ret + this.data_links.accessors();
+      ret = ret.concat(this.data_links[i].accessors());
     }
     return ret;
   }
 
+  // and the step(s)
+  get_step(callback) {
+    Promise.all(this.data_links.map(function(data_link) {
+      return data_link.get_step_promise();
+    }))
+      .then(function(data) {
+        var steps = [];
+        for (var i = 0; i < data.length; i ++) {
+          steps.push(data.step)
+        }
+        var inp = {};
+        inp.step = Math.min(...steps)
+        callback(inp);
+      });
+  }
+
+  get_step_promise() {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      self.get_step(resolve);
+    });
+  }
+
   // For everything below: Same interface as D3DataLink
   // However, the data returned (either through a promise or in a callback)
-  // will be formatted as a list of the data returned by each provided D3DataChain
-
+  // will be formatted as a list of the data returned by each provided D3DataLink
   get_data(d3_callback, start, stop) {
+    var self = this;
     return Promise.all(this.data_links.map(function(iter_data_link) {
-       return iter_data_link.get_data_promise(start, stop);
-    }))
-      .then(values => d3_callback(null, values));
-//            error => d3_callback(new Error("unable to load data")));
+         return iter_data_link.get_data_promise(start, stop);
+      }))
+      .then(function(values) {
+        var flatten = {};
+        for (var i = 0; i < self.data_links.length; i++) {
+          var accessors = self.data_links[i].accessors();
+          for (var j = 0; j < accessors.length; j++) {
+            flatten[accessors[j]] = values[i].values[accessors[j]];
+          }
+        }
+        var inp = {};
+        inp.values = flatten;
+        d3_callback(inp);
+      });
   }
 
   get_data_promise(start, stop) {
-      return Promise.all(this.data_links.map(function(iter_data_link) {
-         return iter_data_link.get_data_promise(start, stop);
-       }))
-          .then(values => Promise.resolve(values));
-               // error => reject(error));
+      var self = this;
+      return new Promise(function(resolve, reject) {
+        self.get_data(resolve, start, stop);
+      });
   }
   name() {
     if (this.local_name === undefined || this.local_name === null) {
@@ -284,11 +322,31 @@ export class D3DataLink {
   constructor(link_builder, name) {
     this.link_builder = link_builder;
     this.local_name = name;
+    this.data_links = [this];
+  }
+
+  add(link) {
+    return new D3DataChain(this.data_links.concat(link.data_links), this.local_name);
   }
 
   // expose the link_builder accessors() function
   accessors() {
     return this.link_builder.accessors();
+  }
+
+  // function to get step w/ callback
+  get_step(callback) {
+    d3.json(this.link_builder.step_link(), function(data) {
+      callback(data);
+    });
+  }
+
+  // or get step as a promise
+  get_step_promise() {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      self.get_step(resolve);
+    });
   }
 
   // input:
