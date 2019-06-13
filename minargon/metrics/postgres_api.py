@@ -235,7 +235,7 @@ def ps_series(connection, ID):
 	return jsonify(values=ret)
 
 @postgres_route
-def test_pv_internal(connection):
+def test_pv_internal(connection, link_name=None):
         config = connection[1]
 	database = connection[1]["name"]
 	config = connection[1]
@@ -305,7 +305,10 @@ def test_pv_internal(connection):
 		if str(row[2]) == "timestamp": continue
 
 		# Push back every time       
-		pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "database": config["web_name"], "ID": str(row[3]), "name": str(row[2])  }) # Level 3
+                if not link_name is None:
+		    pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "database": config["web_name"], "ID": str(row[3]), "name": str(row[2]), "href": app.config["WEB_ROOT"] + "/" + link_name + "/" + config["web_name"] + "/" + str(row[3])  }) # Level 3
+                else: 
+		    pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "database": config["web_name"], "ID": str(row[3]), "name": str(row[2])  }) # Level 3
 		index[2] = index[2] + 1
 		tags[1] = tags[1] + 1
 

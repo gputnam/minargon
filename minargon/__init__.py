@@ -42,13 +42,11 @@ app = Flask(__name__)
 
 app.config.from_envvar('MINARGON_SETTINGS', silent=False)
 
-if "WEB_ROOT" in app.config:
-    web_root = app.config["WEB_ROOT"]
-else:
-    web_root = "/"
+if not "WEB_ROOT" in app.config:
+    app.config["WEB_ROOT"] = ""
 
 # pass the location of the web root
-app.wsgi_app = ReverseProxied(app.wsgi_app, web_root)
+app.wsgi_app = ReverseProxied(app.wsgi_app, app.config["WEB_ROOT"])
 
 # set location of tempaltes
 app.template_folder = os.path.join(app.config["FRONT_END"], "templates")
