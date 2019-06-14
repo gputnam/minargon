@@ -1,6 +1,7 @@
 import * as DataLink from "./DataLink.js";
 import * as TimeSeriesControllers from "./timeseries.js";
 import * as GroupDataControllers from "./group_data.js";
+import * as Data from "./Data.js";
 
 // Class for handling configuration of groups of metrics and for
 // changing the names of metric/stream/etc.
