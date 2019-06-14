@@ -6,65 +6,72 @@ import {WarningRange, DataTrace, ScatterYAxis} from "./chart_proto.js";
 // class managing a plotly timeseries scatter plot
 export class TimeSeriesScatter {
 
-    constructor(target, plot_title, titles, n_data, y_axes, x_range) {
+    constructor(target) {
       this.target = target;
-      this.n_data = n_data;
-
-      this.y_axes = y_axes;
+      this.n_data = 0;
 
       this.data = [];
       this.times = [];
       this.timestamps = [];
-
       this.data_traces = [];
-
-      for (var i = 0; i < n_data; i++) {
-        this.data.push( [] );
-        this.times.push( [] );
-        this.timestamps.push( [] );
-        this.data_traces.push(new DataTrace(titles[i], this.y_axes[0], this.data[i], this.times[i]));
-      }
-
       this.warning_lines = [];
-
-      this.x_range = x_range;
-      this.plot_title = plot_title;
-      
-      this.draw();
+      this.is_drawn = false;
+      this._y_axes = [];
+      this._trace_names = [];
+      this.x_domain_hi = 1;
     }
 
-    set_y_axes(y_axes) {
-      this.y_axes = y_axes;
-      var layout = {};
-      for (var i = 0; i < this.y_axes.length; i++) {
-        layout[this.y_axes[i].layout_name()] = this.y_axes[i].build();
+    set title(title) {
+      this._title = title;
+      if (this.is_drawn) {
+        var layout = {};
+        layout["name"] = this._title;
+        Pltoly.relayout(this.target, layout);
       }
-      Plotly.relayout(this.target, layout);
     }
 
-    setXRange(range) {
-      this.x_range = range;
-      var layout_update = {
-        xaxis: {
-          range: this.x_range,
-          title: "Time"
+    set y_axes(y_axes) {
+      this._y_axes = y_axes;
+      if (this.is_drawn) {
+        var layout = {};
+        for (var i = 0; i < this._y_axes.length; i++) {
+          layout[this._y_axes[i].layout_name()] = this._y_axes[i].build();
         }
-      };
-      Plotly.relayout(this.target, layout_update);
+        if (this._y_axes.length > 2) {
+          this.x_domain_hi = 1; // - 0.15 * (this._y_axes.length - 2);
+        }
+        else {
+          this.x_domain_hi = 1;
+        }
+
+        layout["xaxis.domain"] = [0, this.x_domain_hi];
+        
+        Plotly.relayout(this.target, layout);
+      }
     }
 
-    build_layout() {
-     // build the layout for this plot
-     var layout = {};
-     layout["name"] = this.plot_title;
-     layout["xaxis"] = {
-       range: this.x_range,
-       title: "Time"
-     };
-     for (var i = 0; i < this.y_axes.length; i++) {
-       layout[this.y_axes[i].layout_name()] = this.y_axes[i].build();
-     }
-     return layout;
+    set x_range(range) {
+      this._x_range = range;
+      if (this.is_drawn) {
+        var layout_update = {
+          xaxis: {
+            range: this._x_range,
+            title: "Time",
+            domain: [0, this.x_domain_hi]
+          }
+        };
+        Plotly.relayout(this.target, layout_update);
+      }
+    }
+
+    set trace_names(names) {
+      this._trace_names = names;
+      for (var i = 0; i < this._trace_names.length; i++) {
+        var trace_update = {
+          name: this._trace_names[i]
+        };
+        Plotly.restyle(this.target, trace_update, i);
+      }
     }
 
     add_trace(title, y_axis_index) {
@@ -75,8 +82,8 @@ export class TimeSeriesScatter {
       this.times.push([]); 
       this.timestamps.push([]);
       // add the trace
-      this.data_traces.push(new DataTrace(title, this.y_axes[y_axis_index], this.data[this.n_data-1], this.times[this.n_data-1]));
-      this.titles.push(title);
+      this.data_traces.push(new DataTrace(title, this._y_axes[y_axis_index], this.data[this.n_data-1], this.times[this.n_data-1]));
+      this._trace_names.push(title);
 
       // add the trace
       Plotly.addTraces(this.target, this.data_traces[this.n_data-1].trace(), this.n_data-1);
@@ -88,18 +95,9 @@ export class TimeSeriesScatter {
         traces.push(this.data_traces[i].trace());
       }
       var layout = this.build_layout();
+      this.is_drawn = true;
 
       Plotly.newPlot(this.target, traces, layout);
-    }
-
-    updateTitles(titles) { 
-      this.titles = titles;
-      for (var i = 0; i < this.titles.length; i++) {
-        var trace_update = {
-          name: this.titles[i]
-        };
-        Plotly.restyle(this.target, trace_update, i);
-      }
     }
 
     // update the data and redraw the plot
@@ -119,15 +117,15 @@ export class TimeSeriesScatter {
          }
       }
       this.redraw();
-      this.updateWarningLines();
+      this.update_warning_lines();
     }
 
     redraw() {
       Plotly.redraw(this.target);
     }
 
-    addWarningLine(name, range) {
-      this.warning_lines.push(new WarningRange(name, range, this.y_axes[0]));
+    add_warning_line(name, range, y_axis_index) {
+      this.warning_lines.push(new WarningRange(name, range, this._y_axes[y_axis_index]));
       // get the time range over which to draw this line
       var time_range = this.time_range();
       // make the trace
@@ -136,7 +134,7 @@ export class TimeSeriesScatter {
       Plotly.addTraces(this.target, traces);
     }
 
-    deleteWarningLines() {
+    delete_warning_lines() {
       // get rid of all of the warning lines
 
       // get the indexes of the warning line traces -- they start right after the data
@@ -152,13 +150,31 @@ export class TimeSeriesScatter {
     }
 
     // update warning lines to a new time
-    updateWarningLines() {
+    update_warning_lines() {
       var time_range = this.time_range();
       for (var i = 0; i < this.warning_lines.length; i++) {
         this.warning_lines[i].trace(time_range);
       }
       Plotly.redraw(this.target);
     }
+
+    build_layout() {
+      // build the layout for this plot
+      var layout = {};
+      layout["name"] = this.plot_title;
+      layout["xaxis"] = {
+        range: this._x_range,
+        title: "Time"
+      };
+      for (var i = 0; i < this._y_axes.length; i++) {
+        layout[this._y_axes[i].layout_name()] = this._y_axes[i].build();
+      }
+      if (this._y_axes.length > 1) {
+        layout.xaxis.domain = [0, this.x_domain_hi];
+      }
+      return layout;
+    }
+
 
     time_range() {
         var min_times = [];

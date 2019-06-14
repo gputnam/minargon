@@ -41,14 +41,16 @@ export class PlotlyController {
     // title of plot is link name
     var plot_title = link.name();
     // make a new plotly scatter plot
-    //
-    // first make the y-axes
+    this.scatter = new Chart.TimeSeriesScatter(target); 
+    // set the plot title
+    this.scatter.title = plot_title;
+    this.scatter.draw();
+    // appply config
     this.updateMetricConfig(metric_config, false);
-    this.updateTitles(titles);
-
-    var scatter_axes = this.buildScatterAxes();
-    this.scatter = new Chart.TimeSeriesScatter(target, plot_title, titles, this.link.accessors().length, scatter_axes);
-    this.updateScatter();
+    // set the data
+    for (var i = 0; i < titles.length; i ++) {
+      this.scatter.add_trace(titles[i], 0);
+    }
 
     this.is_live = true;
   }
@@ -99,6 +101,10 @@ export class PlotlyController {
   }
 
   // Functions called by the GroupConfigController
+  // update the titles
+  updateTitles(titles) {
+    this.scatter.titles = titles;
+  }
 
   // update the metric config option
   updateMetricConfig(config, do_append) {
@@ -108,28 +114,20 @@ export class PlotlyController {
     else {
       this.metric_config.push(config);
     }
-  }
-
-  updateScatter() {
+    // update the y-axis
+    this.scatter.y_axes = this.buildScatterAxes();
+    
     // update the warning lines
-    this.scatter.deleteWarningLines();
+    this.scatter.delete_warning_lines();
     if (this.metric_config.length == 1 && this.metric_config[0].warningRange !== undefined) {
-      this.scatter.addWarningLine(this.metric_config[0].yTitle, this.metric_config[0].warningRange);
+      this.scatter.add_warning_line(this.metric_config[0].yTitle, this.metric_config[0].warningRange, 0);
     }
-    // update the y-axes
-    this.scatter.updateTitles(this.titles);
-    this.scatter.set_y_axes(this.buildScatterAxes());
   }
 
   // update the data step
   updateStep(step) {
     if (step < 1000) step = 1000;
     this.step = step;
-  }
-
-  // update the titles
-  updateTitles(titles) {
-    this.titles = titles;
   }
 
   // set the step for the first time
@@ -216,11 +214,9 @@ export class PlotlyController {
         // get the config and then finish updating the plot
         d3.json(postgres_link.config_link(), function(config) {
           self.link = self.link.add(new Data.D3DataLink(postgres_link));
-          self.updateMetricConfig(config.metadata, true);
-          self.updateScatter();
           // update the chart
+          self.updateMetricConfig(config.metadata, true);
           self.scatter.add_trace(node.name, self.metric_config.length - 1);
-          self.updateScatter();
           // update the data
           self.updateData(self.link);
         });
@@ -245,11 +241,11 @@ export class PlotlyController {
   setTimeAxes() {
     if (this.is_live) {
       // let plotly set the x-range
-      this.scatter.setXRange(undefined);
+      this.scatter.x_range = undefined;
     }
     else {
       // set it ourselves
-      this.scatter.setXRange([moment(this.start).format("YYYY-MM-DD HH:mm:ss"), moment(this.end).format("YYYY-MM-DD HH:mm:ss")]);
+      this.scatter.x_range = [moment(this.start).format("YYYY-MM-DD HH:mm:ss"), moment(this.end).format("YYYY-MM-DD HH:mm:ss")];
     }
   }
 

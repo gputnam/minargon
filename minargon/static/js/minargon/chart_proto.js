@@ -100,6 +100,7 @@ export class ScatterYAxis {
     if (this.index > 0) {
       ret.overlaying = "y";
       ret.side = "right";
+      ret.showgrid = false;
     }
     if (this.index > 1) {
       ret.position = 1. - 0.15 * (this.index-1);
