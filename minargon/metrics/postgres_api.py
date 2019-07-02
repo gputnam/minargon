@@ -315,5 +315,16 @@ def test_pv_internal(connection, link_name=None):
         return pydict
 
  
+@postgres_route
+def get_gps(connection):
+    cursor = connection[0].cursor();
+    query = """SELECT SMPL_TIME,FLOAT_VAL FROM DCS_PRD.SAMPLE S1 WHERE CHANNEL_ID>0 AND CHANNEL_ID<24 AND SMPL_TIME=(SELECT MAX(SMPL_TIME) FROM DCS_PRD.SAMPLE S2 WHERE S2.CHANNEL_ID=S1.CHANNEL_ID) ORDER BY S1.CHANNEL_ID;"""
+    #query = 
+    cursor.execute(query);
+    dbrows = cursor.fetchall();
+    cursor.close();
+    
+    dbnames = ["ICARUS_GPS_GPS_0/latitude","ICARUS_GPS_GPS_0/longitude","ICARUS_GPS_GPS_0/sigmaPPS","ICARUS_GPS_GPS_0/systemDifference","ICARUS_GPS_GPS_0/timeStamp","ICARUS_GPS_GPS_0/status","ICARUS_GPS_GPS_0/oscillatorQuality","ICARUS_GPS_GPS_0/ppsDifference","ICARUS_GPS_GPS_0/finePhaseComparator","ICARUS_GPS_GPS_0/message","ICARUS_GPS_GPS_0/transferQuality","ICARUS_GPS_GPS_0/actualFrequency","ICARUS_GPS_GPS_0/holdoverFrequency","ICARUS_GPS_GPS_0/eepromFrequency","ICARUS_GPS_GPS_0/loopTimeConstantMode","ICARUS_GPS_GPS_0/loopTimeConstantInUse","ICARUS_GPS_GPS_0/messageStatus","ICARUS_GPS_GPS_0/hemisphereNS","ICARUS_GPS_GPS_0/hemisphereEW","ICARUS_GPS_GPS_0/TimeStampString","ICARUS_GPS_GPS_0/location","ICARUS_GPS_GPS_0/systemTimeNSec","ICARUS_GPS_GPS_0/systemTimeSec"]
 
+    return dbrows, dbnames
 

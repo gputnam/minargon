@@ -60,7 +60,7 @@ $('#{{id}}').treeview( {
 </div>
 {% endmacro %}
 
-{% macro threshold_option(id_lo, id_hi) %}
+{% macro threshold_option(id_lo, id_hi, thresholds=None) %}
 <div class="form-group row">
     <label class="col-sm-6 control-form-label col-form-label"> Threshold Hi</label>
     <div class="col-sm-6">

@@ -9,6 +9,8 @@ import random
 import constants
 import sys
 from minargon.metrics import postgres_api
+import subprocess
+import psycopg2
 
 from minargon.tools import parseiso
 # from minargon.data_config import parse
@@ -26,9 +28,26 @@ def test_error():
     sys.stderr.write("Flask error logging test")
     raise Exception("Flask exception logging test")
 
-@app.route('/hello')
+#TODO: get custom parameters from url link
+@app.route('/sample_route/')#<par1>')#methods = ['GET','POST'])
+def get_args_from_url(par1 = ''):
+   # name = request.args.get('user')
+    #return par1
+    n = request.args.get('n')
+    if n is None:
+      return 'no parameters'
+    else:
+      return n
+
+@app.route('/<connection>/latest_gps_info')
+def latest_gps_info(connection):
+    dbrows, dbnames = postgres_api.get_gps(connection)     
+
+    return render_template('gps_info.html',names=dbnames,rows=dbrows)
+
+@app.route('/helloo')
 def hello():
-    return 'Hello 2!'
+    return 'Hello 22!'
 
 @app.route('/')
 def index():
@@ -50,7 +69,7 @@ def docs(dir='', subdir='', filename='index.html'):
 # and also updates the script to be more compatible with python
 @app.route('/<connection>/test_pv')
 def test_pv(connection):
-    return render_template('test_pvs.html', data=postgres_api.test_pv_internal(connection, "power_supply_single_stream"))
+    return render_template('test_pvs.html', data=postgres_api.test_pv_internal(connection, "power_supply_single_stream"))#,dataGPS=["alpha", "beta"])
 
 # snapshot of noise (currently just correlation matrix)
 @app.route('/noise_snapshot')
@@ -108,14 +127,19 @@ def power_supply_single_stream(database, ID):
     # get the list of other data
     tree = postgres_api.test_pv_internal(database)
     # print config
+    arg1 = request.args.get('arg1')
+    arg2 = request.args.get('arg2')
     render_args = {
       "ID": ID,
       "config": config,
       "database": database,
-      "tree": tree
+      "tree": tree,
+      "arg1": arg1
     }
-    return render_template('power_supply_single_stream.html', **render_args)
-
+    if arg1 or arg2 is None:
+        return render_template('power_supply_single_stream.html', **render_args)
+    else:
+        return arg2
 @app.route('/online_group/<group_name>')
 def online_group(group_name):
     return timeseries_view(request.args, group_name)

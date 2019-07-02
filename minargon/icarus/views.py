@@ -8,6 +8,10 @@ from minargon.metrics import online_metrics
 """
 	Routes intented to be seen by the user	
 """
+@app.route('/hellooo')
+def hellooo():
+    return 'Hellooooooo!'
+
 
 @app.route('/')
 def index():

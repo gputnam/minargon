@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block title %}Introduction to Minargon{% endblock %}
+
+{% block body %}
+{{ super() }}
+{%endblock%}
+
+<!---->
+{% block script %}
+<h2>Icarus GPS Attributes</h2>
+<!-- Grab depreciated glyphicons for bootstrap v4 
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
+-->
+
+  
+<head>
+    <title>Icarus GPS Attributes</title>
+    <link href="/css/bootstrap.css" rel="stylesheet">
+  </head>
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap-treeview.js"></script>
+    <style>
+      table
+      {
+        border:1px solid black;padding:5px;font-size: 140%
+      }
+      td
+      {
+        text-align:right;
+        border:1px solid grey;padding:5px;
+      }
+      th
+      {
+        text-align:center;
+		border:1px solid grey;padding:5px;
+	      }
+	      body
+	      {
+		margin: 28px;
+	      }
+	</style>
+	</head>
+	<body>
+	    <TABLE>
+	 	<TR><TH>Measurement Names </TH><TH>TIME</TH><TH>VALUE</TH></TR>
+		{%set v_global = []%}
+		{%for row in rows%}
+		<!--%for i in range(0,23)%-->
+		<TR>
+			<TD>{{names[loop.index0]}} </TD> <TD> {{row[0]}} <TD> {{row[1]}}</TD>
+		</TR>
+		{%if v_global.append(1)%}{%endif%}
+		{%endfor%}		
+	    </TABLE>
+	</body>
+<!-- </html> -->
+{%endblock%}
+
