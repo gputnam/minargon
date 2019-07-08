@@ -60,17 +60,25 @@ $('#{{id}}').treeview( {
 </div>
 {% endmacro %}
 
-{% macro threshold_option(id_lo, id_hi, thresholds=None) %}
+{% macro threshold_option(id_lo, id_hi, low=none, high=none) %}
 <div class="form-group row">
     <label class="col-sm-6 control-form-label col-form-label"> Threshold Hi</label>
     <div class="col-sm-6">
-        <input type="text" size="12" id="{{id_hi}}">
+	{% if high is none: %}
+		<input type="text" size="12" id="{{id_hi}}">
+	{% else: %}
+        	<input type="text" size="12" id="{{id_hi}}" value="{{high}}">
+	{% endif %}
     </div>
 </div>
 <div class="form-group row">
     <label class="col-sm-6 control-form-label col-form-label"> Threshold Lo</label>
     <div class="col-sm-6">
-        <input type="text" size="12" id="{{id_lo}}">
+        {% if low is none: %}
+		<input type="text" size="13" id="{{id_lo}}">
+	{% else: %}
+		<input type="text" size="13" id="{{id_lo}}" value="{{low}}">
+	{% endif %}
     </div>
 </div>
 {% endmacro %}
@@ -98,17 +106,25 @@ $('#{{id}}').treeview( {
 </div>
 {% endmacro %}
 
-{% macro time_range(id_start, id_end, id_toggle) %}
+{% macro time_range(id_start, id_end, id_toggle, start_time=none, end_time=none) %}
 <div class="form-group row">
    <label class="col-sm-5 control-form-label col-form-label">Start Time</label> 
    <div class="col-sm-7">
-     <input id="{{id_start}}">
+     {% if start_time is none: %}
+	 <input id="{{id_start}}">
+     {% else: %}
+	 <input id="{{id_start}}" value="{{start_time}}">
+     {% endif %}
   </div>
 </div>
 <div class="form-group row">
    <label class="col-sm-5 control-form-label col-form-label">End Time</label> 
    <div class="col-sm-7">
-     <input id="{{id_end}}">
+     {% if end_time is none: %}
+	 <input id="{{id_end}}">
+     {% else: %}
+	 <input id="{{id_end}}" value="{{end_time}}">
+     {% endif %}
   </div>
 </div>
 <div class="form-group row">

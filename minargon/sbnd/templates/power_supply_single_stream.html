@@ -19,8 +19,8 @@
             <div class="card-body">
                 <form class="form" role="form">
                     {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
-                    {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }}
-                    {{ stream_options.time_range("start", "end", "toggle") }}
+                    {{ stream_options.threshold_option("form-range-lo", "form-range-hi",low,high) }}
+                    {{ stream_options.time_range("start", "end", "toggle",start_time,end_time) }}
                     {{ stream_options.download("download") }}
 	        </form>
             </div>

@@ -10,7 +10,7 @@ import constants
 import sys
 from minargon.metrics import postgres_api
 import subprocess
-import psycopg2
+from datetime import date, datetime
 
 from minargon.tools import parseiso
 # from minargon.data_config import parse
@@ -20,7 +20,7 @@ from minargon.metrics import online_metrics
 # DATA_CONFIG = parse.DataParser(app.config).config
 
 """
-	Routes intented to be seen by the user	
+	Routes intended to be seen by the user	
 """
 
 @app.route('/test_error')
@@ -31,13 +31,13 @@ def test_error():
 #TODO: get custom parameters from url link
 @app.route('/sample_route/')#<par1>')#methods = ['GET','POST'])
 def get_args_from_url(par1 = ''):
-   # name = request.args.get('user')
     #return par1
-    n = request.args.get('n')
-    if n is None:
-      return 'no parameters'
-    else:
-      return n
+    n = request.args.get('arg1')
+    q = datetime.strptime('Jun 1 1970 1:30PM', '%b %d %Y %I:%M%p')
+    #if n is None:
+      #return 'no parameters'
+    #else:
+    return q
 
 @app.route('/<connection>/latest_gps_info')
 def latest_gps_info(connection):
@@ -45,9 +45,9 @@ def latest_gps_info(connection):
 
     return render_template('gps_info.html',names=dbnames,rows=dbrows)
 
-@app.route('/helloo')
+@app.route('/hello')
 def hello():
-    return 'Hello 22!'
+    return 'Hello!'
 
 @app.route('/')
 def index():
@@ -69,7 +69,7 @@ def docs(dir='', subdir='', filename='index.html'):
 # and also updates the script to be more compatible with python
 @app.route('/<connection>/test_pv')
 def test_pv(connection):
-    return render_template('test_pvs.html', data=postgres_api.test_pv_internal(connection, "power_supply_single_stream"))#,dataGPS=["alpha", "beta"])
+    return render_template('test_pvs.html', data=postgres_api.test_pv_internal(connection, "power_supply_single_stream"))
 
 # snapshot of noise (currently just correlation matrix)
 @app.route('/noise_snapshot')
@@ -127,19 +127,27 @@ def power_supply_single_stream(database, ID):
     # get the list of other data
     tree = postgres_api.test_pv_internal(database)
     # print config
-    arg1 = request.args.get('arg1')
-    arg2 = request.args.get('arg2')
+    #TODO Give arg1 and arg2 variables meaningful names, change in other files
+    #arg1 and arg2 will serve as datetime parameters
+    low = request.args.get('low')
+    high = request.args.get('high')
+    #start_time = request.args.get('start')
+    start_time = datetime.strptime('06/01/2019 17:00','%m/%d/%Y %H:%M')
+    #start_time = datetime.strptime('Jun 1 2019 1:30PM', '%b %d %Y %I:%M%p') 
+    end_time = request.args.get('end')
     render_args = {
       "ID": ID,
       "config": config,
       "database": database,
       "tree": tree,
-      "arg1": arg1
+      "low": low,
+      "high": high,
+      "start_time": start_time,
+      "end_time": end_time
     }
-    if arg1 or arg2 is None:
-        return render_template('power_supply_single_stream.html', **render_args)
-    else:
-        return arg2
+    
+    return render_template('power_supply_single_stream.html', **render_args)
+
 @app.route('/online_group/<group_name>')
 def online_group(group_name):
     return timeseries_view(request.args, group_name)
