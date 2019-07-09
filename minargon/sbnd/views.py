@@ -116,6 +116,29 @@ def power_supply_single_stream(database, ID):
     }
     return render_template('power_supply_single_stream.html', **render_args)
 
+# View a variable with multiple IDs
+@app.route('/power_supply_multiple_stream/<database>/<var>')
+def power_supply_multiple_stream(database, var):
+    
+    # Get the list of IDs for the var name
+    IDs = postgres_api.test_pv_internal(database, ret_id=var)
+
+    # get the configs for each ID
+    configs = []
+    for ID in IDs:
+        configs.append(postgres_api.pv_meta_internal(database, ID))
+    
+    config = postgres_api.pv_meta_internal(database, 47)
+
+    # print config
+    render_args = {
+      "var": var, 
+      "IDs": IDs,
+      "configs": config,
+      "database": database
+    }
+    return render_template('power_supply_multiple_stream.html', **render_args)
+
 @app.route('/online_group/<group_name>')
 def online_group(group_name):
     return timeseries_view(request.args, group_name)

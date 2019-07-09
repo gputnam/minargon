@@ -235,8 +235,8 @@ def ps_series(connection, ID):
 	return jsonify(values=ret)
 
 @postgres_route
-def test_pv_internal(connection, link_name=None):
-        config = connection[1]
+def test_pv_internal(connection, link_name=None, ret_id=None):
+	config = connection[1]
 	database = connection[1]["name"]
 	config = connection[1]
 	connection = connection[0]
@@ -282,6 +282,10 @@ def test_pv_internal(connection, link_name=None):
 			"nodes" : []
 		}
 
+	# A list of id numbers for a variable
+	list_id=[]
+	id_flag=False 
+
 	# Create a python dictonary out of the database query
 	for row in rows:
 		# Header 1
@@ -296,24 +300,33 @@ def test_pv_internal(connection, link_name=None):
 		# Header 2
 		if row[1] != old[1]: # only use chan name part 2 once in loop to avoid overcounting 
 			tags[1] = 0
-			pydict["nodes"][index[0] - 1 ]["nodes"].append( {"href":"#child","expanded": "false","tags":[str(tags[1])], "text" : str(row[1]), "nodes": []  } ) # Level 2
+			pydict["nodes"][index[0] - 1 ]["nodes"].append( {"href":"#child","expanded": "false","tags":[str(tags[1])],
+				"text" : str(row[1]), "nodes": [], "href": app.config["WEB_ROOT"] + "/" + "power_supply_multiple_stream" + "/" + config["web_name"] + "/" + str(row[1])  } ) # Level 2
 			index[1] = index[1] + 1
 			tags[0] = tags[0] + 1
-			old[1] = row[1]
-
+			old[1] = row[1]			
+		
 		# the "timestamp column does not correspond to a metric
 		if str(row[2]) == "timestamp": continue
 
-		# Push back every time       
-                if not link_name is None:
-		    pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "database": config["web_name"], "ID": str(row[3]), "name": str(row[2]), "href": app.config["WEB_ROOT"] + "/" + link_name + "/" + config["web_name"] + "/" + str(row[3])  }) # Level 3
-                else: 
-		    pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "database": config["web_name"], "ID": str(row[3]), "name": str(row[2])  }) # Level 3
+		# Append the ID numbers for selected variable name
+		if row[1] == ret_id:
+			list_id.append(str(row[3]))
+
+
+		# Push back every time
+		if not link_name is None:
+			pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])],
+				"database": config["web_name"], "ID": str(row[3]), "name": str(row[2]), "href": app.config["WEB_ROOT"] + "/" + link_name + "/" + config["web_name"] + "/" + str(row[3])  }) # Level 3
+		else: 
+			pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])],
+				"database": config["web_name"], "ID": str(row[3]), "name": str(row[2])  }) # Level 3
+		
 		index[2] = index[2] + 1
 		tags[1] = tags[1] + 1
-
-        return pydict
-
- 
-
-
+	
+	# Decide what type of data to return
+	if ret_id is None:
+		return pydict # return the full tree
+	else:
+		return list_id # return the ids of a variable
