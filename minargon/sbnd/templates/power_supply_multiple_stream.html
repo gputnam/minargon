@@ -3,14 +3,20 @@
 {% extends "layout.html" %}
 {% block title %}Stream: {{ var }}{% endblock %}
 
+{# ---------------------------------- Html Body ------------------------------------- #}
 {% block body %}
 {{ super() }}
+<!-- Variable Header -->
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
+<h1 style="color:rgb(34, 153, 84  );"><center>{{ var }}</center></h1>
+<hr>
 <div class="container">
     
+    <!--  Loop over IDs -->
     {% for ID in IDs %}
         <!-- Plot and Options -->
         <div class="row">
+            
             <!-- Plot -->
             <div class="col-md-8">
                 <!-- plotly div -->
@@ -40,6 +46,7 @@
 </div>
 {% endblock %}
 
+{# ---------------------------------- Javascript ------------------------------------- #}
 {% block script %}
 <script defer type="module">
     import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
@@ -68,3 +75,4 @@
 
 </script>
 {% endblock %}
+{# ---------------------------------- End -------------------------------------#}

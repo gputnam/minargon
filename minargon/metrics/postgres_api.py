@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 """
 ########################################
-This script will connect to a database,
-execute a database query and then convert
-this query into a json format
+This script contains all the functions
+used to access the PostgreSQL database
+and useful helper functions related to
+this.
 ########################################
 """
 
@@ -13,14 +14,13 @@ import psycopg2
 import json
 from psycopg2.extras import RealDictCursor
 from minargon.tools import parseiso, parseiso_or_int, stream_args
-
 from minargon import app
 from flask import jsonify, request, render_template, abort
 from datetime import datetime, timedelta # needed for testing only
 import time
 import calendar
 from pytz import timezone
-
+#________________________________________________________________________________________________
 # database connection configuration
 postgres_instances = app.config["POSTGRES_INSTANCES"]
 # storing different connections to be accessed by routes
@@ -42,7 +42,7 @@ for connection_name, config in postgres_instances.items():
 	
 	# store it
 	p_databases[connection_name] = (connection, config)
-
+#________________________________________________________________________________________________
 # decorator for getting the correct database from the provided link
 def postgres_route(func):
 	from functools import wraps
@@ -55,7 +55,7 @@ def postgres_route(func):
 			return abort(404)
 		
 	return wrapper
-
+#________________________________________________________________________________________________
 # Make the DB query and return the data
 def postgres_query(ID, start_t, stop_t, connection, config):
 	# return nothing if no connection
@@ -86,7 +86,7 @@ def postgres_query(ID, start_t, stop_t, connection, config):
 
 	return data
 
-
+#________________________________________________________________________________________________
 # Gets the sample step size in unix miliseconds
 @app.route("/<connection>/ps_step/<ID>")
 @postgres_route
@@ -114,19 +114,19 @@ def ps_step(connection, ID):
 		step_size = 1e3
 
 	return jsonify(step=step_size)
-
+#________________________________________________________________________________________________
 # Function to check None Values and empty unit
 def CheckVal(var):
 	if var == None or var == " ":
 		return True
 	else:
 		return False
-	
+#________________________________________________________________________________________________
 # Function to get the metadata for the PV
 @app.route("/<connection>/pv_meta/<ID>")
 def pv_meta(connection, ID):
 	return jsonify(metadata=pv_meta_internal(connection, ID))
-
+#________________________________________________________________________________________________
 @postgres_route
 def pv_meta_internal(connection, ID):
 	
@@ -190,7 +190,7 @@ def pv_meta_internal(connection, ID):
 
 	# Setup the return dictionary
 	return ret
-
+#________________________________________________________________________________________________
 @app.route("/<connection>/ps_series/<ID>")
 @postgres_route
 def ps_series(connection, ID):
@@ -233,7 +233,7 @@ def ps_series(connection, ID):
 	}
 
 	return jsonify(values=ret)
-
+#________________________________________________________________________________________________
 @postgres_route
 def test_pv_internal(connection, link_name=None, ret_id=None):
 	config = connection[1]
@@ -330,3 +330,4 @@ def test_pv_internal(connection, link_name=None, ret_id=None):
 		return pydict # return the full tree
 	else:
 		return list_id # return the ids of a variable
+#________________________________________________________________________________________________
