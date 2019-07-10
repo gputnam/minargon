@@ -235,7 +235,7 @@ def ps_series(connection, ID):
 	return jsonify(values=ret)
 #________________________________________________________________________________________________
 @postgres_route
-def test_pv_internal(connection, link_name=None, ret_id=None):
+def pv_internal(connection, link_name=None, ret_id=None):
 	config = connection[1]
 	database = connection[1]["name"]
 	config = connection[1]
@@ -301,7 +301,7 @@ def test_pv_internal(connection, link_name=None, ret_id=None):
 		if row[1] != old[1]: # only use chan name part 2 once in loop to avoid overcounting 
 			tags[1] = 0
 			pydict["nodes"][index[0] - 1 ]["nodes"].append( {"href":"#child","expanded": "false","tags":[str(tags[1])],
-				"text" : str(row[1]), "nodes": [], "href": app.config["WEB_ROOT"] + "/" + "power_supply_multiple_stream" + "/" + config["web_name"] + "/" + str(row[1])  } ) # Level 2
+				"text" : str(row[1]), "nodes": [], "href": app.config["WEB_ROOT"] + "/" + "pv_multiple_stream" + "/" + config["web_name"] + "/" + str(row[1])  } ) # Level 2
 			index[1] = index[1] + 1
 			tags[0] = tags[0] + 1
 			old[1] = row[1]			

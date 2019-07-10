@@ -48,9 +48,9 @@ def docs(dir='', subdir='', filename='index.html'):
 
 # A test func for the PV Lists this translates the page made by bill to the Minargon webpage
 # and also updates the script to be more compatible with python
-@app.route('/<connection>/test_pv')
-def test_pv(connection):
-    return render_template('test_pvs.html', data=postgres_api.test_pv_internal(connection, "power_supply_single_stream"))
+@app.route('/<connection>/pvTree')
+def pvTree(connection):
+    return render_template('pvTree.html', data=postgres_api.pv_internal(connection, "pv_single_stream"))
 
 # snapshot of noise (currently just correlation matrix)
 @app.route('/noise_snapshot')
@@ -101,12 +101,12 @@ def wireplane_view():
     instance_name = "tpc_channel" 
     return timeseries_view(request.args, instance_name, "wire", "wireLink")
 
-@app.route('/power_supply_single_stream/<database>/<ID>')
-def power_supply_single_stream(database, ID):
+@app.route('/pv_single_stream/<database>/<ID>')
+def pv_single_stream(database, ID):
     # get the config
     config = postgres_api.pv_meta_internal(database, ID)
     # get the list of other data
-    tree = postgres_api.test_pv_internal(database)
+    tree = postgres_api.pv_internal(database)
     # print config
     render_args = {
       "ID": ID,
@@ -114,14 +114,14 @@ def power_supply_single_stream(database, ID):
       "database": database,
       "tree": tree
     }
-    return render_template('power_supply_single_stream.html', **render_args)
+    return render_template('pv_single_stream.html', **render_args)
 
 # View a variable with multiple IDs
-@app.route('/power_supply_multiple_stream/<database>/<var>')
-def power_supply_multiple_stream(database, var):
+@app.route('/pv_multiple_stream/<database>/<var>')
+def pv_multiple_stream(database, var):
     
     # Get the list of IDs for the var name
-    IDs = postgres_api.test_pv_internal(database, ret_id=var)
+    IDs = postgres_api.pv_internal(database, ret_id=var)
 
     # get the configs for each ID
     configs = []
@@ -135,7 +135,7 @@ def power_supply_multiple_stream(database, var):
       "configs": configs,
       "database": database
     }
-    return render_template('power_supply_multiple_stream.html', **render_args)
+    return render_template('pv_multiple_stream.html', **render_args)
 
 @app.route('/online_group/<group_name>')
 def online_group(group_name):
