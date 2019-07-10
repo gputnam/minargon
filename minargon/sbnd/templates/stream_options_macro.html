@@ -166,6 +166,9 @@ function toggleLive(current_time, input) {
 
 // setup the two datetimepickers
 jQuery('#{{id_start}}').datetimepicker({
+  {% if start_time is not none %}
+	value:'{{start_time}}',
+  {% endif %}
   mask:true,
   format: 'MM/DD/YYYY HH:mm',
   formatDate:'MM/DD/YYYY',
@@ -173,6 +176,9 @@ jQuery('#{{id_start}}').datetimepicker({
   onClose: toggleLive
 });
 jQuery('#{{id_end}}').datetimepicker({
+  {% if end_time is not none %}
+	value:'{{end_time}}',
+  {% endif %}
   mask:true,
   format: 'MM/DD/YYYY HH:mm',
   formatDate:'MM/DD/YYYY',

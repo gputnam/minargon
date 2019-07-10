@@ -127,14 +127,22 @@ def power_supply_single_stream(database, ID):
     # get the list of other data
     tree = postgres_api.test_pv_internal(database)
     # print config
-    #TODO Give arg1 and arg2 variables meaningful names, change in other files
-    #arg1 and arg2 will serve as datetime parameters
+    
     low = request.args.get('low')
     high = request.args.get('high')
-    #start_time = request.args.get('start')
-    start_time = datetime.strptime('06/01/2019 17:00','%m/%d/%Y %H:%M')
-    #start_time = datetime.strptime('Jun 1 2019 1:30PM', '%b %d %Y %I:%M%p') 
-    end_time = request.args.get('end')
+    
+    #date format from URL: Month-Day-Year_Hour:Minute
+    #date format to turn back to string: Month/Day/Year Hour:Minute
+    start = request.args.get('start')
+    if start is not none:
+	start_obj = datetime.strptime(start, '%m-%d-%Y_%H:%M')
+        start_time = datetime.strftime(start_obj,'%m/%d/%Y %H:%M')
+    
+    end = request.args.get('end')
+    if end is not none:
+	end_obj = datetime.strptime(end, '%m-%d-%Y_%H:%M')
+	end_time = datetime.strftime(end_obj, '%m/%d/%Y %H:%M')
+    
     render_args = {
       "ID": ID,
       "config": config,
