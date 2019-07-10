@@ -127,14 +127,12 @@ def power_supply_multiple_stream(database, var):
     configs = []
     for ID in IDs:
         configs.append(postgres_api.pv_meta_internal(database, ID))
-    
-    config = postgres_api.pv_meta_internal(database, 47)
 
     # print config
     render_args = {
       "var": var, 
       "IDs": IDs,
-      "configs": config,
+      "configs": configs,
       "database": database
     }
     return render_template('power_supply_multiple_stream.html', **render_args)

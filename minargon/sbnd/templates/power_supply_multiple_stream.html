@@ -14,7 +14,7 @@
             <!-- Plot -->
             <div class="col-md-8">
                 <!-- plotly div -->
-                <div style="padding:0" id='ID'></div>
+                <div style="padding:0" id="plotly-controller-{{ ID }}"></div>
             </div>
             
             <!-- Options -->
@@ -44,32 +44,27 @@
 <script defer type="module">
     import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
     
+    // Get the elements and convert to JSON
     var IDs_ ={{IDs| tojson}};
+    var configs_ = {{configs| tojson}};
 
-    // for (var ID in IDs_) {
+    // Loop over each ID
+    for (var i = 0; i < IDs_.length; i++) {
 
-    // build the link
-    var link = new module.Data.D3DataLink(new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{ database }}", '47'));
+        // build the link
+        var link = new module.Data.D3DataLink(new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{ database }}", IDs_[i] ));
 
-    // build plotly controller
-    var plotly_controller = new module.PlotlyController('47', link, ["{{ configs['yTitle'] }}"], {{ configs| tojson}})
-        .timeRangeController("#start", "#end", "#toggle")
-        .downloadDataController("#download")
+        // Create controller name
+        var controller = "plotly-controller-"+IDs_[i];
 
-    // start it
-    plotly_controller.run();
-    // }
+        // build plotly controller
+        var plotly_controller = new module.PlotlyController(controller, link, [configs_[i]['yTitle']], configs_[i])
+            .timeRangeController("#start", "#end", "#toggle")
+            .downloadDataController("#download")
 
-    // build the link
-    var link2 = new module.Data.D3DataLink(new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{ database }}", '44'));
-
-    // build plotly controller
-    var plotly_controller2 = new module.PlotlyController('44', link2, ["{{ configs['yTitle'] }}"], {{ configs| tojson}})
-        .timeRangeController("#start", "#end", "#toggle")
-        .downloadDataController("#download")
-
-    // start it
-    plotly_controller2.run();
+        // start it
+        plotly_controller.run();
+    }
 
 </script>
 {% endblock %}
