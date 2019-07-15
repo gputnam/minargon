@@ -14,8 +14,8 @@
 //        to get data from the backend raw data API
 export function draw_waveform(target, param) {
   d3.json($SCRIPT_ROOT + "/online/snapshot/waveform?" + $.param(param), function(err, data) {
-    if (data == null || data.value == null) return;
-    var waveform = data.value;
+    if (data == null || data.values == null) return;
+    var waveform = data.values;
 
     var xrange = Array.apply(null, Array(waveform.length)).map(function (_, i) {return i * 0.5 /* scale to usec */;});
 
@@ -44,8 +44,8 @@ export function draw_waveform(target, param) {
 //        to get data from the backend raw data API
 export function draw_fft(target, param) {
   d3.json($SCRIPT_ROOT + "/online/snapshot/fft?" + $.param(param), function(err, data) {
-    if (data == null || data.value == null) return;
-    var fft_vals = data.value;
+    if (data == null || data.values == null) return;
+    var fft_vals = data.values;
     if (!fft_vals.length) return;
 
     var khz_scaling_value = 1000./(fft_vals.length - 1); // max value in fft should be 1MHz
