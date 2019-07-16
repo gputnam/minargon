@@ -16,7 +16,6 @@
     {% for ID in IDs %}
         <!-- Plot and Options -->
         <div class="row">
-            
             <!-- Plot -->
             <div class="col-md-8">
                 <!-- plotly div -->
@@ -29,10 +28,12 @@
                     <div class="card-header">Display Options</div>
                     <div class="card-body">
                         <form class="form" role="form">
-                            {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
-                            {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }}
-                            {{ stream_options.time_range("start", "end", "toggle") }}
-                            {{ stream_options.download("download") }}
+                            {# {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }} #}
+                            {# {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }} #}
+                            {{ stream_options.time_range(starts[loop.index0], ends[loop.index0], toggles[loop.index0]) }}
+                            {{ stream_options.download(downloads[loop.index0]) }}
+                            {{ stream_options.Hour("Hour") }}
+                            {{ stream_options.Day("Day") }}
                         </form>
                     </div>
                 </div>
@@ -52,27 +53,31 @@
     import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
     
     // Get the elements and convert to JSON
-    var IDs_ ={{IDs| tojson}};
-    var configs_ = {{configs| tojson}};
+    var IDs_ = {{ IDs | tojson }};
+    var configs_ = {{ configs | tojson }};
 
     // Loop over each ID
     for (var i = 0; i < IDs_.length; i++) {
 
-        // build the link
+        // Build the link
         var link = new module.Data.D3DataLink(new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{ database }}", IDs_[i] ));
 
-        // Create controller name
+        // Create controller and id names
         var controller = "plotly-controller-"+IDs_[i];
+        var start_id = "#start-"+IDs_[i];
+        var end_id = "#end-"+IDs_[i];
+        var toggle_id = "#toggle-"+IDs_[i];
+        var download_id = "#download-"+IDs_[i];
 
-        // build plotly controller
-        var plotly_controller = new module.PlotlyController(controller, link, [configs_[i]['yTitle']], configs_[i])
-            .timeRangeController("#start", "#end", "#toggle")
-            .downloadDataController("#download")
+        // Build plotly controller
+        var plotly_controller = new module.PlotlyController(controller, link, [configs_[i].yTitle] , configs_[i] )
+            .timeRangeController(start_id, end_id, toggle_id)
+            .downloadDataController(download_id )
 
-        // start it
+        // Start it
         plotly_controller.run();
     }
 
 </script>
 {% endblock %}
-{# ---------------------------------- End -------------------------------------#}
+{# ---------------------------------- End ------------------------------------- #}
