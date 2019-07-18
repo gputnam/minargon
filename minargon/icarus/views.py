@@ -14,7 +14,7 @@ def index():
     return redirect(url_for('introduction2'))
 
 @app.route('/introduction2')
-def introduction():
+def introduction2():
     return render_template('introduction.html')
 
 @app.route('/online_group/<group_name>')
@@ -68,4 +68,24 @@ def pv_single_stream(database, ID):
       "database": database,
     }
     return render_template('pv_single_stream.html', **render_args)
+
+# snapshot of data on channel (fft and waveform)
+@app.route('/channel_snapshot')
+def channel_snapshot():
+    channel = request.args.get('channel', 0, type=int)
+
+    view_ind = {'channel': channel}
+    # TODOL fix..... all of this
+    view_ind_opts = {'channel': range(100)}
+
+    instance_name = "wireplane"
+    config = online_metrics.get_group_config(instance_name)
+
+    template_args = {
+        'channel': channel,
+        'config': config,
+        'view_ind': view_ind,
+        'view_ind_opts': view_ind_opts,
+    }
+    return render_template('channel_snapshot.html', **template_args)
 
