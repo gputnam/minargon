@@ -32,8 +32,8 @@
                             {# {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }} #}
                             {{ stream_options.time_range(starts[loop.index0], ends[loop.index0], toggles[loop.index0]) }}
                             {{ stream_options.download(downloads[loop.index0]) }}
-                            {{ stream_options.Hour("Hour") }}
-                            {{ stream_options.Day("Day") }}
+                           {# {{ stream_options.Hour("Hour") }} #}
+                           {# {{ stream_options.Day("Day") }} #}
                         </form>
                     </div>
                 </div>
@@ -63,10 +63,10 @@
         var link = new module.Data.D3DataLink(new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{ database }}", IDs_[i] ));
 
         // Create controller and id names
-        var controller = "plotly-controller-"+IDs_[i];
-        var start_id = "#start-"+IDs_[i];
-        var end_id = "#end-"+IDs_[i];
-        var toggle_id = "#toggle-"+IDs_[i];
+        var controller  = "plotly-controller-"+IDs_[i];
+        var start_id    = "#start-"+IDs_[i];
+        var end_id      = "#end-"+IDs_[i];
+        var toggle_id   = "#toggle-"+IDs_[i];
         var download_id = "#download-"+IDs_[i];
 
         // Build plotly controller
