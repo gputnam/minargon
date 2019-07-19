@@ -1,5 +1,5 @@
 from minargon import app
-from flask import render_template, jsonify, request, redirect, url_for, flash
+from flask import render_template, jsonify, request, redirect, url_for, flash, abort
 import time
 from os.path import join
 import json
@@ -106,7 +106,8 @@ def power_supply_single_stream(database, ID):
     # get the config
     config = postgres_api.pv_meta_internal(database, ID)
     # get the list of other data
-    tree = postgres_api.test_pv_internal(database)
+    # tree = postgres_api.test_pv_internal(database)
+    tree = build_data_browser_tree()
     # print config
     render_args = {
       "ID": ID,
@@ -115,6 +116,63 @@ def power_supply_single_stream(database, ID):
       "tree": tree
     }
     return render_template('power_supply_single_stream.html', **render_args)
+
+
+def build_data_browser_tree():
+    # get the redis instance names
+    redis_names = [name for name,_ in app.config["REDIS_INSTANCES"].items()]
+    # and the postgres isntance names
+    postgres_names = [name for name,_ in app.config["POSTGRES_INSTANCES"].items()]
+    # build all of the trees
+    trees = [postgres_api.test_pv_internal(name) for name in postgres_names] + [online_metrics.build_link_tree(name) for name in redis_names]
+    # wrap them up at a top level
+    tree_dict = {
+      "text": "Data Browser",
+      "expanded": True,
+      "nodes": trees,
+      "displayCheckbox": False,
+    }
+    return tree_dict
+
+@app.route('/view_streams')
+def view_streams():
+    postgres_stream_info = {}
+    redis_stream_info = {}
+    # parse GET parameters
+    try:
+        for arg, val in request.args.items():
+            # postgres streams
+            if arg.startswith("postgres_"):
+                database_name = arg[9:]
+                database_ids = [int(x) for x in val.split(",") if x]
+                postgres_stream_info[database_name] = database_ids
+            # redis streams
+            elif arg.startswith("redis_"):
+                database_name = arg[6:]
+                database_keys = val.split(",")
+                redis_stream_info[database_name] = database_keys
+    except:
+        return abort(404)
+
+    postgres_streams = []
+    redis_streams = []
+    # collect configuration for postgres streams
+    for database, IDs in postgres_stream_info.items():
+        for ID in IDs:
+            config = postgres_api.pv_meta_internal(database, ID)
+            postgres_streams.append( (ID, database, config) )
+    # TODO: collect redis stream configuration
+    for database, keys in redis_stream_info.items():
+        for key in keys:
+            redis_streams.append( (key, database, {}) )
+    # build the data tree
+    tree = build_data_browser_tree()
+    render_args = {
+      "tree": tree,
+      "redis_streams": redis_streams,
+      "postgres_streams": postgres_streams
+    }
+    return render_template("view_streams.html", **render_args)
 
 @app.route('/online_group/<group_name>')
 def online_group(group_name):
