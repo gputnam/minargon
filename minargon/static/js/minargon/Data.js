@@ -262,7 +262,7 @@ export class D3DataChain {
       .then(function(data) {
         var steps = [];
         for (var i = 0; i < data.length; i ++) {
-          steps.push(data.step)
+          steps.push(data[i].step)
         }
         var inp = {};
         inp.step = Math.min(...steps)
