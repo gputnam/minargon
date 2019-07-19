@@ -1,6 +1,8 @@
 {% macro tree_select(data, id) %}
 <div class="form-group row">
-  <label class="col-sm-12 control-form-label col-form-label">Add Data:</label>
+  <div class="col-sm-12">
+    <button type="button" class="btn btn-link" onclick="updateLink{{id}}()">Update Page</button>
+  </div>
 </div>
 <div class="form-group row">
   <div class="col-sm-12" id={{id}}></div>
@@ -11,8 +13,31 @@ $('#{{id}}').treeview( {
   levels: 4,
   color: '#428bca',
   data: {{data|tojson}},
+  showIcon: false,
+  showCheckbox: true,
   enableLinks: false
 });
+
+
+function updateLink{{id}}() {
+  var checked =  $('#{{id}}').treeview('getChecked');
+  var dest_link = $SCRIPT_ROOT + "/view_streams";
+  var args = {};
+  for (var i = 0; i < checked.length; i++) {
+    // get the database type
+    var node = checked[i];
+    if (node.database_type === undefined) continue;
+    var database_ident = node.database_type + "_" + node.database;
+    if (args[database_ident] === undefined) {
+      args[database_ident] = String(node.ID);
+    }
+    else {
+      args[database_ident] = args[database_ident] + "," + String(node.ID);
+    }
+  }
+  window.location.href = dest_link + "?" + $.param(args);
+}
+
 
 </script>
 {% endmacro %}
