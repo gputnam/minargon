@@ -273,12 +273,14 @@ def test_pv_internal(connection, link_name=None):
 		pydict =	{ 
 			"text" : ["SBN Test Stand Process Variables"],
 			"expanded": "true",
+                        "displayCheckbox": False,
 			"nodes" : []
 		}
 	else: # ICARUS
 		pydict =	{ 
 			"text" : ["ICARUS Process Variables"],
 			"expanded": "true",
+                        "displayCheckbox": False,
 			"nodes" : []
 		}
 
@@ -288,7 +290,7 @@ def test_pv_internal(connection, link_name=None):
 		if row[0] != old[0]: # only use chan name part 1 once in loop to avoid overcounting e.g. grab APC then skip block until CRYO
 			tags[0] = 0
 			tags[1] = 0
-			pydict["nodes"].append( {"expanded": "false", "text" : str(row[0]), "href": "#parent1","nodes" : [], "tags": [str(tags[0])]} ) # Top Level 
+			pydict["nodes"].append( {"expanded": "false", "text" : str(row[0]), "href": "#parent1","nodes" : [], "tags": [str(tags[0])], "displayCheckbox": False } ) # Top Level 
 			old[0] = row[0]         
 			index[0] = index[0] + 1 # Increment the index
 			index[1] = 0
@@ -296,7 +298,7 @@ def test_pv_internal(connection, link_name=None):
 		# Header 2
 		if row[1] != old[1]: # only use chan name part 2 once in loop to avoid overcounting 
 			tags[1] = 0
-			pydict["nodes"][index[0] - 1 ]["nodes"].append( {"href":"#child","expanded": "false","tags":[str(tags[1])], "text" : str(row[1]), "nodes": []  } ) # Level 2
+			pydict["nodes"][index[0] - 1 ]["nodes"].append( {"href":"#child","expanded": "false","tags":[str(tags[1])], "text" : str(row[1]), "nodes": [], "displayCheckbox": False  } ) # Level 2
 			index[1] = index[1] + 1
 			tags[0] = tags[0] + 1
 			old[1] = row[1]
@@ -306,9 +308,24 @@ def test_pv_internal(connection, link_name=None):
 
 		# Push back every time       
                 if not link_name is None:
-		    pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "database": config["web_name"], "ID": str(row[3]), "name": str(row[2]), "href": app.config["WEB_ROOT"] + "/" + link_name + "/" + config["web_name"] + "/" + str(row[3])  }) # Level 3
+		    pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append({ 
+                      "text" : str(row[2]), 
+                      "tags" : [str(tags[1])], 
+                      "database": config["web_name"], 
+                      "database_type": "postgres",
+                      "ID": str(row[3]), 
+                      "name": str(row[2]), 
+                      "href": app.config["WEB_ROOT"] + "/" + link_name + "/" + config["web_name"] + "/" + str(row[3])  
+                    }) # Level 3
                 else: 
-		    pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "database": config["web_name"], "ID": str(row[3]), "name": str(row[2])  }) # Level 3
+		    pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append({ 
+                      "text" : str(row[2]), 
+                      "tags" : [str(tags[1])], 
+                      "database": config["web_name"], 
+                      "database_type": "postgres",
+                      "ID": str(row[3]), 
+                      "name": str(row[2])  
+                    }) # Level 3
 		index[2] = index[2] + 1
 		tags[1] = tags[1] + 1
 
