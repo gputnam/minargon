@@ -78,6 +78,8 @@ def front_end_key_api(data):
 
     return ret
 
+def build_key(group, metric, instance, stream):
+    return group + ":" + instance + ":" + metric + ":" + stream
 # get data from a stream
 @app.route('/<redis>/stream/<name>')
 @redis_route
@@ -197,6 +199,67 @@ def infer_step_size(redis, stream_name=None, stream_type=None, metric_name=None,
         else:
             avg_delta_times = 0
     return jsonify(step=avg_delta_times)
+
+
+@redis_route
+def build_link_tree(redis):
+    groups = redis.smembers("GROUPS")
+    pipeline = redis.pipeline()
+    for group in groups:
+       pipeline.get("GROUP_CONFIG:%s" % group)
+       pipeline.lrange("GROUP_MEMBERS:%s" % group, 0, -1)
+    result = pipeline.execute()
+
+    configs = []
+    members = []
+    for i in range(0, len(result), 2):
+        configs.append( result[i])
+        members.append( result[i+1])
+
+    # build the dictionary for the tree
+    tree_dict = {}
+    tree_dict["text"] = "Online Metrics"
+    tree_dict["expanded"] = True
+    tree_dict["displayCheckbox"] = False
+    tree_dict["nodes"] = []
+    
+    # index by group, the metric, then instance
+    for group, config, this_members, in zip(groups, configs, members):
+        config = json.loads(config)
+        tree_dict["nodes"].append({
+            "expanded": False,
+            "text": group,
+            "href": "#parent1",
+            "displayCheckbox": False,
+            "nodes" : []
+        })
+        for metric,_ in config["metric_config"].items():
+            tree_dict["nodes"][-1]["nodes"].append({
+              "expanded": False,
+              "displayCheckbox": False,
+              "text": metric,
+              "href": "#parent2",
+              "nodes": []
+            })
+            for stream in config["streams"]:
+                tree_dict["nodes"][-1]["nodes"][-1]["nodes"].append({
+                  "displayCheckbox": False,
+                  "expanded": False,
+                  "text": stream,
+                  "href": "#parent2",
+                  "nodes": []
+                })
+                for m in this_members:
+                    tree_dict["nodes"][-1]["nodes"][-1]["nodes"][-1]["nodes"].append({
+			"expanded": False,
+			"text": m,
+			"href": "#parent3",
+			"database": "online",
+			"database_type": "redis",
+			"ID": build_key(group, metric, m,stream), 
+                    })
+    return tree_dict
+    
 
 def get_group_config(group_name, redis_database="online"):
     # default ret
