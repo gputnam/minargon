@@ -127,10 +127,10 @@ def pv_multiple_stream(database, var):
     configs, starts, ends, toggles, downloads = [], [], [], [], []
     for ID in IDs:
         configs.append(postgres_api.pv_meta_internal(database, ID))
-        starts.append("start-"+ID)
-        ends.append("end-"+ID)
-        toggles.append("toggle-"+ID)
-        downloads.append("download-"+ID)
+        starts.append("start-"+str(ID))
+        ends.append("end-"+str(ID))
+        toggles.append("toggle-"+str(ID))
+        downloads.append("download-"+str(ID))
 
     # print config
     render_args = {

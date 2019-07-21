@@ -98,22 +98,6 @@ $('#{{id}}').treeview( {
 </div>
 {% endmacro %}
 {# ---------------------------------------------------------------------------- #}
-{% macro Hour(id) %}
-<div class="form-group row">
-  <div class="col-sm-12">
-    <button type="button" class="btn btn-link" id="{{id}}">Hour Time Scale</button>
-  </div>
-</div>
-{% endmacro %}
-{# ---------------------------------------------------------------------------- #}
-{% macro Day(id) %}
-<div class="form-group row">
-  <div class="col-sm-12">
-    <button type="button" class="btn btn-link" id="{{id}}">Day Time Scale</button>
-  </div>
-</div>
-{% endmacro %}
-{# ---------------------------------------------------------------------------- #}
 {% macro time_range(id_start, id_end, id_toggle) %}
 
 <!-- Start -->
@@ -148,28 +132,43 @@ $('#{{id}}').treeview( {
       </label>
 
       <!-- Toggle Day -->
-      <!-- <label class="btn btn-secondary" id="{{id_toggle}}-label-day">
+      <label class="btn btn-secondary" id="{{id_toggle}}-label-day">
         <input type="radio" name="options" value="live" id="{{id_toggle}}-live-day" autocomplete="off"> Day
-      </label> -->
-
+      </label>
+      
       <!-- Toggle Lookback -->
-      <!-- <label class="btn btn-secondary" id="{{id_toggle}}-label-lookback">
+      <label class="btn btn-secondary" id="{{id_toggle}}-label-lookback">
         <input type="radio" name="options" value="lookback" id="{{id_toggle}}-lookback" autocomplete="off"> Lookback
-      </label> -->
-    
+      </label>
+      
     </div>
   </div>
 </div>
 
 <script>
-function updateToggle() {
-  if ($("#{{id_toggle}}-live").prop("checked")) {
-    $("#{{id_toggle}}").val("live");
+function updateToggle(toggle_id) {
+
+  // Create toggle strings -- need this for multiple streams
+  var toggle_live = "#" + toggle_id + "-live";
+  var toggle_lookback = "#" + toggle_id + "-lookback";
+  var toggle_hour = "#" + toggle_id + "-hour";
+  var toggle_day = "#" + toggle_id + "-day";
+  var toggle = "#" + toggle_id;
+
+  if ($(toggle_live).prop("checked")) {
+    $(toggle).val("live");
   }
-  else if ($("#{{id_toggle}}-lookback").prop("checked")) {
-    $("#{{id_toggle}}").val("lookback");
+  else if ($(toggle_lookback).prop("checked")) {
+    $(toggle).val("lookback");
   }
-  $("#{{id_toggle}}").trigger("date-change");
+  else if ($(toggle_hour).prop("checked")) {
+    $(toggle).val("hour");
+  }
+  else if ($(toggle_day).prop("checked")) {
+    $(toggle).val("day");
+  }
+  
+  $(toggle).trigger("date-change");
 }
 
 // when the selected date-time range is valid, toggle the live button
@@ -180,7 +179,7 @@ function toggleLive(current_time, input) {
   var this_end = moment($('#{{id_end}}').datetimepicker('getValue'));
   
   if (this_start.isBefore(this_end)) {
-    
+
     $("#{{id_toggle}}-label-live").removeClass("active");
     
     $("#{{id_toggle}}-label-lookback").addClass("active");
@@ -189,7 +188,7 @@ function toggleLive(current_time, input) {
     
     $("#{{id_toggle}}-lookback").prop("checked", true);
     
-    updateToggle();
+    updateToggle("{{id_toggle}}");
   }
 }
 

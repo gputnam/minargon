@@ -32,8 +32,6 @@
                             {# {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }} #}
                             {{ stream_options.time_range(starts[loop.index0], ends[loop.index0], toggles[loop.index0]) }}
                             {{ stream_options.download(downloads[loop.index0]) }}
-                           {# {{ stream_options.Hour("Hour") }} #}
-                           {# {{ stream_options.Day("Day") }} #}
                         </form>
                     </div>
                 </div>
@@ -70,7 +68,7 @@
         var download_id = "#download-"+IDs_[i];
 
         // Build plotly controller
-        var plotly_controller = new module.PlotlyController(controller, link, [configs_[i].yTitle] , configs_[i] )
+        var plotly_controller = new module.PlotlyController(controller, link, [configs_[i].yTitle], configs_[i])
             .timeRangeController(start_id, end_id, toggle_id)
             .downloadDataController(download_id )
 
