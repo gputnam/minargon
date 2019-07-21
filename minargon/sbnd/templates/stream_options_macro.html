@@ -16,7 +16,7 @@ $('#{{id}}').treeview( {
 
 </script>
 {% endmacro %}
-{# ---------------------------------------------------------------------------- #}
+{# -------------------------------------------------------------------------- #}
 {% macro metric_option(metrics, default_metric, id) %}
 <div class="form-group row">
     <label class="col-sm-4 control-form-label col-form-label">Data</label>
@@ -29,7 +29,7 @@ $('#{{id}}').treeview( {
     </div>
 </div>
 {% endmacro %}
-{# ---------------------------------------------------------------------------- #}
+{# -------------------------------------------------------------------------- #}
 {% macro stream_option(streams, default_stream, id) %}
 <div class="form-group row">
     <label class="col-sm-4 control-form-label col-form-label">
@@ -44,7 +44,7 @@ $('#{{id}}').treeview( {
     </div>
 </div>
 {% endmacro %}
-{# ---------------------------------------------------------------------------- #}
+{# -------------------------------------------------------------------------- #}
 {% macro height_option(heights, default_height, id) %}
 <div class="form-group row">
     <label class="col-sm-4 control-form-label col-form-label">
@@ -59,7 +59,7 @@ $('#{{id}}').treeview( {
     </div>
 </div>
 {% endmacro %}
-{# ---------------------------------------------------------------------------- #}
+{# -------------------------------------------------------------------------- #}
 {% macro threshold_option(id_lo, id_hi) %}
 <div class="form-group row">
     <label class="col-sm-6 control-form-label col-form-label"> Threshold Hi</label>
@@ -74,7 +74,7 @@ $('#{{id}}').treeview( {
     </div>
 </div>
 {% endmacro %}
-{# ---------------------------------------------------------------------------- #}
+{# -------------------------------------------------------------------------- #}
 {% macro warning_option(id_lo, id_hi) %}
 <div class="form-group row">
     <label class="col-sm-6 control-form-label col-form-label"> Warning Hi</label>
@@ -89,7 +89,7 @@ $('#{{id}}').treeview( {
     </div>
 </div>
 {% endmacro %}
-{# ---------------------------------------------------------------------------- #}
+{# -------------------------------------------------------------------------- #}
 {% macro download(id) %}
 <div class="form-group row">
   <div class="col-sm-12">
@@ -97,7 +97,7 @@ $('#{{id}}').treeview( {
   </div>
 </div>
 {% endmacro %}
-{# ---------------------------------------------------------------------------- #}
+{# -------------------------------------------------------------------------- #}
 {% macro time_range(id_start, id_end, id_toggle) %}
 
 <!-- Start -->
@@ -149,11 +149,11 @@ $('#{{id}}').treeview( {
 function updateToggle(toggle_id) {
 
   // Create toggle strings -- need this for multiple streams
-  var toggle_live = "#" + toggle_id + "-live";
+  var toggle_live     = "#" + toggle_id + "-live";
   var toggle_lookback = "#" + toggle_id + "-lookback";
-  var toggle_hour = "#" + toggle_id + "-hour";
-  var toggle_day = "#" + toggle_id + "-day";
-  var toggle = "#" + toggle_id;
+  var toggle_hour     = "#" + toggle_id + "-hour";
+  var toggle_day      = "#" + toggle_id + "-day";
+  var toggle          = "#" + toggle_id;
 
   if ($(toggle_live).prop("checked")) {
     $(toggle).val("live");
@@ -221,4 +221,4 @@ $("#{{id_toggle}}-live").change(
 
 </script>
 {% endmacro %}
-{# ---------------------------------------------------------------------------- #}
+{# -------------------------------------------------------------------------- #}

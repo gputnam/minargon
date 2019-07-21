@@ -273,12 +273,15 @@ def pv_internal(connection, link_name=None, ret_id=None):
 		pydict =	{ 
 			"text" : ["SBN Test Stand Process Variables"],
 			"expanded": "true",
+			"selectable" : "false",
 			"nodes" : []
 		}
 	else: # ICARUS
 		pydict =	{ 
 			"text" : ["ICARUS Process Variables"],
 			"expanded": "true",
+			"color" : "#000000",
+			"selectable" : "false",
 			"nodes" : []
 		}
 
@@ -292,7 +295,7 @@ def pv_internal(connection, link_name=None, ret_id=None):
 		if row[0] != old[0]: # only use chan name part 1 once in loop to avoid overcounting e.g. grab APC then skip block until CRYO
 			tags[0] = 0
 			tags[1] = 0
-			pydict["nodes"].append( {"expanded": "false", "text" : str(row[0]), "href": "#parent1","nodes" : [], "tags": [str(tags[0])]} ) # Top Level 
+			pydict["nodes"].append( { "color" : "#7D3C98","expanded": "false", "text" : str(row[0]), "href": "#parent1","nodes" : [], "tags": [str(tags[0])]} ) # Top Level 
 			old[0] = row[0]         
 			index[0] = index[0] + 1 # Increment the index
 			index[1] = 0
@@ -316,10 +319,10 @@ def pv_internal(connection, link_name=None, ret_id=None):
 
 		# Push back every time
 		if not link_name is None:
-			pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])],
+			pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "color" : "#229954",
 				"database": config["web_name"], "ID": str(row[3]), "name": str(row[2]), "href": app.config["WEB_ROOT"] + "/" + link_name + "/" + config["web_name"] + "/" + str(row[3])  }) # Level 3
 		else: 
-			pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])],
+			pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "color" : "#229954",
 				"database": config["web_name"], "ID": str(row[3]), "name": str(row[2])  }) # Level 3
 		
 		index[2] = index[2] + 1
