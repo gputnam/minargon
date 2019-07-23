@@ -165,6 +165,7 @@ export class PlotlyController {
   // ---------------------------------------------------------------------------
   // Tell the buffer to get data for a specific time range
   getData(start, stop) {
+    console.log("we are getting data")
     this.buffer.stop();
     this.buffer.getData(start, stop);
   }
@@ -196,8 +197,8 @@ export class PlotlyController {
         }
       }
       else if (toggle_val == "hour"){
-        var d = Date.now();
-        d.setHours(d.GetHours() -1);
+        var d = new Date();
+        d.setHours(d.getHours() -1);
         self.start = d;
         self.end = Date.now();
         self.is_live = false;
@@ -208,8 +209,8 @@ export class PlotlyController {
 
       }
       else if (toggle_val == "day"){
-        var d = Date.now();
-        d.setDate(d.GetDate() -1);
+        var d = new Date();
+        d.setDate(d.getDate() -1);
         self.start = d;
         self.end = Date.now();
         self.is_live = false;

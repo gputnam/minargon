@@ -152,12 +152,12 @@ function updateLink{{id}}() {
       </label>
 
       <!-- Toggle Hour -->
-      <label class="btn btn-secondary" id="{{id_toggle}}-label-hour" onclick = "updateToggle('{{id_toggle}}')">
+      <label class="btn btn-secondary" id="{{id_toggle}}-label-hour" >
         <input type="radio" name="options" value="live" id="{{id_toggle}}-hour" autocomplete="off" > Hour
       </label>
 
       <!-- Toggle Day -->
-      <label class="btn btn-secondary" id="{{id_toggle}}-label-day" onclick = "updateToggle('{{id_toggle}}')">
+      <label class="btn btn-secondary" id="{{id_toggle}}-label-day">
         <input type="radio" name="options" value="live" id="{{id_toggle}}-day" autocomplete="off" > Day
       </label>
       
@@ -235,7 +235,7 @@ jQuery('#{{id_end}}').datetimepicker({
 });
 
 
-var live_picker = ["#{{id_toggle}}-live"];
+var live_picker = ["#{{id_toggle}}-live", "#{{id_toggle}}-hour", "#{{id_toggle}}-day"];
 
 // setup the toggle button to turn off the pickers
 for (var i = 0; i < live_picker.length; i++){
