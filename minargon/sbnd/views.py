@@ -156,7 +156,7 @@ def build_data_browser_tree(checked=None):
     # and the postgres isntance names
     postgres_names = [name for name,_ in app.config["POSTGRES_INSTANCES"].items()]
     # build all of the trees
-    trees = [postgres_api.test_pv_internal(name) for name in postgres_names] + [online_metrics.build_link_tree(name) for name in redis_names]
+    trees = [postgres_api.pv_internal(name) for name in postgres_names] + [online_metrics.build_link_tree(name) for name in redis_names]
     # wrap them up at a top level
     tree_dict = {
       "text": "Data Browser",
