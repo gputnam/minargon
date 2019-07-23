@@ -215,7 +215,7 @@ $("#{{id_toggle}}-live").change(
     if ($(this).prop('checked')) {
       $('#{{id_end}}').datetimepicker('reset');
       $('#{{id_start}}').datetimepicker('reset');
-      updateToggle();
+      updateToggle("{{id_toggle}}");
     }
 });
 
