@@ -127,13 +127,13 @@ $('#{{id}}').treeview( {
       </label>
 
       <!-- Toggle Hour -->
-      <label class="btn btn-secondary" id="{{id_toggle}}-label-hour">
-        <input type="radio" name="options" value="live" id="{{id_toggle}}-live-hour" autocomplete="off"> Hour
+      <label class="btn btn-secondary" id="{{id_toggle}}-label-hour" onclick = "updateToggle('{{id_toggle}}')">
+        <input type="radio" name="options" value="live" id="{{id_toggle}}-hour" autocomplete="off" > Hour
       </label>
 
       <!-- Toggle Day -->
-      <label class="btn btn-secondary" id="{{id_toggle}}-label-day">
-        <input type="radio" name="options" value="live" id="{{id_toggle}}-live-day" autocomplete="off"> Day
+      <label class="btn btn-secondary" id="{{id_toggle}}-label-day" onclick = "updateToggle('{{id_toggle}}')">
+        <input type="radio" name="options" value="live" id="{{id_toggle}}-day" autocomplete="off" > Day
       </label>
       
       <!-- Toggle Lookback -->
@@ -209,15 +209,20 @@ jQuery('#{{id_end}}').datetimepicker({
   onClose: toggleLive
 });
 
+
+var live_picker = ["#{{id_toggle}}-live"];
+
 // setup the toggle button to turn off the pickers
-$("#{{id_toggle}}-live").change(
-  function() {
-    if ($(this).prop('checked')) {
-      $('#{{id_end}}').datetimepicker('reset');
-      $('#{{id_start}}').datetimepicker('reset');
-      updateToggle("{{id_toggle}}");
-    }
-});
+for (var i = 0; i < live_picker.length; i++){
+  $(live_picker[i]).change(
+    function() {
+      if ($(this).prop('checked')) {
+        $('#{{id_end}}').datetimepicker('reset');
+        $('#{{id_start}}').datetimepicker('reset');
+        updateToggle("{{id_toggle}}");
+      }
+  });
+}
 
 </script>
 {% endmacro %}

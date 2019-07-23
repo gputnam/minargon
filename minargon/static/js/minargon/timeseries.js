@@ -27,7 +27,7 @@ export {DataLink, Data};
 //
 // Alternatively, you can also set them up through the
 // GroupConfigController if you want them to handle a group of metrics
-
+// -----------------------------------------------------------------------------
 export class PlotlyController {
   // target: the div-id (including the '#') where the cubism plots will
   //         be drawn
@@ -54,12 +54,12 @@ export class PlotlyController {
 
     this.is_live = true;
   }
-
+  // ---------------------------------------------------------------------------
   // commuicate to the "config" wrapper -- whether or not the # of instances in this class should be restricted
   restrictNumInstances() {
     return true;
   }
-
+  // ---------------------------------------------------------------------------
   buildScatterAxes() {
     var ret = [];
     for (var i = 0; i < this.metric_config.length; i++) {
@@ -81,7 +81,7 @@ export class PlotlyController {
     }
     return ret;
   }
-
+  // ---------------------------------------------------------------------------
   // Internal function: grap the time step from the server and run a
   // callback
   getTimeStep(callback) {
@@ -90,7 +90,7 @@ export class PlotlyController {
         callback(self, data.step);
     });
   }
-
+  // ---------------------------------------------------------------------------
   // start running
   run() {
     this.is_live = true;
@@ -99,13 +99,13 @@ export class PlotlyController {
       self.updateData(self.link);
     });
   }
-
+  // ---------------------------------------------------------------------------
   // Functions called by the GroupConfigController
   // update the titles
   updateTitles(titles) {
     this.scatter.titles = titles;
   }
-
+  // ---------------------------------------------------------------------------
   // update the metric config option
   updateMetricConfig(config, do_append) {
     if (do_append === undefined || !do_append) {
@@ -123,18 +123,18 @@ export class PlotlyController {
       this.scatter.add_warning_line(this.metric_config[0].yTitle, this.metric_config[0].warningRange, 0);
     }
   }
-
+  // ---------------------------------------------------------------------------
   // update the data step
   updateStep(step) {
     if (step < 1000) step = 1000;
     this.step = step;
   }
-
+  // ---------------------------------------------------------------------------
   // set the step for the first time
   setStep(step) {
     this.updateStep(step);
   }
-
+  // ---------------------------------------------------------------------------
   // update the data link and start polling for new data
   updateData(link) {
     this.link = link;
@@ -156,13 +156,13 @@ export class PlotlyController {
     // run it
     this.runBuffer();
   }
-
+  // ---------------------------------------------------------------------------
   // Tell the buffer to get data for a specific time range
   getData(start, stop) {
     this.buffer.stop();
     this.buffer.getData(start, stop);
   }
-
+  // ---------------------------------------------------------------------------
   // Connect setting the time range of the data to be shown to an HTML
   // form
   // id_start: The id of the datatimepicker controlled form field which
@@ -174,9 +174,10 @@ export class PlotlyController {
   //            from the id_start/id_end time range
   timeRangeController(id_start, id_end, id_toggle) {
     var self = this;
+    
     $(id_toggle).on("date-change", function() {
       var toggle_val = $(id_toggle).val();
-      if (toggle_val == "live") {
+      if (toggle_val == "live" ) {
         self.is_live = true;
       }
       else if (toggle_val == "lookback") {
@@ -188,11 +189,36 @@ export class PlotlyController {
           self.buffer.stop();
         }
       }
+      else if (toggle_val == "hour"){
+        var d = Date.now();
+        d.setHours(d.GetHours() -1);
+        self.start = d;
+        self.end = Date.now();
+        self.is_live = false;
+        // stop the buffer
+        if (self.buffer.isRunning()) {
+          self.buffer.stop();
+        }
+
+      }
+      else if (toggle_val == "day"){
+        var d = Date.now();
+        d.setDate(d.GetDate() -1);
+        self.start = d;
+        self.end = Date.now();
+        self.is_live = false;
+        // stop the buffer
+        if (self.buffer.isRunning()) {
+          self.buffer.stop();
+        }
+
+      }
+
       self.runBuffer();
     });
     return this;
   }
-
+  // ---------------------------------------------------------------------------
   downloadDataController(id) {
     var self = this;
     $(id).click(function() {
@@ -200,7 +226,7 @@ export class PlotlyController {
     });
     return this;
   }
-
+  // ---------------------------------------------------------------------------
   treeSelectController(id, type) {
     var self = this;
     $(id).on('nodeSelected', function(event, node) {
@@ -224,7 +250,7 @@ export class PlotlyController {
     });
     return this;
   }
-
+  // ---------------------------------------------------------------------------
   runBuffer() {
     if (this.is_live) {
       // set the start
@@ -237,7 +263,7 @@ export class PlotlyController {
       this.buffer.getData(this.start, this.end);
     }
   }
-
+  // ---------------------------------------------------------------------------
   setTimeAxes() {
     if (this.is_live) {
       // let plotly set the x-range
@@ -248,7 +274,7 @@ export class PlotlyController {
       this.scatter.x_range = [moment(this.start).format("YYYY-MM-DD HH:mm:ss"), moment(this.end).format("YYYY-MM-DD HH:mm:ss")];
     }
   }
-
+  // ---------------------------------------------------------------------------
   downloadFormat() {
     // get the number of input streams controlled by this plot
     var n_data = this.link.accessors().length;
@@ -258,7 +284,7 @@ export class PlotlyController {
     }
     return ret;
   }
-
+  // ---------------------------------------------------------------------------
   download(filename, data) {
     var blob = new Blob([data], {type: 'text/csv'});
     if(window.navigator.msSaveOrOpenBlob) {
@@ -274,7 +300,8 @@ export class PlotlyController {
     }
   }
 }
-
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 export class CubismController {
   // target: the div-id (including the '#') where the cubism plots will
