@@ -107,7 +107,10 @@ def power_supply_single_stream(database, ID):
     config = postgres_api.pv_meta_internal(database, ID)
     # get the list of other data
     # tree = postgres_api.test_pv_internal(database)
-    tree = build_data_browser_tree()
+
+    # check the currently visited item
+    checked = [("postgres", database, str(ID))]
+    tree = build_data_browser_tree(checked)
     # print config
     render_args = {
       "ID": ID,
@@ -118,7 +121,7 @@ def power_supply_single_stream(database, ID):
     return render_template('power_supply_single_stream.html', **render_args)
 
 
-def build_data_browser_tree():
+def build_data_browser_tree(checked=None):
     # get the redis instance names
     redis_names = [name for name,_ in app.config["REDIS_INSTANCES"].items()]
     # and the postgres isntance names
@@ -132,6 +135,22 @@ def build_data_browser_tree():
       "nodes": trees,
       "displayCheckbox": False,
     }
+    # pre-check some instances
+    if checked is None:
+        checked = []
+    for c in checked:
+        database_type, database, ID = c
+        # do a DFS down the nodes
+        stack = [tree_dict]
+        while len(stack) > 0:
+            vertex = stack.pop()
+            if "nodes" in vertex:
+                stack = stack + vertex["nodes"]
+            elif "ID" in vertex and "database" in vertex and "database_type" in vertex:
+                if vertex["ID"] == ID and vertex["database"] == database and vertex["database_type"] == database_type:
+                    vertex["state"] = {"checked": True}
+                    # if we've found the vertex, we can exit the search
+                    break
     return tree_dict
 
 @app.route('/view_streams')
@@ -165,8 +184,18 @@ def view_streams():
     for database, keys in redis_stream_info.items():
         for key in keys:
             redis_streams.append( (key, database, {}) )
+
+    checked = []
+    # get the currently checked items
+    for database, IDs in postgres_stream_info.items():
+        for ID in IDs:
+            checked.append( ("postgres", database, str(ID)) )
+    for database, keys in redis_stream_info.items():
+        for key in keys:
+            checked.append( ("redis", database, key) )
+
     # build the data tree
-    tree = build_data_browser_tree()
+    tree = build_data_browser_tree(checked)
     render_args = {
       "tree": tree,
       "redis_streams": redis_streams,
