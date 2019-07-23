@@ -13,8 +13,6 @@
             <div class="card-header">Display Options</div>
             <div class="card-body">
                 <form class="form" role="form">
-                    {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
-                    {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }}
                     {{ stream_options.time_range("start", "end", "toggle") }}
                     {{ stream_options.download("download") }}
 	        </form>
@@ -34,8 +32,6 @@
     </div>
     </div>
     <div class="col-md-8">
-	<!-- cubism div -->
-	<div style="padding:0" id="cubism-timeseries"></div>
 	<!-- plotly div -->
 	<div style="padding:0" id="plotly-timeseries"></div>
     </div>
@@ -44,23 +40,42 @@
 {% block script %}
 <script defer type="module">
 import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
-// build the link
+// build the links
 var link = new module.Data.D3DataLink(new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{database}}", "{{ID}}"));
+var links = [];
+var configs = [];
+var names = [];
+{% for (ID, database, config) in postgres_streams %}
+    links.push(new module.Data.D3DataLink(new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{database}}", "{{ID}}")));
+    configs.push({{config|tojson}});
+    {% if "yTitle" in config %}
+      names.push("{{config['yTitle']}}");
+    {% else %}
+      names.push("{{ID}}");
+    {% endif %}
+{% endfor %}
+{% for (key, database, config) in redis_streams %}
+    links.push(new module.Data.D3DataLink(new module.DataLink.SingleStreamLink($SCRIPT_ROOT + '/{{database}}', "{{key}}")));
+    configs.push({{config|tojson}});
+    names.push("{{key}}");
+{% endfor %}
 
-// build cubism controller
-var controller = new module.CubismController("#cubism-timeseries", link, ["{{config['yTitle']}}"], {{config|tojson}}, 25)
-  .heightController("#form-height")
-  .rangeController("#form-range-lo", "#form-range-hi");
+if (links.length > 0) {
+  // build plotly controller
+  var plotly_controller = new module.PlotlyController("plotly-timeseries", links[0], [configs[0]['yTitle']], configs[0])
+    .timeRangeController("#start", "#end", "#toggle")
+    .downloadDataController("#download");
+  // add the other links
+  for (var i = 1; i < links.length; i++) {
+    plotly_controller.addLink(links[i], configs[i], names[i]); 
+  }
 
-// start cubism
-// controller.run();
-
-// build plotly controller
-var plotly_controller = new module.PlotlyController("plotly-timeseries", link, ["{{config['yTitle']}}"], {{config|tojson}})
-  .timeRangeController("#start", "#end", "#toggle")
-  .downloadDataController("#download");
-
-// start it
-plotly_controller.run();
+  // start it
+  plotly_controller.run();
+  
+}
+else {
+  alert("No Data Streams to Display");
+}
 </script>
 {% endblock %}

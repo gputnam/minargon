@@ -1,5 +1,5 @@
 from minargon import app
-from flask import render_template, jsonify, request, redirect, url_for, flash
+from flask import render_template, jsonify, request, redirect, url_for, flash, abort
 import time
 from os.path import join
 import json
@@ -106,7 +106,11 @@ def pv_single_stream(database, ID):
     # get the config
     config = postgres_api.pv_meta_internal(database, ID)
     # get the list of other data
-    tree = postgres_api.pv_internal(database)
+    # tree = postgres_api.test_pv_internal(database)
+
+    # check the currently visited item
+    checked = [("postgres", database, str(ID))]
+    tree = build_data_browser_tree(checked)
     # print config
     render_args = {
       "ID": ID,
@@ -144,6 +148,89 @@ def pv_multiple_stream(database, var):
       "database": database
     }
     return render_template('pv_multiple_stream.html', **render_args)
+
+
+def build_data_browser_tree(checked=None):
+    # get the redis instance names
+    redis_names = [name for name,_ in app.config["REDIS_INSTANCES"].items()]
+    # and the postgres isntance names
+    postgres_names = [name for name,_ in app.config["POSTGRES_INSTANCES"].items()]
+    # build all of the trees
+    trees = [postgres_api.test_pv_internal(name) for name in postgres_names] + [online_metrics.build_link_tree(name) for name in redis_names]
+    # wrap them up at a top level
+    tree_dict = {
+      "text": "Data Browser",
+      "expanded": True,
+      "nodes": trees,
+      "displayCheckbox": False,
+    }
+    # pre-check some instances
+    if checked is None:
+        checked = []
+    for c in checked:
+        database_type, database, ID = c
+        # do a DFS down the nodes
+        stack = [tree_dict]
+        while len(stack) > 0:
+            vertex = stack.pop()
+            if "nodes" in vertex:
+                stack = stack + vertex["nodes"]
+            elif "ID" in vertex and "database" in vertex and "database_type" in vertex:
+                if vertex["ID"] == ID and vertex["database"] == database and vertex["database_type"] == database_type:
+                    vertex["state"] = {"checked": True}
+                    # if we've found the vertex, we can exit the search
+                    break
+    return tree_dict
+
+@app.route('/view_streams')
+def view_streams():
+    postgres_stream_info = {}
+    redis_stream_info = {}
+    # parse GET parameters
+    try:
+        for arg, val in request.args.items():
+            # postgres streams
+            if arg.startswith("postgres_"):
+                database_name = arg[9:]
+                database_ids = [int(x) for x in val.split(",") if x]
+                postgres_stream_info[database_name] = database_ids
+            # redis streams
+            elif arg.startswith("redis_"):
+                database_name = arg[6:]
+                database_keys = val.split(",")
+                redis_stream_info[database_name] = database_keys
+    except:
+        return abort(404)
+
+    postgres_streams = []
+    redis_streams = []
+    # collect configuration for postgres streams
+    for database, IDs in postgres_stream_info.items():
+        for ID in IDs:
+            config = postgres_api.pv_meta_internal(database, ID)
+            postgres_streams.append( (ID, database, config) )
+    # TODO: collect redis stream configuration
+    for database, keys in redis_stream_info.items():
+        for key in keys:
+            redis_streams.append( (key, database, {}) )
+
+    checked = []
+    # get the currently checked items
+    for database, IDs in postgres_stream_info.items():
+        for ID in IDs:
+            checked.append( ("postgres", database, str(ID)) )
+    for database, keys in redis_stream_info.items():
+        for key in keys:
+            checked.append( ("redis", database, key) )
+
+    # build the data tree
+    tree = build_data_browser_tree(checked)
+    render_args = {
+      "tree": tree,
+      "redis_streams": redis_streams,
+      "postgres_streams": postgres_streams
+    }
+    return render_template("view_streams.html", **render_args)
 
 @app.route('/online_group/<group_name>')
 def online_group(group_name):

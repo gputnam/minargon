@@ -53,6 +53,7 @@ export class PlotlyController {
     }
 
     this.is_live = true;
+    this.is_running = false;
   }
   // ---------------------------------------------------------------------------
   // commuicate to the "config" wrapper -- whether or not the # of instances in this class should be restricted
@@ -63,7 +64,7 @@ export class PlotlyController {
   buildScatterAxes() {
     var ret = [];
     for (var i = 0; i < this.metric_config.length; i++) {
-      var title;
+      var title = "";
       if (this.metric_config[i].yTitle !== undefined) {
         if (this.metric_config[i].unit !== undefined) {
           title = this.metric_config[i].yTitle + " [" + this.metric_config[i].unit + "]";
@@ -71,6 +72,9 @@ export class PlotlyController {
         else {
           title = this.metric_config[i].yTitle;
         }
+      }
+      else {
+        title = this.titles[i];
       }
       var range;
       if (this.metric_config[i].range !== undefined && this.metric_config[i].range.length == 2) {
@@ -94,6 +98,7 @@ export class PlotlyController {
   // start running
   run() {
     this.is_live = true;
+    this.is_running = true;
     this.getTimeStep(function(self, step) {
       self.updateStep(step);
       self.updateData(self.link);
@@ -104,6 +109,7 @@ export class PlotlyController {
   // update the titles
   updateTitles(titles) {
     this.scatter.titles = titles;
+    this.titles = titles;
   }
   // ---------------------------------------------------------------------------
   // update the metric config option
@@ -226,7 +232,17 @@ export class PlotlyController {
     });
     return this;
   }
-  // ---------------------------------------------------------------------------
+
+  addLink(link, config, name) {
+    this.link = this.link.add(link);
+    this.titles.push(name);
+    this.updateMetricConfig(config, true);
+    this.scatter.add_trace(name, this.metric_config.length - 1); 
+    if (this.is_running) {
+      this.updateData(this.link);
+    }
+  }
+
   treeSelectController(id, type) {
     var self = this;
     $(id).on('nodeSelected', function(event, node) {
@@ -239,12 +255,7 @@ export class PlotlyController {
 
         // get the config and then finish updating the plot
         d3.json(postgres_link.config_link(), function(config) {
-          self.link = self.link.add(new Data.D3DataLink(postgres_link));
-          // update the chart
-          self.updateMetricConfig(config.metadata, true);
-          self.scatter.add_trace(node.name, self.metric_config.length - 1);
-          // update the data
-          self.updateData(self.link);
+          self.addLink(new Data.D3DataLink(postgres_link), config.metadata, node.name);
         });
       }
     });
