@@ -242,7 +242,7 @@ def pv_internal(connection, link_name=None, ret_id=None):
 	connection = connection[0]
 
 	# Cursor allows python to execute a postgres command in the database session. 
-	cursor = connection.cursor() # Fancy way of using cursor
+	cursor = connection.cursor() 
 
 	# Database command to execute
 	if (database == "sbnteststand"):

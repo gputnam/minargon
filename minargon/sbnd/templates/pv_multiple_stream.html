@@ -22,21 +22,54 @@
                 <div style="padding:0" id="plotly-controller-{{ ID }}"></div>
             </div>
             
-            <!-- Options -->
-            <div class="col-md-4 vcenter">
+            <!-- Options Bar -->
+            <div class="col-12 col-sm-8 col-md-6 col-lg-4 vcenter">
+                <!-- Options List Tabs -->
                 <div class="card hcenter">
-                    <div class="card-header">Display Options</div>
-                    <div class="card-body">
-                        <form class="form" role="form">
-                            {# {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }} #}
-                            {# {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }} #}
-                            {{ stream_options.time_range(starts[loop.index0], ends[loop.index0], toggles[loop.index0]) }}
-                            {{ stream_options.download(downloads[loop.index0]) }}
-                        </form>
+                    
+                    <!-- Card Header -->
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="options-list-{{ ID }}" role="tablist">
+                            <!-- Display Options -->
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#Display-Options-{{ ID }}" role="tab" aria-controls="Display-Options-{{ ID }}" aria-selected="true">Display Options</a>
+                            </li>
+                            <!-- Variable Description -->
+                            <li class="nav-item">
+                                <a class="nav-link"  href="#Description-{{ ID }}" role="tab" aria-controls="Description-{{ ID }}" aria-selected="false">Description</a>
+                            </li>
+                        </ul>
                     </div>
+                    
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <div class="tab-content mt-3">
+                            
+                            <!-- Active Tab Display Options Content -->
+                            <div class="tab-pane active" id="Display-Options-{{ ID }}" role="tabpanel">
+                                <form class="form" role="form">
+                                    {# {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }} #}
+                                    {# {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }} #}
+                                    {{ stream_options.time_range(starts[loop.index0], ends[loop.index0], toggles[loop.index0]) }}
+                                    {{ stream_options.download(downloads[loop.index0]) }}
+                                </form>
+                            </div>
+                        
+                            <!-- Second Tab Description -->
+                            <div class="tab-pane" id="Description-{{ ID }}" role="tabpanel" aria-labelledby="Description-tab">  
+                                <p class="card-text"> 
+                                    Did you know that the Allosaurus (which mean different lizzard) is from the Late Jurrasic Period,
+                                    about 150 million years ago. They are the coolest carnivorous dinosaur. 
+                                    </p>
+                            </div>
+                        
+                        </div>
+                    </div>
+                
                 </div>
-            </div>
-        </div>
+            </div> <!-- end options bar -->
+        
+        </div> <!-- end row -->
 
         <!-- Horizontal Break -->
         <hr>
@@ -74,7 +107,16 @@
 
         // Start it
         plotly_controller.run();
+    
+        // Function for activating options tab when clicked
+        var options_list = '#options-list-' + +IDs_[i] + ' a';
+        $(options_list).on('click', function (e) {
+            e.preventDefault()
+            $(this).tab('show')
+        });
     }
+
+    
 
 </script>
 {% endblock %}
