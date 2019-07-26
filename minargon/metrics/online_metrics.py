@@ -44,6 +44,7 @@ def test_redis(redis):
 # get a datum stored in a snapshot
 @app.route('/<redis>/snapshot/<data>')
 @redis_route
+#wire = 1,576
 def snapshot(redis, data):
     redis_key = "snapshot:%s" % data
     # args should be key-value pairs of specifiers in the redis keys
@@ -53,6 +54,22 @@ def snapshot(redis, data):
         redis_key += ":%s:%s" % (k, v)
     return jsonify(values=redis_api.get_key(redis, redis_key))
 
+@app.route('/<redis>/snapshots/<data>')
+@redis_route
+def snapshots(redis, data):
+    wire = 1,576
+    redis_key = "snapshot:%s" % data
+    # args should be key-value pairs of specifiers in the redis keys                                                                             
+    # e.g. /snapshot/waveform?wire=1                                                                                                             
+    # decodes to the redis key snapshot:waveform:wire:1                                                                                         
+
+    for i in wire : 
+ #        i++
+ #       i<576
+ 
+        for (k, v) in request.args.iteritems():
+            redis_key += ":%s:%s" % (k, v)
+        return jsonify(values=redis_api.get_key(redis, redis_key))
 
 def get_min_end_time(data):
     min_end_time = 0

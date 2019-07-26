@@ -13,13 +13,16 @@
 // param: dictionary where the key-value pairs will be GET params for the URL specified
 //        to get data from the backend raw data API
 export function draw_waveform(target, param) {
-  d3.json($SCRIPT_ROOT + "/online/snapshot/waveform?" + $.param(param), function(err, data) {
+  d3.json($SCRIPT_ROOT + "/online/snapshot/waveform?" + $.param(param), function(err, data,i) {
     if (data == null || data.values == null) return;
-    var waveform = data.values;
+var waveform = data.values;
+//for (int i=0;i< 575;i++){
 
-    var xrange = Array.apply(null, Array(waveform.length)).map(function (_, i) {return i * 0.5 /* scale to usec */;});
-
-    var trace = {
+//}
+//loop around all waveforms and include the channel number too
+    var xrange = Array.apply(null, Array(waveform.length)).map(function (_, i) {return i * 0.4 /* scale to usec */;});;
+//    std::cout << i<<std::endl;
+      var trace{
       x: xrange,
       y: waveform,
       type: 'scatter'
@@ -48,7 +51,7 @@ export function draw_fft(target, param) {
     var fft_vals = data.values;
     if (!fft_vals.length) return;
 
-    var khz_scaling_value = 1000./(fft_vals.length - 1); // max value in fft should be 1MHz
+    var khz_scaling_value = 1250./(fft_vals.length - 1); // max value in fft should be 1.25MHz
 
     // ignore the first element of the fft, corresponding to the baseline
     var xrange = Array.apply(null, Array(fft_vals.length - 1)).map(function (_, i) {return i * khz_scaling_value;});
