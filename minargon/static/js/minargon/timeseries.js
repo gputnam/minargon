@@ -97,7 +97,6 @@ export class PlotlyController {
   // ---------------------------------------------------------------------------
   // start running
   run() {
-    this.is_live = true;
     this.is_running = true;
     this.getTimeStep(function(self, step) {
       self.updateStep(step);
@@ -162,6 +161,13 @@ export class PlotlyController {
     // run it
     this.runBuffer();
   }
+ 
+  setDataRange(start, stop) {
+    this.is_live = false;
+    this.start = start;
+    this.end = end;
+  }
+
   // ---------------------------------------------------------------------------
   // Tell the buffer to get data for a specific time range
   getData(start, stop) {
