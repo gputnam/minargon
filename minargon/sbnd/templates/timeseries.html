@@ -22,7 +22,7 @@
             <div class="card-header">TimeSeries Options</div>
             <div class="card-body">
                 <form class="form" role="form">
-                    {{ stream_options.time_range("start", "end", "toggle") }}
+                    {{ stream_options.time_range("start", "end", "toggle",start_time,end_time) }}
                     {{ stream_options.download("download") }}
 	        </form>
             </div>

@@ -59,9 +59,18 @@ var controller = new module.CubismController("#cubism-timeseries", link, ["{{con
 var plotly_controller = new module.PlotlyController("plotly-timeseries", link, ["{{config['yTitle']}}"], {{config|tojson}})
   .timeRangeController("#start", "#end", "#toggle")
   .downloadDataController("#download")
+  //.getData(0, 3600000);//"{{start_timestamp_int}}","{{end_timestamp_int}}")
+  //.updateParam("{{low}}", "{{high}}")
   .treeSelectController("#tree", "postgres");
-
 // start it
+//if user does supply start/end time call getData
+//plotly_controller.getData(877189500,1034951400);
+//updateParam thresholds
+
+//plotly_controller.getData({{start_timestamp_int}}, {{end_timestamp_int}});
+
 plotly_controller.run();
+
+
 </script>
 {% endblock %}

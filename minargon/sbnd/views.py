@@ -11,6 +11,7 @@ import sys
 from minargon.metrics import postgres_api
 import subprocess
 from datetime import date, datetime
+import re
 
 from minargon.tools import parseiso
 # from minargon.data_config import parse
@@ -41,9 +42,9 @@ def get_args_from_url(par1 = ''):
 
 @app.route('/<connection>/latest_gps_info')
 def latest_gps_info(connection):
-    dbrows, dbnames = postgres_api.get_gps(connection)     
+    dbrows = postgres_api.get_gps(connection)     
 
-    return render_template('gps_info.html',names=dbnames,rows=dbrows)
+    return render_template('gps_info.html',rows=dbrows)
 
 @app.route('/hello')
 def hello():
@@ -127,22 +128,57 @@ def power_supply_single_stream(database, ID):
     # get the list of other data
     tree = postgres_api.test_pv_internal(database)
     # print config
-    
+   
+    #low and high thresholds given by url parameters 
     low = request.args.get('low')
     high = request.args.get('high')
-    
-    #date format from URL: Month-Day-Year_Hour:Minute
+#    if low is None:
+#	low = -400
+#    if high is None:
+#	high = 400
+    #TODO: add try and catch cases for getting timestamps
+    #Use 24 hour clock for defining time in url
+    #date format from URL: Month-Day-Year_Hour:Minute | mm-dd-yr hr-min
     #date format to turn back to string: Month/Day/Year Hour:Minute
     start = request.args.get('start')
-    if start is not none:
+    if start is not None:
 	start_obj = datetime.strptime(start, '%m-%d-%Y_%H:%M')
+	#start time string to be placed in date picker
         start_time = datetime.strftime(start_obj,'%m/%d/%Y %H:%M')
-    
+        #%m%d%y%H:%M format to convert string into integer|mmddyyyyHHMM
+
+	# start timestamp to update plot
+        #start_timestamp_str = datetime.strftime(start_obj, '%m%d%y%H:%M')
+	start_timestamp_int = parseiso(start_time);
+	#start_timestamp_int = int(start_obj.strftime("%s"))
+	#start_timestamp_int = int(re.sub(r'[^\d-]+', '',start_timestamp_str))
+
+    else:
+	start_obj = None
+	start_time = start
+	current_time = datetime.now() 
+	#start_timestamp_int = int(current_time.strftime("%s")) - 3600
+ 
     end = request.args.get('end')
-    if end is not none:
+    if end is not None:
 	end_obj = datetime.strptime(end, '%m-%d-%Y_%H:%M')
+	#end time string to be placed in date picker
 	end_time = datetime.strftime(end_obj, '%m/%d/%Y %H:%M')
-    
+        #%m%d%y%H:%M format to convert string into integer|mmddyyyyHHMM
+
+	#end timestamp to update plot
+        #end_timestamp_str = datetime.strftime(end_obj, '%m%d%y%H:%M')
+	end_timestamp_int = parseiso(end_time);
+        #end_timestamp_int = int(re.sub(r'[^\d-]+', '',end_timestamp_str))
+	#end_timestamp_int = int(end_obj.strftime("%s"))
+
+    else:
+	end_obj = None
+        end_time = end
+	current_time = datetime.now()
+	#end_timestamp_int = int(current_time.strftime("%s"))
+
+
     render_args = {
       "ID": ID,
       "config": config,
@@ -150,8 +186,12 @@ def power_supply_single_stream(database, ID):
       "tree": tree,
       "low": low,
       "high": high,
+      "start_obj": start_obj,
+      "end_obj":end_obj,
       "start_time": start_time,
-      "end_time": end_time
+      "end_time": end_time,
+      "start_timestamp": start_timestamp_int,
+      "end_timestamp": end_timestamp_int
     }
     
     return render_template('power_supply_single_stream.html', **render_args)

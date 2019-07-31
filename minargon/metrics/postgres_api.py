@@ -21,6 +21,12 @@ import time
 import calendar
 from pytz import timezone
 
+# status interpreter functions
+from checkStatus import statusString
+from checkStatus import oscillatorString
+from checkStatus import transferString
+from checkStatus import messageString
+
 # database connection configuration
 postgres_instances = app.config["POSTGRES_INSTANCES"]
 # storing different connections to be accessed by routes
@@ -318,13 +324,48 @@ def test_pv_internal(connection, link_name=None):
 @postgres_route
 def get_gps(connection):
     cursor = connection[0].cursor();
-    query = """SELECT SMPL_TIME,COALESCE(FLOAT_VAL,COALESCE(NUM_VAL,STR_VAL)) FROM DCS_PRD.SAMPLE S1 WHERE CHANNEL_ID>0 AND CHANNEL_ID<24 AND SMPL_TIME=(SELECT MAX(SMPL_TIME) FROM DCS_PRD.SAMPLE S2 WHERE S2.CHANNEL_ID=S1.CHANNEL_ID) ORDER BY S1.CHANNEL_ID;"""
-    #query = 
+    # since strings cannot coalesce with floating point or integer types, we must first convert those into numeric and then strings to be able to coalesce.
+    # ex: (float::numeric)::text
+    # get the unit from another table (num_metadata) by using a left join
+    query = """select c1.name, c1.last_smpl_time, coalesce((c1.last_num_val::numeric)::text,(c1.last_float_val::numeric)::text, c1.last_str_val), m1.unit from dcs_prd.channel c1 left join dcs_prd.num_metadata m1 on c1.channel_id = m1.channel_id where c1.channel_id in (3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,20,21,42,43) order by c1.channel_id;"""
+   # where name like '%GPS%' order by c1.channel_id;"""
+
+    #
     cursor.execute(query);
     dbrows = cursor.fetchall();
     cursor.close();
     
-    dbnames = ["ICARUS_GPS_GPS_0/latitude","ICARUS_GPS_GPS_0/longitude","ICARUS_GPS_GPS_0/sigmaPPS","ICARUS_GPS_GPS_0/systemDifference","ICARUS_GPS_GPS_0/timeStamp","ICARUS_GPS_GPS_0/status","ICARUS_GPS_GPS_0/oscillatorQuality","ICARUS_GPS_GPS_0/ppsDifference","ICARUS_GPS_GPS_0/finePhaseComparator","ICARUS_GPS_GPS_0/message","ICARUS_GPS_GPS_0/transferQuality","ICARUS_GPS_GPS_0/actualFrequency","ICARUS_GPS_GPS_0/holdoverFrequency","ICARUS_GPS_GPS_0/eepromFrequency","ICARUS_GPS_GPS_0/loopTimeConstantMode","ICARUS_GPS_GPS_0/loopTimeConstantInUse","ICARUS_GPS_GPS_0/messageStatus","ICARUS_GPS_GPS_0/hemisphereNS","ICARUS_GPS_GPS_0/hemisphereEW","ICARUS_GPS_GPS_0/TimeStampString","ICARUS_GPS_GPS_0/location","ICARUS_GPS_GPS_0/systemTimeNSec","ICARUS_GPS_GPS_0/systemTimeSec"]
+    dbnames = ["ICARUS_GPS_GPS_0/sigmaPPS","ICARUS_GPS_GPS_0/systemDifference","ICARUS_GPS_GPS_0/timeStamp","ICARUS_GPS_GPS_0/status","ICARUS_GPS_GPS_0/oscillatorQuality","ICARUS_GPS_GPS_0/ppsDifference","ICARUS_GPS_GPS_0/finePhaseComparator","ICARUS_GPS_GPS_0/message","ICARUS_GPS_GPS_0/transferQuality","ICARUS_GPS_GPS_0/actualFrequency","ICARUS_GPS_GPS_0/holdoverFrequency","ICARUS_GPS_GPS_0/eepromFrequency","ICARUS_GPS_GPS_0/loopTimeConstantMode","ICARUS_GPS_GPS_0/loopTimeConstantInUse","ICARUS_GPS_GPS_0/messageStatus","ICARUS_GPS_GPS_0/TimeStampString","ICARUS_GPS_GPS_0/location","ICARUS_GPS_GPS_0/systemTimeNSec","ICARUS_GPS_GPS_0/systemTimeSec"]
 
-    return dbrows, dbnames
+
+    # converting to a list does not work : yields another tuple and thus immutable
+    # why do we need to change an element? Because 4 components need to go through an interpreter
+    # to interpret the status ( the integer has a corresponding message/code/string )
+    # solution: create new list, copy elements into list, getting the new strings from checkStatus.py
+    # note: elements in formatted are still immutable. Most likely due to row[0] being a tuple
+    formatted = []
+    i = 0
+    for row in dbrows:
+	time = row[1].strftime("%Y-%m-%d %H:%M")
+        if row[0].endswith("/message"):
+	    formatted.append((row[0], time, messageString(row[2]), row[3]))
+	elif row[0].endswith("/transferQuality"):
+	    formatted.append((row[0], time, transferString(row[2]), row[3]))
+	elif row[0].endswith("/oscillatorQuality"):
+	    formatted.append((row[0], time, oscillatorString(row[2]), row[3]))
+	elif row[0].endswith("/status"):
+	    formatted.append((row[0], time, statusString(row[2]), row[3]))
+	elif row[0].endswith("/TimeStampString"):
+	    formatted.insert(0, (row[0], time, row[2], row[3]))
+	elif row[0].endswith("/location"):
+	    formatted.insert(0, (row[0], time, row[2], row[3]))
+	elif row[0].endswith("/sigmaPPS") or row[0].endswith("/systemDifference"):
+	    flt_val = float(row[2]) #"{:.4f}".format(row[2])
+	    flt_str = "{:.4f}".format(flt_val)
+	    formatted.append((row[0], time, flt_str, row[3]))
+	else:
+	    formatted.append((row[0], time, unicode(row[2], "utf-8"), row[3]))
+	i = i + 1
+      	#dbrows
+    return formatted
 

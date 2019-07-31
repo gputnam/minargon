@@ -8,7 +8,7 @@
 
 <!---->
 {% block script %}
-<h2>Icarus GPS Attributes</h2>
+<h2>Icarus GPS Status</h2>
 <!-- Grab depreciated glyphicons for bootstrap v4 
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
 -->
@@ -43,17 +43,17 @@
 	</head>
 	<body>
 	    <TABLE>
-	 	<TR><TH>Measurement Names </TH><TH>TIME</TH><TH>VALUE</TH></TR>
-		{%set v_global = []%}
+		
+	 	<TR><TH>Measurement Names </TH><TH>TIME</TH><TH>VALUE</TH><TH>UNIT</TH></TR>
 		{%for row in rows%}
 		<!--%for i in range(0,23)%-->
 		<TR>
-			<TD>{{names[loop.index0]}} </TD> <TD> {{row[0]}} <TD> {{row[1]}}</TD>
+			<TD>{{row[0]}}</TD> <TD>{{row[1]}}</TD> <TD>{{row[2]}}</TD> <TD>{{row[3]}}</TD>
 		</TR>
-		{%if v_global.append(1)%}{%endif%}
 		{%endfor%}		
 	    </TABLE>
 	</body>
+<meta http-equiv="refresh" content="10">
 <!-- </html> -->
 {%endblock%}
 

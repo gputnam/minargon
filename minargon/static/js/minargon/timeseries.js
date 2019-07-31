@@ -156,7 +156,7 @@ export class PlotlyController {
     // run it
     this.runBuffer();
   }
-
+  // use getData to update plot
   // Tell the buffer to get data for a specific time range
   getData(start, stop) {
     this.buffer.stop();
@@ -428,7 +428,7 @@ export class CubismController {
       }
     }
   }
-
+  // use updateParam to update thresholds.
   // Internal function: update a display parameter of the cubism charts
   updateParam(input, param_name) {
     // update this param
