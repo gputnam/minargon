@@ -28,7 +28,7 @@ $(document).ready(function() {
 
     $('#pvTree').on('nodeSelected', function(event, data) {
       if (data.ID === undefined) return;
-      var link = $SCRIPT_ROOT + "/power_supply_single_stream/" + data.database + "/" + data.ID;
+      var link = $SCRIPT_ROOT + "/pv_single_stream/" + data.database + "/" + data.ID;
       window.location.href = link;
      });
 });

@@ -1,5 +1,5 @@
 from minargon import app
-from flask import render_template, jsonify, request, redirect, url_for, flash
+from flask import render_template, jsonify, request, redirect, url_for, flash, abort
 import time
 from os.path import join
 import json
@@ -68,9 +68,9 @@ def docs(dir='', subdir='', filename='index.html'):
 
 # A test func for the PV Lists this translates the page made by bill to the Minargon webpage
 # and also updates the script to be more compatible with python
-@app.route('/<connection>/test_pv')
-def test_pv(connection):
-    return render_template('test_pvs.html', data=postgres_api.test_pv_internal(connection, "power_supply_single_stream"))
+@app.route('/<connection>/pvTree')
+def pvTree(connection):
+    return render_template('pvTree.html', data=postgres_api.pv_internal(connection, "pv_single_stream"))
 
 # snapshot of noise (currently just correlation matrix)
 @app.route('/noise_snapshot')
@@ -121,21 +121,21 @@ def wireplane_view():
     instance_name = "tpc_channel" 
     return timeseries_view(request.args, instance_name, "wire", "wireLink")
 
-@app.route('/power_supply_single_stream/<database>/<ID>')
-def power_supply_single_stream(database, ID):
+@app.route('/pv_single_stream/<database>/<ID>')
+def pv_single_stream(database, ID):
     # get the config
     config = postgres_api.pv_meta_internal(database, ID)
     # get the list of other data
-    tree = postgres_api.test_pv_internal(database)
+    # tree = postgres_api.test_pv_internal(database)
+
+    # check the currently visited item
+    checked = [("postgres", database, str(ID))]
+    tree = build_data_browser_tree(checked)
     # print config
    
     #low and high thresholds given by url parameters 
     low = request.args.get('low')
     high = request.args.get('high')
-#    if low is None:
-#	low = -400
-#    if high is None:
-#	high = 400
     #TODO: add try and catch cases for getting timestamps
     #Use 24 hour clock for defining time in url
     #date format from URL: Month-Day-Year_Hour:Minute | mm-dd-yr hr-min
@@ -148,16 +148,12 @@ def power_supply_single_stream(database, ID):
         #%m%d%y%H:%M format to convert string into integer|mmddyyyyHHMM
 
 	# start timestamp to update plot
-        #start_timestamp_str = datetime.strftime(start_obj, '%m%d%y%H:%M')
 	start_timestamp_int = parseiso(start_time);
-	#start_timestamp_int = int(start_obj.strftime("%s"))
-	#start_timestamp_int = int(re.sub(r'[^\d-]+', '',start_timestamp_str))
 
     else:
 	start_obj = None
 	start_time = start
 	current_time = datetime.now() 
-	#start_timestamp_int = int(current_time.strftime("%s")) - 3600
  
     end = request.args.get('end')
     if end is not None:
@@ -167,17 +163,12 @@ def power_supply_single_stream(database, ID):
         #%m%d%y%H:%M format to convert string into integer|mmddyyyyHHMM
 
 	#end timestamp to update plot
-        #end_timestamp_str = datetime.strftime(end_obj, '%m%d%y%H:%M')
 	end_timestamp_int = parseiso(end_time);
-        #end_timestamp_int = int(re.sub(r'[^\d-]+', '',end_timestamp_str))
-	#end_timestamp_int = int(end_obj.strftime("%s"))
 
     else:
 	end_obj = None
         end_time = end
 	current_time = datetime.now()
-	#end_timestamp_int = int(current_time.strftime("%s"))
-
 
     render_args = {
       "ID": ID,
@@ -186,15 +177,124 @@ def power_supply_single_stream(database, ID):
       "tree": tree,
       "low": low,
       "high": high,
-      "start_obj": start_obj,
-      "end_obj":end_obj,
       "start_time": start_time,
       "end_time": end_time,
       "start_timestamp": start_timestamp_int,
       "end_timestamp": end_timestamp_int
     }
+    return render_template('pv_single_stream.html', **render_args)
+
+# View a variable with multiple IDs
+@app.route('/pv_multiple_stream/<database>/<var>')
+def pv_multiple_stream(database, var):
     
-    return render_template('power_supply_single_stream.html', **render_args)
+    # Get the list of IDs for the var name
+    IDs = postgres_api.pv_internal(database, ret_id=var)
+
+    # get the configs for each ID
+    configs, starts, ends, toggles, downloads = [], [], [], [], []
+    for ID in IDs:
+        configs.append(postgres_api.pv_meta_internal(database, ID))
+        starts.append("start-"+str(ID))
+        ends.append("end-"+str(ID))
+        toggles.append("toggle-"+str(ID))
+        downloads.append("download-"+str(ID))
+
+    # print config
+    render_args = {
+      "var": var, 
+      "IDs": IDs,
+      "configs": configs,
+      "starts" : starts,
+      "ends" : ends,
+      "toggles" : toggles,
+      "downloads" : downloads,
+      "database": database
+    }
+    return render_template('pv_multiple_stream.html', **render_args)
+
+
+def build_data_browser_tree(checked=None):
+    # get the redis instance names
+    redis_names = [name for name,_ in app.config["REDIS_INSTANCES"].items()]
+    # and the postgres isntance names
+    postgres_names = [name for name,_ in app.config["POSTGRES_INSTANCES"].items()]
+    # build all of the trees
+    trees = [postgres_api.pv_internal(name) for name in postgres_names] + [online_metrics.build_link_tree(name) for name in redis_names]
+    # wrap them up at a top level
+    tree_dict = {
+      "text": "Data Browser",
+      "expanded": True,
+      "nodes": trees,
+      "displayCheckbox": False,
+    }
+    # pre-check some instances
+    if checked is None:
+        checked = []
+    for c in checked:
+        database_type, database, ID = c
+        # do a DFS down the nodes
+        stack = [tree_dict]
+        while len(stack) > 0:
+            vertex = stack.pop()
+            if "nodes" in vertex:
+                stack = stack + vertex["nodes"]
+            elif "ID" in vertex and "database" in vertex and "database_type" in vertex:
+                if vertex["ID"] == ID and vertex["database"] == database and vertex["database_type"] == database_type:
+                    vertex["state"] = {"checked": True}
+                    # if we've found the vertex, we can exit the search
+                    break
+    return tree_dict
+
+@app.route('/view_streams')
+def view_streams():
+    postgres_stream_info = {}
+    redis_stream_info = {}
+    # parse GET parameters
+    try:
+        for arg, val in request.args.items():
+            # postgres streams
+            if arg.startswith("postgres_"):
+                database_name = arg[9:]
+                database_ids = [int(x) for x in val.split(",") if x]
+                postgres_stream_info[database_name] = database_ids
+            # redis streams
+            elif arg.startswith("redis_"):
+                database_name = arg[6:]
+                database_keys = val.split(",")
+                redis_stream_info[database_name] = database_keys
+    except:
+        return abort(404)
+
+    postgres_streams = []
+    redis_streams = []
+    # collect configuration for postgres streams
+    for database, IDs in postgres_stream_info.items():
+        for ID in IDs:
+            config = postgres_api.pv_meta_internal(database, ID)
+            postgres_streams.append( (ID, database, config) )
+    # TODO: collect redis stream configuration
+    for database, keys in redis_stream_info.items():
+        for key in keys:
+            redis_streams.append( (key, database, {}) )
+
+    checked = []
+    # get the currently checked items
+    for database, IDs in postgres_stream_info.items():
+        for ID in IDs:
+            checked.append( ("postgres", database, str(ID)) )
+    for database, keys in redis_stream_info.items():
+        for key in keys:
+            checked.append( ("redis", database, key) )
+
+    # build the data tree
+    tree = build_data_browser_tree(checked)
+    render_args = {
+      "tree": tree,
+      "redis_streams": redis_streams,
+      "postgres_streams": postgres_streams
+    }
+    return render_template("view_streams.html", **render_args)
 
 @app.route('/online_group/<group_name>')
 def online_group(group_name):

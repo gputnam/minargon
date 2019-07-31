@@ -18,7 +18,7 @@ def index():
     return redirect(url_for('introduction2'))
 
 @app.route('/introduction2')
-def introduction():
+def introduction2():
     return render_template('introduction.html')
 
 @app.route('/online_group/<group_name>')
@@ -34,9 +34,9 @@ def single_stream(stream_name):
 
 # A test func for the PV Lists this translates the page made by bill to the Minargon webpage
 # and also updates the script to be more compatible with python
-@app.route('/<connection>/test_pv')
-def test_pv(connection):
-    return render_template('test_pvs.html', data=postgres_api.test_pv_internal(connection))
+@app.route('/<connection>/pv')
+def pv(connection):
+    return render_template('pvTree.html', data=postgres_api.pv_internal(connection))
 
 def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
     # TODO: what to do with this?
@@ -61,8 +61,8 @@ def timeseries_view(args, instance_name, view_ident="", link_function="undefined
 
     return render_template('timeseries.html', **render_args)
 
-@app.route('/power_supply_single_stream/<database>/<ID>')
-def power_supply_single_stream(database, ID):
+@app.route('/pv_single_stream/<database>/<ID>')
+def pv_single_stream(database, ID):
     # get the config
     config = postgres_api.pv_meta_internal(database, ID)
     # print config
@@ -71,5 +71,25 @@ def power_supply_single_stream(database, ID):
       "config": config,
       "database": database,
     }
-    return render_template('power_supply_single_stream.html', **render_args)
+    return render_template('pv_single_stream.html', **render_args)
+
+# snapshot of data on channel (fft and waveform)
+@app.route('/channel_snapshot')
+def channel_snapshot():
+    channel = request.args.get('channel', 0, type=int)
+
+    view_ind = {'channel': channel}
+    # TODOL fix..... all of this
+    view_ind_opts = {'channel': range(100)}
+
+    instance_name = "wireplane"
+    config = online_metrics.get_group_config(instance_name)
+
+    template_args = {
+        'channel': channel,
+        'config': config,
+        'view_ind': view_ind,
+        'view_ind_opts': view_ind_opts,
+    }
+    return render_template('channel_snapshot.html', **template_args)
 

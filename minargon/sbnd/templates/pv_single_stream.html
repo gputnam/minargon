@@ -7,14 +7,9 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
 <div class="container">
 <div class="row">
-    <div class="col-md-8">
-	<!-- cubism div -->
-	<div style="padding:0" id="cubism-timeseries"></div>
-	<!-- plotly div -->
-	<div style="padding:0" id="plotly-timeseries"></div>
-    </div>
-    <div class="col-md-4 vcenter">
-        <div class="card hcenter">
+    <div class="col-md-4">
+        <div class="row">
+        <div class="card">
             <div class="card-header">Display Options</div>
             <div class="card-body">
                 <form class="form" role="form">
@@ -25,20 +20,25 @@
 	        </form>
             </div>
         </div>
+        </div>
+        <br>
+        <div class="row">
+         <div class="card">
+             <div class="card-header">Data Select</div>
+	     <div class="card-body">
+                <form class="form" role="form">
+	   	    {{ stream_options.tree_select([tree], "tree") }}
+		</form>
+	    </div>
+	</div>
     </div>
-</div>
-<div class="row">
-  <div class="col-md-6 vcenter hcenter">
-    <div class="card">
-    <div class="card-header">Tree Select</div>
-    <div class="card-body">
-      <form class="form" role="form">
-      {{ stream_options.tree_select([tree], "tree") }}
-      </form>
     </div>
-  </div>
-  </div>
-</div>
+    <div class="col-md-8">
+	<!-- cubism div -->
+	<div style="padding:0" id="cubism-timeseries"></div>
+	<!-- plotly div -->
+	<div style="padding:0" id="plotly-timeseries"></div>
+    </div>
 </div>
 {%endblock%}
 {% block script %}
@@ -61,7 +61,7 @@ var plotly_controller = new module.PlotlyController("plotly-timeseries", link, [
   .downloadDataController("#download")
   //.getData(0, 3600000);//"{{start_timestamp_int}}","{{end_timestamp_int}}")
   //.updateParam("{{low}}", "{{high}}")
-  .treeSelectController("#tree", "postgres");
+
 // start it
 //if user does supply start/end time call getData
 //plotly_controller.getData(877189500,1034951400);

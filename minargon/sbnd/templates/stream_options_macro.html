@@ -1,6 +1,8 @@
 {% macro tree_select(data, id) %}
 <div class="form-group row">
-  <label class="col-sm-12 control-form-label col-form-label">Add Data:</label>
+  <div class="col-sm-12">
+    <button type="button" class="btn btn-link" onclick="updateLink{{id}}()">Update Page</button>
+  </div>
 </div>
 <div class="form-group row">
   <div class="col-sm-12" id={{id}}></div>
@@ -11,12 +13,35 @@ $('#{{id}}').treeview( {
   levels: 4,
   color: '#428bca',
   data: {{data|tojson}},
+  showIcon: false,
+  showCheckbox: true,
   enableLinks: false
 });
 
+
+function updateLink{{id}}() {
+  var checked =  $('#{{id}}').treeview('getChecked');
+  var dest_link = $SCRIPT_ROOT + "/view_streams";
+  var args = {};
+  for (var i = 0; i < checked.length; i++) {
+    // get the database type
+    var node = checked[i];
+    if (node.database_type === undefined) continue;
+    var database_ident = node.database_type + "_" + node.database;
+    if (args[database_ident] === undefined) {
+      args[database_ident] = String(node.ID);
+    }
+    else {
+      args[database_ident] = args[database_ident] + "," + String(node.ID);
+    }
+  }
+  window.location.href = dest_link + "?" + $.param(args);
+}
+
+
 </script>
 {% endmacro %}
-
+{# -------------------------------------------------------------------------- #}
 {% macro metric_option(metrics, default_metric, id) %}
 <div class="form-group row">
     <label class="col-sm-4 control-form-label col-form-label">Data</label>
@@ -29,7 +54,7 @@ $('#{{id}}').treeview( {
     </div>
 </div>
 {% endmacro %}
-
+{# -------------------------------------------------------------------------- #}
 {% macro stream_option(streams, default_stream, id) %}
 <div class="form-group row">
     <label class="col-sm-4 control-form-label col-form-label">
@@ -44,7 +69,7 @@ $('#{{id}}').treeview( {
     </div>
 </div>
 {% endmacro %}
-
+{# -------------------------------------------------------------------------- #}
 {% macro height_option(heights, default_height, id) %}
 <div class="form-group row">
     <label class="col-sm-4 control-form-label col-form-label">
@@ -60,6 +85,7 @@ $('#{{id}}').treeview( {
 </div>
 {% endmacro %}
 
+{# -------------------------------------------------------------------------- #}
 {% macro threshold_option(id_lo, id_hi, low=none, high=none) %}
 <div class="form-group row">
     <label class="col-sm-6 control-form-label col-form-label"> Threshold Hi</label>
@@ -82,7 +108,7 @@ $('#{{id}}').treeview( {
     </div>
 </div>
 {% endmacro %}
-
+{# -------------------------------------------------------------------------- #}
 {% macro warning_option(id_lo, id_hi) %}
 <div class="form-group row">
     <label class="col-sm-6 control-form-label col-form-label"> Warning Hi</label>
@@ -97,7 +123,7 @@ $('#{{id}}').treeview( {
     </div>
 </div>
 {% endmacro %}
-
+{# -------------------------------------------------------------------------- #}
 {% macro download(id) %}
 <div class="form-group row">
   <div class="col-sm-12">
@@ -106,7 +132,9 @@ $('#{{id}}').treeview( {
 </div>
 {% endmacro %}
 
+{# -------------------------------------------------------------------------- #}
 {% macro time_range(id_start, id_end, id_toggle, start_time=none, end_time=none) %}
+<!-- Start -->
 <div class="form-group row">
    <label class="col-sm-5 control-form-label col-form-label">Start Time</label> 
    <div class="col-sm-7">
@@ -117,6 +145,8 @@ $('#{{id}}').treeview( {
      {% endif %}
   </div>
 </div>
+
+<!-- End -->
 <div class="form-group row">
    <label class="col-sm-5 control-form-label col-form-label">End Time</label> 
    <div class="col-sm-7">
@@ -127,39 +157,80 @@ $('#{{id}}').treeview( {
      {% endif %}
   </div>
 </div>
+
+<!-- Buttons -->
 <div class="form-group row">
-<div class="col-sm-12">
-<div id="{{id_toggle}}" class="btn-group btn-group-toggle" data-toggle="buttons">
-  <label class="btn btn-secondary active" id="{{id_toggle}}-label-live">
-    <input type="radio" name="options" value="live" id="{{id_toggle}}-live" autocomplete="off"> Live
-  </label>
-  <label class="btn btn-secondary" id="{{id_toggle}}-label-lookback">
-    <input type="radio" name="options" value="lookback" id="{{id_toggle}}-lookback" autocomplete="off"> Lookback
-  </label>
+  <div class="col-sm-12">
+    <div id="{{id_toggle}}" class="btn-group btn-group-toggle" data-toggle="buttons">
+      
+      <!-- Toggle Live -->
+      <label class="btn btn-secondary active" id="{{id_toggle}}-label-live">
+        <input type="radio" name="options" value="live" id="{{id_toggle}}-live" autocomplete="off"> Live
+      </label>
+
+      <!-- Toggle Hour -->
+      <label class="btn btn-secondary" id="{{id_toggle}}-label-hour" >
+        <input type="radio" name="options" value="live" id="{{id_toggle}}-hour" autocomplete="off" > Hour
+      </label>
+
+      <!-- Toggle Day -->
+      <label class="btn btn-secondary" id="{{id_toggle}}-label-day">
+        <input type="radio" name="options" value="live" id="{{id_toggle}}-day" autocomplete="off" > Day
+      </label>
+      
+      <!-- Toggle Lookback -->
+      <label class="btn btn-secondary" id="{{id_toggle}}-label-lookback">
+        <input type="radio" name="options" value="lookback" id="{{id_toggle}}-lookback" autocomplete="off"> Lookback
+      </label>
+      
+    </div>
+  </div>
 </div>
-</div>
-</div>
+
 <script>
-function updateToggle() {
-  if ($("#{{id_toggle}}-live").prop("checked")) {
-    $("#{{id_toggle}}").val("live");
+function updateToggle(toggle_id) {
+
+  // Create toggle strings -- need this for multiple streams
+  var toggle_live     = "#" + toggle_id + "-live";
+  var toggle_lookback = "#" + toggle_id + "-lookback";
+  var toggle_hour     = "#" + toggle_id + "-hour";
+  var toggle_day      = "#" + toggle_id + "-day";
+  var toggle          = "#" + toggle_id;
+
+  if ($(toggle_live).prop("checked")) {
+    $(toggle).val("live");
   }
-  else if ($("#{{id_toggle}}-lookback").prop("checked")) {
-    $("#{{id_toggle}}").val("lookback");
+  else if ($(toggle_lookback).prop("checked")) {
+    $(toggle).val("lookback");
   }
-  $("#{{id_toggle}}").trigger("date-change");
+  else if ($(toggle_hour).prop("checked")) {
+    $(toggle).val("hour");
+  }
+  else if ($(toggle_day).prop("checked")) {
+    $(toggle).val("day");
+  }
+  
+  $(toggle).trigger("date-change");
 }
 
 // when the selected date-time range is valid, toggle the live button
 function toggleLive(current_time, input) {
+  
   var this_start = moment($('#{{id_start}}').datetimepicker('getValue'));
+  
   var this_end = moment($('#{{id_end}}').datetimepicker('getValue'));
+  
   if (this_start.isBefore(this_end)) {
+
     $("#{{id_toggle}}-label-live").removeClass("active");
+    
     $("#{{id_toggle}}-label-lookback").addClass("active");
+    
     $("#{{id_toggle}}-live").prop("checked", false);
+    
     $("#{{id_toggle}}-lookback").prop("checked", true);
-    updateToggle();
+    
+    updateToggle("{{id_toggle}}");
   }
 }
 
@@ -174,6 +245,7 @@ jQuery('#{{id_start}}').datetimepicker({
   formatTime: 'HH:mm',
   onClose: toggleLive
 });
+
 jQuery('#{{id_end}}').datetimepicker({
   {% if end_time is not none %}
 	value:'{{end_time}}',
@@ -185,16 +257,21 @@ jQuery('#{{id_end}}').datetimepicker({
   onClose: toggleLive
 });
 
+
+var live_picker = ["#{{id_toggle}}-live", "#{{id_toggle}}-hour", "#{{id_toggle}}-day"];
+
 // setup the toggle button to turn off the pickers
-$("#{{id_toggle}}-live").change(
-  function() {
-    if ($(this).prop('checked')) {
-      $('#{{id_end}}').datetimepicker('reset');
-      $('#{{id_start}}').datetimepicker('reset');
-      updateToggle();
-    }
-});
+for (var i = 0; i < live_picker.length; i++){
+  $(live_picker[i]).change(
+    function() {
+      if ($(this).prop('checked')) {
+        $('#{{id_end}}').datetimepicker('reset');
+        $('#{{id_start}}').datetimepicker('reset');
+        updateToggle("{{id_toggle}}");
+      }
+  });
+}
 
 </script>
 {% endmacro %}
-
+{# -------------------------------------------------------------------------- #}

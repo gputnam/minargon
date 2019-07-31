@@ -286,6 +286,10 @@
 			if (!node.state.hasOwnProperty('disabled')) {
 				node.state.disabled = false;
 			}
+                        // show checkbox by default
+                        if (!node.hasOwnProperty('displayCheckbox')) {
+				node.displayCheckbox = true;
+                        }
 
 			// set expanded state; if not provided based on levels
 			if (!node.state.hasOwnProperty('expanded')) {
@@ -565,7 +569,7 @@
 			}
 
 			// Add check / unchecked icon
-			if (_this.options.showCheckbox) {
+			if (_this.options.showCheckbox && node.displayCheckbox) {
 
 				var classList = ['check-icon'];
 				if (node.state.checked) {
