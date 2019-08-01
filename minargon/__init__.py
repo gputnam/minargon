@@ -49,7 +49,7 @@ if not "WEB_ROOT" in app.config:
 app.wsgi_app = ReverseProxied(app.wsgi_app, app.config["WEB_ROOT"])
 
 # set location of tempaltes
-app.template_folder = os.path.join(app.config["FRONT_END"], "templates")
+app.template_folder = "templates"
 
 # url converters
 from .tools import ListConverter
@@ -60,5 +60,10 @@ if app.config["FRONT_END"] == "sbnd":
     import minargon.sbnd.views
 elif app.config["FRONT_END"] == "icarus":
     import minargon.icarus.views
+# common views
+import minargon.common.views
+# context processor
+import minargon.common.inject
+
 import minargon.metrics.online_metrics
 import minargon.metrics.postgres_api

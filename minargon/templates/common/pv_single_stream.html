@@ -1,6 +1,6 @@
-{% import "stream_options_macro.html" as stream_options %}
+{% import "stream_options_macro.html" | common as stream_options %}
 
-{% extends "layout.html" %}
+{% extends "layout.html" | front_ended %}
 {% block title %}Stream: {{ID}}{% endblock %}
 {% block body %}
 {{ super() }}

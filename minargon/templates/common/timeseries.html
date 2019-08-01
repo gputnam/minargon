@@ -1,6 +1,6 @@
-{% import "stream_options_macro.html" as stream_options %}
+{% import "stream_options_macro.html" | common as stream_options %}
 
-{% extends "layout.html" %}
+{% extends "layout.html" | front_ended %}
 {% block title %}{{title}}{% endblock %}
 {% block body %}
 {{ super() }}
@@ -13,25 +13,9 @@
         <div id="scatter"></div>
     </div>
 </div>
+
 <div class="row">
-    <div class="col-md-8 vcenter" style="padding:0">
-      <div id ="time-scatter"></div>
-    </div>
-    <div class="col-md-4 vcenter">
-        <div class="card hcenter">
-            <div class="card-header">TimeSeries Options</div>
-            <div class="card-body">
-                <form class="form" role="form">
-                    {{ stream_options.time_range("start", "end", "toggle",start_time,end_time) }}
-                    {{ stream_options.download("download") }}
-	        </form>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-md-8" style="padding:0" id="timeseries"></div>
-    <div class="col-md-4 vcenter">
+<div class="col-md-4 vcenter">
         <div class="card hcenter">
             <div class="card-header">Display Options</div>
             <div class="card-body">
@@ -41,6 +25,24 @@
                     {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
                     {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }}
                     {{ stream_options.warning_option("form-warning-range-lo", "form-warning-range-hi") }}
+                </form>
+            </div>  
+       	   </div>    
+          </div>
+         <div class="col-md-8" style="padding:0" id="timeseries"></div>
+         </div>
+
+<div class="row">
+    <div class="col-md-8 vcenter" style="padding:0">
+    </div>
+      <div id ="time-scatter"></div>
+       <div class="col-md-4 vcenter">
+        <div class="card hcenter">
+            <div class="card-header">TimeSeries Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
+                    {{ stream_options.time_range("start", "end", "toggle") }}
+                    {{ stream_options.download("download") }}
 	        </form>
             </div>
         </div>
@@ -56,7 +58,7 @@ import * as Config from "{{ url_for('static', filename='js/minargon/config.js') 
 // var config = new timeseries.TimeSeries({{config|tojson|safe}});
 var config = {{config|tojson|safe}};
 
-var config_controller = new Config.GroupConfigController(config, {{link_function}}, ["{{metric}}"], undefined, 0)
+var config_controller = new Config.GroupConfigController(config, {{link_function}}, ["{{metric}}"], undefined, 0, 25)
     .metricController("#form-metric")
     .streamController("#form-stream"); 
 
@@ -79,14 +81,16 @@ var cubism = config_controller.addCubismController("#timeseries", 25)
 
 // build plotly controller
 var plotly = config_controller.addPlotlyController("time-scatter")
-  .timeRangeController("#start", "#end", "#toggle")
-  .downloadDataController("#download");
+   .timeRangeController("#start", "#end", "#toggle")
+   .downloadDataController("#download");
 
 // start the controllers
 config_controller.runAll();
 
 // function to update href
 function wireLink(group, instance) {
+  // TEMPORARY HACK FOR ICARUS VST -- hardcode instance -> wire # map as wire = (instance) * 24
+  instance = String(Number(instance) * 24);
   return "channel_snapshot?channel=" + instance;
 }
 
