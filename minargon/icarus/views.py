@@ -38,7 +38,8 @@ def single_stream(stream_name):
 def pv(connection):
     return render_template('pvTree.html', data=postgres_api.pv_internal(connection))
 
-def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
+# ICARUS VST TEMPORARY HACK: hardcode which link function to use to TPC
+def timeseries_view(args, instance_name, view_ident="", link_function="wireLink"):
     # TODO: what to do with this?
     initial_datum = args.get('data', None)
     
@@ -80,9 +81,9 @@ def channel_snapshot():
 
     view_ind = {'channel': channel}
     # TODOL fix..... all of this
-    view_ind_opts = {'channel': range(100)}
+    view_ind_opts = {'channel': range(576)}
 
-    instance_name = "wireplane"
+    instance_name = "tpc_channel"
     config = online_metrics.get_group_config(instance_name)
 
     template_args = {
