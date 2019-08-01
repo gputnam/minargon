@@ -49,7 +49,7 @@ def channel_snapshot():
     view_ind_opts = {'channel': range(constants.N_CHANNELS)}
 
     instance_name = "wireplane"
-    config = online_metrics.get_group_config(instance_name)
+    config = online_metrics.get_group_config("online", instance_name)
 
     template_args = {
         'channel': channel,
@@ -68,7 +68,7 @@ def wireplane_view():
 
 @app.route('/purity')
 def purity():
-    config = online_metrics.get_group_config("TPC")
+    config = online_metrics.get_group_config("online", "TPC")
 
     render_args = {
       'config': config

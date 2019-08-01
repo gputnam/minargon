@@ -35,16 +35,15 @@ for database_name, config in redis_instances.items():
 # decorator for getting the correct database from the provided link
 def redis_route(func):
     @wraps(func)
-    def wrapper(rname, *args, **kwargs):
-        if rname in r_databases:
-            r = r_databases[rname]
+    def wrapper(rconnect, *args, **kwargs):
+        if rconnect in r_databases:
+            r = r_databases[rconnect]
             # try to make a connection
             try:
                 r.get("")
             except (redis.exceptions.ConnectionError, redis.exceptions.BusyLoadingError) as err:
-                error = RedisConnectionError().register_redis_error(err, rname)
+                error = RedisConnectionError().register_redis_error(err, rconnect)
                 return abort(503, error)
-            
             return func(r, *args, **kwargs)
         else:
             return abort(404)
@@ -297,6 +296,7 @@ def get_group_config(rconnect, group_name):
       "streams": [],
       "stream_links": [],
     }
+    redis_database = "online"
 
     # setup pipeline
     pipeline = rconnect.pipeline()

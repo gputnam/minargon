@@ -23,7 +23,7 @@ def channel_snapshot():
     view_ind_opts = {'channel': range(576)}
 
     instance_name = "tpc_channel"
-    config = online_metrics.get_group_config(instance_name)
+    config = online_metrics.get_group_config("online", instance_name)
 
     template_args = {
         'channel': channel,
