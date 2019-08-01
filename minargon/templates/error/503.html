@@ -1,0 +1,7 @@
+{% extends "layout.html" | front_ended %}
+{% block title %}503 Error{% endblock %}
+{% block body %}
+{{ super() }}
+<h1>Error 503: Database Connection Error ({{database_name}}):</h1>
+<p> {{description|safe}}</p>
+{% endblock %}

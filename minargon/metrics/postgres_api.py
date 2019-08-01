@@ -27,6 +27,30 @@ from checkStatus import oscillatorString
 from checkStatus import transferString
 from checkStatus import messageString
 
+
+# error class for connecting to postgres
+class PostgresConnectionError:
+    def __init__(self):
+        self.err = None
+        self.msg = "Unknown Error"
+
+    def register_postgres_error(self, err, name):
+        self.err = err
+        self.name = name
+        self.msg = str(err)
+        return self
+
+    def register_fileopen_error(self, err, name):
+        self.err = err
+        self.name = name
+        self.msg = "Error opening secret key file: %s" % err[1]
+        return self
+
+    def message(self):
+        return self.msg.replace("\n", "<br>")
+    def database_name(self):
+        return self.name
+
 #________________________________________________________________________________________________
 # database connection configuration
 postgres_instances = app.config["POSTGRES_INSTANCES"]
@@ -39,16 +63,27 @@ for connection_name, config in postgres_instances.items():
 	database_name = config["name"]
 	host = config["host"]
 	port = config["port"]
-	with open(key) as f:
-		u = (f.readline()).strip() # strip: removes leading and trailing chars
-		p = (f.readline()).strip()
+        try:
+		with open(key) as f:
+			u = (f.readline()).strip() # strip: removes leading and trailing chars
+			p = (f.readline()).strip()
+	except IOError as err:
+		connection = PostgresConnectionError().register_fileopen_error(err, connection_name)
+		success = False
+		p_databases[connection_name] = (connection, config, success)
+		continue
 	
         config["web_name"] = connection_name
 	# Connect to the database
-	connection = psycopg2.connect(database=database_name, user=u, password=p, host=host, port=port)
+	try:
+		connection = psycopg2.connect(database=database_name, user=u, password=p, host=host, port=port)
+		success = True
+	except psycopg2.OperationalError as err:
+		connection = PostgresConnectionError().register_postgres_error(err, connection_name)
+		success = False
 	
 	# store it
-	p_databases[connection_name] = (connection, config)
+	p_databases[connection_name] = (connection, config, success)
 #________________________________________________________________________________________________
 # decorator for getting the correct database from the provided link
 def postgres_route(func):
@@ -56,8 +91,11 @@ def postgres_route(func):
 	@wraps(func)
 	def wrapper(connection, *args, **kwargs):
 		if connection in p_databases:
-			connection = p_databases[connection]
-			return func(connection, *args, **kwargs)
+			connection, config, success = p_databases[connection]
+			if success:
+				return func((connection,config), *args, **kwargs)
+			else:
+				return abort(503, connection)
 		else:
 			return abort(404)
 		

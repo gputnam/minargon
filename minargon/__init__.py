@@ -64,6 +64,8 @@ elif app.config["FRONT_END"] == "icarus":
 import minargon.common.views
 # context processor
 import minargon.common.inject
+# custim error handling
+import minargon.common.error
 
 import minargon.metrics.online_metrics
 import minargon.metrics.postgres_api

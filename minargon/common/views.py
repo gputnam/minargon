@@ -58,7 +58,7 @@ def timeseries_view(args, instance_name, view_ident="", link_function="undefined
     initial_datum = args.get('data', None)
     
     # get the config for this group from redis
-    config = online_metrics.get_group_config(instance_name)
+    config = online_metrics.get_group_config("online", instance_name)
 
     if initial_datum is None:
         if len(config["metric_list"]) > 0:
