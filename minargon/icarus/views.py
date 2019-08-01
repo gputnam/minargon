@@ -34,7 +34,8 @@ def single_stream(stream_name):
 def test_pv(connection):
     return render_template('test_pvs.html', data=postgres_api.test_pv_internal(connection))
 
-def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
+# ICARUS VST TEMPORARY HACK: hardcode which link function to use to TPC
+def timeseries_view(args, instance_name, view_ident="", link_function="wireLink"):
     # TODO: what to do with this?
     initial_datum = args.get('data', None)
     
