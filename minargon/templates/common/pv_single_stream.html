@@ -1,44 +1,44 @@
-{% import "stream_options_macro.html" as stream_options %}
+{% import "stream_options_macro.html" | common as stream_options %}
 
-{% extends "layout.html" %}
+{% extends "layout.html" | front_ended %}
 {% block title %}Stream: {{ID}}{% endblock %}
 {% block body %}
 {{ super() }}
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
 <div class="container">
 <div class="row">
+    <div class="col-md-4">
+        <div class="row">
+        <div class="card">
+            <div class="card-header">Display Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
+                    {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
+                    {{ stream_options.threshold_option("form-range-lo", "form-range-hi",low,high) }}
+                    {{ stream_options.time_range("start", "end", "toggle",start_time,end_time) }}
+                    {{ stream_options.download("download") }}
+	        </form>
+            </div>
+        </div>
+        </div>
+        <br>
+        <div class="row">
+         <div class="card">
+             <div class="card-header">Data Select</div>
+	     <div class="card-body">
+                <form class="form" role="form">
+	   	    {{ stream_options.tree_select([tree], "tree") }}
+		</form>
+	    </div>
+	</div>
+    </div>
+    </div>
     <div class="col-md-8">
 	<!-- cubism div -->
 	<div style="padding:0" id="cubism-timeseries"></div>
 	<!-- plotly div -->
 	<div style="padding:0" id="plotly-timeseries"></div>
     </div>
-    <div class="col-md-4 vcenter">
-        <div class="card hcenter">
-            <div class="card-header">Display Options</div>
-            <div class="card-body">
-                <form class="form" role="form">
-                    {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
-                    {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }}
-                    {{ stream_options.time_range("start", "end", "toggle") }}
-                    {{ stream_options.download("download") }}
-	        </form>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-  <div class="col-md-6 vcenter hcenter">
-    <div class="card">
-    <div class="card-header">Tree Select</div>
-    <div class="card-body">
-      <form class="form" role="form">
-      {{ stream_options.tree_select([tree], "tree") }}
-      </form>
-    </div>
-  </div>
-  </div>
-</div>
 </div>
 {%endblock%}
 {% block script %}
@@ -59,9 +59,18 @@ var controller = new module.CubismController("#cubism-timeseries", link, ["{{con
 var plotly_controller = new module.PlotlyController("plotly-timeseries", link, ["{{config['yTitle']}}"], {{config|tojson}})
   .timeRangeController("#start", "#end", "#toggle")
   .downloadDataController("#download")
-  .treeSelectController("#tree", "postgres");
+  //.getData(0, 3600000);//"{{start_timestamp_int}}","{{end_timestamp_int}}")
+  //.updateParam("{{low}}", "{{high}}")
 
 // start it
+//if user does supply start/end time call getData
+//plotly_controller.getData(877189500,1034951400);
+//updateParam thresholds
+
+//plotly_controller.getData({{start_timestamp_int}}, {{end_timestamp_int}});
+
 plotly_controller.run();
+
+
 </script>
 {% endblock %}

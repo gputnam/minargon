@@ -20,6 +20,37 @@ from datetime import datetime, timedelta # needed for testing only
 import time
 import calendar
 from pytz import timezone
+
+# status interpreter functions
+from checkStatus import statusString
+from checkStatus import oscillatorString
+from checkStatus import transferString
+from checkStatus import messageString
+
+
+# error class for connecting to postgres
+class PostgresConnectionError:
+    def __init__(self):
+        self.err = None
+        self.msg = "Unknown Error"
+
+    def register_postgres_error(self, err, name):
+        self.err = err
+        self.name = name
+        self.msg = str(err)
+        return self
+
+    def register_fileopen_error(self, err, name):
+        self.err = err
+        self.name = name
+        self.msg = "Error opening secret key file: %s" % err[1]
+        return self
+
+    def message(self):
+        return self.msg.replace("\n", "<br>")
+    def database_name(self):
+        return self.name
+
 #________________________________________________________________________________________________
 # database connection configuration
 postgres_instances = app.config["POSTGRES_INSTANCES"]
@@ -32,16 +63,27 @@ for connection_name, config in postgres_instances.items():
 	database_name = config["name"]
 	host = config["host"]
 	port = config["port"]
-	with open(key) as f:
-		u = (f.readline()).strip() # strip: removes leading and trailing chars
-		p = (f.readline()).strip()
+        try:
+		with open(key) as f:
+			u = (f.readline()).strip() # strip: removes leading and trailing chars
+			p = (f.readline()).strip()
+	except IOError as err:
+		connection = PostgresConnectionError().register_fileopen_error(err, connection_name)
+		success = False
+		p_databases[connection_name] = (connection, config, success)
+		continue
 	
         config["web_name"] = connection_name
 	# Connect to the database
-	connection = psycopg2.connect(database=database_name, user=u, password=p, host=host, port=port)
+	try:
+		connection = psycopg2.connect(database=database_name, user=u, password=p, host=host, port=port)
+		success = True
+	except psycopg2.OperationalError as err:
+		connection = PostgresConnectionError().register_postgres_error(err, connection_name)
+		success = False
 	
 	# store it
-	p_databases[connection_name] = (connection, config)
+	p_databases[connection_name] = (connection, config, success)
 #________________________________________________________________________________________________
 # decorator for getting the correct database from the provided link
 def postgres_route(func):
@@ -49,8 +91,11 @@ def postgres_route(func):
 	@wraps(func)
 	def wrapper(connection, *args, **kwargs):
 		if connection in p_databases:
-			connection = p_databases[connection]
-			return func(connection, *args, **kwargs)
+			connection, config, success = p_databases[connection]
+			if success:
+				return func((connection,config), *args, **kwargs)
+			else:
+				return abort(503, connection)
 		else:
 			return abort(404)
 		
@@ -343,7 +388,6 @@ def pv_internal(connection, link_name=None, ret_id=None):
 		
 		index[2] = index[2] + 1
 		tags[1] = tags[1] + 1
-	
 	# Decide what type of data to return
 	if ret_id is None:
 		return pydict # return the full tree
@@ -369,3 +413,50 @@ def get_pv_description(ID):
 
 	return jsonify(ret)
 #________________________________________________________________________________________________
+ 
+#________________________________________________________________________________________________
+@postgres_route
+def get_gps(connection):
+    cursor = connection[0].cursor();
+    # since strings cannot coalesce with floating point or integer types, we must first convert those into numeric and then strings to be able to coalesce.
+    # ex: (float::numeric)::text
+    # get the unit from another table (num_metadata) by using a left join
+    query = """select c1.name, c1.last_smpl_time, coalesce((c1.last_num_val::numeric)::text,(c1.last_float_val::numeric)::text, c1.last_str_val), m1.unit from dcs_prd.channel c1 left join dcs_prd.num_metadata m1 on c1.channel_id = m1.channel_id where c1.channel_id in (3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,20,21,42,43) order by c1.channel_id;"""
+   # where name like '%GPS%' order by c1.channel_id;"""
+
+    #
+    cursor.execute(query);
+    dbrows = cursor.fetchall();
+    cursor.close();
+    
+    # converting to a list does not work : yields another tuple and thus immutable
+    # why do we need to change an element? Because 4 components need to go through an interpreter
+    # to interpret the status ( the integer has a corresponding message/code/string )
+    # solution: create new list, copy elements into list, getting the new strings from checkStatus.py
+    # note: elements in formatted are still immutable. Most likely due to row[0] being a tuple
+    formatted = []
+    i = 0
+    for row in dbrows:
+	time = row[1].strftime("%Y-%m-%d %H:%M")
+        if row[0].endswith("/message"):
+	    formatted.append((row[0], time, messageString(row[2]), row[3]))
+	elif row[0].endswith("/transferQuality"):
+	    formatted.append((row[0], time, transferString(row[2]), row[3]))
+	elif row[0].endswith("/oscillatorQuality"):
+	    formatted.append((row[0], time, oscillatorString(row[2]), row[3]))
+	elif row[0].endswith("/status"):
+	    formatted.append((row[0], time, statusString(row[2]), row[3]))
+	elif row[0].endswith("/TimeStampString"):
+	    formatted.insert(0, (row[0], time, row[2], row[3]))
+	elif row[0].endswith("/location"):
+	    formatted.insert(0, (row[0], time, row[2], row[3]))
+	elif row[0].endswith("/sigmaPPS") or row[0].endswith("/systemDifference"):
+	    flt_val = float(row[2]) #"{:.4f}".format(row[2])
+	    flt_str = "{:.4f}".format(flt_val)
+	    formatted.append((row[0], time, flt_str, row[3]))
+	else:
+	    formatted.append((row[0], time, unicode(row[2], "utf-8"), row[3]))
+	i = i + 1
+      	#dbrows
+    return formatted
+	

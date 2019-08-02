@@ -1,0 +1,59 @@
+{% extends "layout.html" | front_ended %}
+
+{% block title %}Introduction to Minargon{% endblock %}
+
+{% block body %}
+{{ super() }}
+{%endblock%}
+
+<!---->
+{% block script %}
+<h2>Icarus GPS Status</h2>
+<!-- Grab depreciated glyphicons for bootstrap v4 
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
+-->
+
+  
+<head>
+    <title>Icarus GPS Attributes</title>
+    <link href="/css/bootstrap.css" rel="stylesheet">
+  </head>
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap-treeview.js"></script>
+    <style>
+      table
+      {
+        border:1px solid black;padding:5px;font-size: 140%
+      }
+      td
+      {
+        text-align:right;
+        border:1px solid grey;padding:5px;
+      }
+      th
+      {
+        text-align:center;
+		border:1px solid grey;padding:5px;
+	      }
+	      body
+	      {
+		margin: 28px;
+	      }
+	</style>
+	</head>
+	<body>
+	    <TABLE>
+		
+	 	<TR><TH>Measurement Names </TH><TH>TIME</TH><TH>VALUE</TH><TH>UNIT</TH></TR>
+		{%for row in rows%}
+		<!--%for i in range(0,23)%-->
+		<TR>
+			<TD>{{row[0]}}</TD> <TD>{{row[1]}}</TD> <TD>{{row[2]}}</TD> <TD>{{row[3]}}</TD>
+		</TR>
+		{%endfor%}		
+	    </TABLE>
+	</body>
+<meta http-equiv="refresh" content="10">
+<!-- </html> -->
+{%endblock%}
+

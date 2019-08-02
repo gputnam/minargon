@@ -1,12 +1,12 @@
-{% extends "layout.html" %}
-{% import "stream_options_macro.html" as stream_options %}
+{% extends "layout.html" | front_ended %}
+{% import "stream_options_macro.html" | common as stream_options %}
 
 {% block title %}Channel Snapshot{% endblock %}
 {% block body %}
 {{ super() }}
 <div class="container">
 <div class="row">
-    {% include 'data_header.html' %}
+    {% include 'data_header.html' | front_ended %}
 </div>
 <div class="row">
     <div class="col-md-4">

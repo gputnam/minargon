@@ -495,8 +495,8 @@ export class GroupDataHistoController {
   // (if such configuration exists)
   metricParam() {
     var metric_param = this.metric_config;
-    if (metric_param !== undefined && metric_param.range !== undefined) {
-      this.range = metric_param.dsplay_range;
+    if (metric_param !== undefined && metric_param.display_range !== undefined) {
+      this.range = metric_param.display_range;
     }
     else {
       this.range = [];
