@@ -31,7 +31,7 @@ def introduction():
 
 @app.route('/<connection>/latest_gps_info')
 def latest_gps_info(connection):
-    dbrows = postgres_api.get_gps(connection)     
+    dbrows = postgres_api.get_gps(connection, front_end_abort=True)     
 
     return render_template('common/gps_info.html',rows=dbrows)
 
@@ -51,14 +51,14 @@ def single_stream(stream_name):
 # and also updates the script to be more compatible with python
 @app.route('/<connection>/pvTree')
 def pvTree(connection):
-    return render_template('common/pvTree.html', data=postgres_api.pv_internal(connection, "pv_single_stream"))
+    return render_template('common/pvTree.html', data=postgres_api.pv_internal(connection, "pv_single_stream", front_end_abort=True))
 
 def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
     # TODO: what to do with this?
     initial_datum = args.get('data', None)
     
     # get the config for this group from redis
-    config = online_metrics.get_group_config("online", instance_name)
+    config = online_metrics.get_group_config("online", instance_name, front_end_abort=True)
 
     if initial_datum is None:
         if len(config["metric_list"]) > 0:
@@ -79,7 +79,7 @@ def timeseries_view(args, instance_name, view_ident="", link_function="undefined
 @app.route('/pv_single_stream/<database>/<ID>')
 def pv_single_stream(database, ID):
     # get the config
-    config = postgres_api.pv_meta_internal(database, ID)
+    config = postgres_api.pv_meta_internal(database, ID, front_end_abort=True)
     # get the list of other data
     # tree = postgres_api.test_pv_internal(database)
 
@@ -144,12 +144,12 @@ def pv_single_stream(database, ID):
 def pv_multiple_stream(database, var):
     
     # Get the list of IDs for the var name
-    IDs = postgres_api.pv_internal(database, ret_id=var)
+    IDs = postgres_api.pv_internal(database, ret_id=var, front_end_abort=True)
 
     # get the configs for each ID
     configs, starts, ends, toggles, downloads = [], [], [], [], []
     for ID in IDs:
-        configs.append(postgres_api.pv_meta_internal(database, ID))
+        configs.append(postgres_api.pv_meta_internal(database, ID, front_end_abort=True))
         starts.append("start-"+str(ID))
         ends.append("end-"+str(ID))
         toggles.append("toggle-"+str(ID))
@@ -175,7 +175,7 @@ def build_data_browser_tree(checked=None):
     # and the postgres isntance names
     postgres_names = [name for name,_ in app.config["POSTGRES_INSTANCES"].items()]
     # build all of the trees
-    trees = [postgres_api.pv_internal(name) for name in postgres_names] + [online_metrics.build_link_tree(name) for name in redis_names]
+    trees = [postgres_api.pv_internal(name, front_end_abort=True) for name in postgres_names] + [online_metrics.build_link_tree(name, front_end_abort=True) for name in redis_names]
     # wrap them up at a top level
     tree_dict = {
       "text": "Data Browser",
@@ -226,7 +226,7 @@ def view_streams():
     # collect configuration for postgres streams
     for database, IDs in postgres_stream_info.items():
         for ID in IDs:
-            config = postgres_api.pv_meta_internal(database, ID)
+            config = postgres_api.pv_meta_internal(database, ID, front_end_abort=True)
             postgres_streams.append( (ID, database, config) )
     # TODO: collect redis stream configuration
     for database, keys in redis_stream_info.items():
