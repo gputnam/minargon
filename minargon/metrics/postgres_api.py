@@ -350,3 +350,22 @@ def pv_internal(connection, link_name=None, ret_id=None):
 	else:
 		return list_id # return the ids of a variable
 #________________________________________________________________________________________________
+# A function to get the process variable descriptions which are stored in a 
+# PV_Description.json config file
+@postgres_route
+def get_pv_description(ID):
+	
+	# # Get the config file
+	# filein = open("../PV_Description.json", "r")
+	# if filein:
+	# 	with open(filein, 'r') as f:
+	# 		datastore = json.load(f)
+
+	# print(datastore["ID"][ID])
+
+	datastore = []
+
+	ret = {ID: 5}
+
+	return jsonify(ret)
+#________________________________________________________________________________________________
