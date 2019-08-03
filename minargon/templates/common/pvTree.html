@@ -7,23 +7,48 @@
 {%endblock%}
 
 {% block script %}
-<h2>SBN Test PVs</h2>
+<h2>
+    SBN PVs
+    <button type="button" class="btn btn-primary" id="button1">Expand All</button>
+</h2>
+
 <div id="pvTree"></div>
 
 <!-- Grab depreciated glyphicons for bootstrap v4 -->
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}"
+    media="screen">
 
 <script>
 
-$(document).ready(function() {
-    var pvTree = [{{data|tojson}}];
+    $(document).ready(function () {
+        var pvTree = [{{ data| tojson}}];
 
     // Generate the treeview
-    $('#pvTree').treeview( {
+    $('#pvTree').treeview({
         levels: 4,
         color: '#ca4281',
         data: pvTree,
         enableLinks: true
+    });
+
+    // Default on open webpage: expand the first level of the tree
+    $('#pvTree').treeview('expandAll', { levels: 1, silent: true });
+    
+    // On button click of expand/collapse tree 
+    $('#button1').click(function() {
+        if ($(this).text() == "Expand All"){
+            $(this).text("Collapse All");
+            $(this).removeClass("btn btn-primary");
+            $(this).addClass("btn btn-info");
+            $('#pvTree').treeview('expandAll', { levels: 4, silent: true });
+        }
+        else if ($(this).text() == "Collapse All"){
+            $(this).text("Expand All");
+            $(this).removeClass("btn btn-info");
+            $(this).addClass("btn btn-primary");
+            //$('#pvTree').treeview('collapseAll', { levels: 4, silent: true });
+            $('#pvTree').treeview('expandAll', { levels: 1, silent: true });
+        }
     });
 
 });
