@@ -16,11 +16,6 @@
     {% for ID in IDs %}
         <!-- Plot and Options -->
         <div class="row">
-            <!-- Plot -->
-            <div class="col-md-8">
-                <!-- plotly div -->
-                <div style="padding:0" id="plotly-controller-{{ ID }}"></div>
-            </div>
             
             <!-- Options Bar -->
             <div class="col-12 col-sm-8 col-md-6 col-lg-4 vcenter">
@@ -58,8 +53,7 @@
                             <!-- Second Tab Description -->
                             <div class="tab-pane" id="Description-{{ ID }}" role="tabpanel" aria-labelledby="Description-tab">  
                                 <p class="card-text"> 
-                                    Here is a description of a variable. It should be informative to the person reading it and
-                                    free from jargon.
+                                    {{ pv_descriptions[loop.index0] }}
                                 </p>
                             </div   >
                         
@@ -68,6 +62,12 @@
                 
                 </div>
             </div> <!-- end options bar -->
+            
+            <!-- Plot -->
+            <div class="col-md-8">
+                    <!-- plotly div -->
+                    <div style="padding:0" id="plotly-controller-{{ ID }}"></div>
+            </div>
         
         </div> <!-- end row -->
 
@@ -116,7 +116,6 @@
         });
     }
 
-    
 
 </script>
 {% endblock %}

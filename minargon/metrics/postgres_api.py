@@ -15,7 +15,7 @@ import json
 from psycopg2.extras import RealDictCursor
 from minargon.tools import parseiso, parseiso_or_int, stream_args
 from minargon import app
-from flask import jsonify, request, render_template, abort
+from flask import jsonify, request, render_template, abort, current_app
 from datetime import datetime, timedelta # needed for testing only
 import time
 import calendar
@@ -410,24 +410,20 @@ def pv_internal(connection, link_name=None, ret_id=None):
 #________________________________________________________________________________________________
 # A function to get the process variable descriptions which are stored in a 
 # PV_Description.json config file
-@postgres_route
 def get_pv_description(ID):
 	
-	# # Get the config file
-	# filein = open("../PV_Description.json", "r")
-	# if filein:
-	# 	with open(filein, 'r') as f:
-	# 		datastore = json.load(f)
+	# Get the path to the config
+	APP_ROOT = os.path.dirname(os.path.abspath(__file__))   # Refers to folder where postgres_api.py is located
+	APP_STATIC = os.path.join(APP_ROOT, 'config')
+	
+	# Get the config file -- in principle we will want to have a congig file
+	# for icarus and sbnd which will be located in their own folders 
+	# rather than in the metrics area this current setup is for test purposes
+	with open(os.path.join(APP_STATIC, 'pv_descriptions.json')) as f:
+		datastore = json.load(f)
 
-	# print(datastore["ID"][ID])
-
-	datastore = []
-
-	ret = {ID: 5}
-
-	return jsonify(ret)
-#________________________________________________________________________________________________
- 
+	# INDEX 0: Name of pv, INDEX 1: Description of pv
+	return datastore[str(ID)][1]
 #________________________________________________________________________________________________
 @postgres_route
 def get_gps(connection):
