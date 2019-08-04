@@ -430,8 +430,12 @@ def get_pv_description(ID):
 	with open(os.path.join(APP_STATIC, 'pv_descriptions.json')) as f:
 		datastore = json.load(f)
 
-	# INDEX 0: Name of pv, INDEX 1: Description of pv
-	return datastore[str(ID)][1]
+	try:
+		# INDEX 0: Name of pv, INDEX 1: Description of pv
+		return datastore[str(ID)][1]
+	except KeyError:
+		return "Description field has not been set for this variable"
+
 #________________________________________________________________________________________________
 @postgres_route
 def get_gps(connection):
