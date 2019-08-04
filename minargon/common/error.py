@@ -9,6 +9,11 @@ def custom503(error):
       "database_name": error.description.database_name(),
       "description": error.description.message()
     }
-    return render_template('error/503.html', **render_args), 503
 
-
+    # render page for abort coming from front end
+    if error.description.front_end_abort:
+        render_args["description"].replace("\n", "<br>")
+        return render_template('error/503.html', **render_args), 503
+    # otherwise return JSON info
+    else:
+        return jsonify(**render_args), 503

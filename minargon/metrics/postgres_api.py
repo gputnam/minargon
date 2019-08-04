@@ -33,6 +33,12 @@ class PostgresConnectionError:
     def __init__(self):
         self.err = None
         self.msg = "Unknown Error"
+        self.name = "Unknown"
+
+
+    def with_front_end(self, front_end_abort):
+        self.front_end_abort = front_end_abort
+	return self
 
     def register_postgres_error(self, err, name):
         self.err = err
@@ -47,7 +53,7 @@ class PostgresConnectionError:
         return self
 
     def message(self):
-        return self.msg.replace("\n", "<br>")
+        return self.msg
     def database_name(self):
         return self.name
 
@@ -90,12 +96,14 @@ def postgres_route(func):
 	from functools import wraps
 	@wraps(func)
 	def wrapper(connection, *args, **kwargs):
+		front_end_abort = kwargs.pop("front_end_abort", False)
 		if connection in p_databases:
 			connection, config, success = p_databases[connection]
 			if success:
 				return func((connection,config), *args, **kwargs)
 			else:
-				return abort(503, connection)
+                                error = connection.with_front_end(front_end_abort)
+				return abort(503, error)
 		else:
 			return abort(404)
 		

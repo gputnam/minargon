@@ -10,9 +10,11 @@ import redis_api
 
 # error class for connecting to redis
 class RedisConnectionError:
-    def __init__(self):
+    def __init__(self, front_end_abort):
         self.err = None
         self.msg = "Unknown Error"
+        self.name = "Unknown"
+        self.front_end_abort = front_end_abort
 
     def register_redis_error(self, err, name):
         self.err = err
@@ -21,7 +23,8 @@ class RedisConnectionError:
         return self
 
     def message(self):
-        return self.msg.replace("\n", "<br>")
+        return self.msg
+
     def database_name(self):
         return self.name
 
@@ -36,15 +39,15 @@ for database_name, config in redis_instances.items():
 def redis_route(func):
     @wraps(func)
     def wrapper(rconnect, *args, **kwargs):
+        front_end_abort = kwargs.pop("front_end_abort", False)
         if rconnect in r_databases:
             r = r_databases[rconnect]
             # try to make a connection
             try:
-                r.get("")
+                return func(r, *args, **kwargs)
             except (redis.exceptions.ConnectionError, redis.exceptions.BusyLoadingError) as err:
-                error = RedisConnectionError().register_redis_error(err, rconnect)
+                error = RedisConnectionError(front_end_abort).register_redis_error(err, rconnect)
                 return abort(503, error)
-            return func(r, *args, **kwargs)
         else:
             return abort(404)
         
