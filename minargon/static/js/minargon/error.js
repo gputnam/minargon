@@ -1,13 +1,10 @@
 var prior_warnings = [];
 
 export function throw_database_error(d3_error, reporter) {
+  var response_info = JSON.parse(d3_error.response);
   var warning_text = "";
-  if (d3_error.status == 404) {
-    warning_text = "Database connection error 404: Attempting to connect to unknown database";
-  }
-  else if (d3_error.status == 503) {
-    var response_info = JSON.parse(d3_error.response);
-    warning_text = "Database connection error 502 (" + response_info.database_name + "): " + response_info.description;
+  if (response_info.database_name !== undefined && response_info.description !== undefined) {
+    warning_text = "Database connection error " + String(d3_error.status) + " (" + response_info.database_name + "): " + response_info.description;
   }
   else {
     warning_text = "Unknown error";
