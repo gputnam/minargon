@@ -38,7 +38,7 @@ class PostgresConnectionError:
 
     def with_front_end(self, front_end_abort):
         self.front_end_abort = front_end_abort
-    return self
+        return self
 
     def register_postgres_error(self, err, name):
         self.err = err
@@ -53,9 +53,9 @@ class PostgresConnectionError:
         return self
 
     def register_notfound_error(self, name):
-    self.name = name
-    self.msg = "Database (%s) not found" % name
-    return self
+        self.name = name
+        self.msg = "Database (%s) not found" % name
+        return self
 
     def message(self):
         return self.msg
@@ -74,7 +74,8 @@ for connection_name, config in postgres_instances.items():
     database_name = config["name"]
     host = config["host"]
     port = config["port"]
-        try:
+    
+    try:
         with open(key) as f:
             u = (f.readline()).strip() # strip: removes leading and trailing chars
             p = (f.readline()).strip()
@@ -84,7 +85,7 @@ for connection_name, config in postgres_instances.items():
         p_databases[connection_name] = (connection, config, success)
         continue
     
-        config["web_name"] = connection_name
+    config["web_name"] = connection_name
     # Connect to the database
     try:
         connection = psycopg2.connect(database=database_name, user=u, password=p, host=host, port=port)
@@ -466,26 +467,27 @@ def get_gps(connection):
     formatted = []
     i = 0
     for row in dbrows:
-    time = row[1].strftime("%Y-%m-%d %H:%M")
+        time = row[1].strftime("%Y-%m-%d %H:%M")
         if row[0].endswith("/message"):
-        formatted.append((row[0], time, messageString(row[2]), row[3]))
-    elif row[0].endswith("/transferQuality"):
-        formatted.append((row[0], time, transferString(row[2]), row[3]))
-    elif row[0].endswith("/oscillatorQuality"):
-        formatted.append((row[0], time, oscillatorString(row[2]), row[3]))
-    elif row[0].endswith("/status"):
-        formatted.append((row[0], time, statusString(row[2]), row[3]))
-    elif row[0].endswith("/TimeStampString"):
-        formatted.insert(0, (row[0], time, row[2], row[3]))
-    elif row[0].endswith("/location"):
-        formatted.insert(0, (row[0], time, row[2], row[3]))
-    elif row[0].endswith("/sigmaPPS") or row[0].endswith("/systemDifference"):
-        flt_val = float(row[2]) #"{:.4f}".format(row[2])
-        flt_str = "{:.4f}".format(flt_val)
-        formatted.append((row[0], time, flt_str, row[3]))
-    else:
-        formatted.append((row[0], time, unicode(row[2], "utf-8"), row[3]))
-    i = i + 1
-          #dbrows
+            formatted.append((row[0], time, messageString(row[2]), row[3]))
+        elif row[0].endswith("/transferQuality"):
+            formatted.append((row[0], time, transferString(row[2]), row[3]))
+        elif row[0].endswith("/oscillatorQuality"):
+            formatted.append((row[0], time, oscillatorString(row[2]), row[3]))
+        elif row[0].endswith("/status"):
+            formatted.append((row[0], time, statusString(row[2]), row[3]))
+        elif row[0].endswith("/TimeStampString"):
+            formatted.insert(0, (row[0], time, row[2], row[3]))
+        elif row[0].endswith("/location"):
+            formatted.insert(0, (row[0], time, row[2], row[3]))
+        elif row[0].endswith("/sigmaPPS") or row[0].endswith("/systemDifference"):
+            flt_val = float(row[2]) #"{:.4f}".format(row[2])
+            flt_str = "{:.4f}".format(flt_val)
+            formatted.append((row[0], time, flt_str, row[3]))
+        else:
+            formatted.append((row[0], time, unicode(row[2], "utf-8"), row[3]))
+        i = i + 1
+        #dbrows
+    
     return formatted
     
