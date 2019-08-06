@@ -9,10 +9,13 @@
 {% block script %}
 <h2>
     SBN PVs
-    <button type="button" class="btn btn-primary" id="button1">Expand All</button>
+    <button type="button" class="btn btn-primary btn-sm" id="Expand-Collapse">Expand All</button>
+    <button type="button" class="btn btn-success btn-sm" id="Tags">Show Tags</button>
 </h2>
 
 <div id="pvTree"></div>
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-treeview.css') }}" media="screen">
 
 <!-- Grab depreciated glyphicons for bootstrap v4 -->
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}"
@@ -20,10 +23,10 @@
 
 <script>
 
-    $(document).ready(function () {
-        var pvTree = [{{ data| tojson}}];
+$(document).ready(function () {
+    var pvTree = [{{ data | tojson}}];
 
-    // Generate the treeview
+    // ------------------ Generate the treeview --------------------------------
     $('#pvTree').treeview({
         levels: 4,
         color: '#ca4281',
@@ -34,23 +37,55 @@
     // Default on open webpage: expand the first level of the tree
     $('#pvTree').treeview('expandAll', { levels: 1, silent: true });
     
-    // On button click of expand/collapse tree 
-    $('#button1').click(function() {
+    // -------- On button click of expand/collapse tree ------------------------
+    $('#Expand-Collapse').click(function() {
         if ($(this).text() == "Expand All"){
             $(this).text("Collapse All");
-            $(this).removeClass("btn btn-primary");
-            $(this).addClass("btn btn-info");
+            $(this).removeClass("btn btn-primary btn-sm");
+            $(this).addClass("btn btn-info btn-sm");
             $('#pvTree').treeview('expandAll', { levels: 4, silent: true });
         }
         else if ($(this).text() == "Collapse All"){
             $(this).text("Expand All");
-            $(this).removeClass("btn btn-info");
-            $(this).addClass("btn btn-primary");
-            //$('#pvTree').treeview('collapseAll', { levels: 4, silent: true });
+            $(this).removeClass("btn btn-info btn-sm");
+            $(this).addClass("btn btn-primary btn-sm");
             $('#pvTree').treeview('expandAll', { levels: 1, silent: true });
         }
     });
-
+    
+    // ---------------- On button click of show/hide tags ----------------------
+    $('#Tags').click(function() {
+        if ($(this).text() == "Show Tags"){
+            $(this).text("Hide Tags");
+            $(this).removeClass("btn btn-success btn-sm");
+            $(this).addClass("btn btn-info btn-sm");
+            $('#pvTree').treeview({
+                levels: 4,
+                color: '#ca4281',
+                data: pvTree,
+                showTags: true,
+                tagsClass: 'label label-warning',
+                enableLinks: true
+            });
+            $('#pvTree').treeview('expandAll', { levels: 1, silent: true });
+            
+        }
+        else if ($(this).text() == "Hide Tags"){
+            $(this).text("Show Tags");
+            $(this).removeClass("btn btn-info btn-sm");
+            $(this).addClass("btn btn-success btn-sm");
+            $('#pvTree').treeview({
+                levels: 4,
+                color: '#ca4281',
+                data: pvTree,
+                tagsClass: 'label label-default',
+                enableLinks: true
+            });
+            $('#pvTree').treeview('expandAll', { levels: 1, silent: true });
+            
+        }
+    });
+    // -------------------------------------------------------------------------
 });
 </script>
 {%endblock%}

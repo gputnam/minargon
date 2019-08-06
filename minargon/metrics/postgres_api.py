@@ -356,7 +356,7 @@ def pv_internal(connection, link_name=None, ret_id=None):
 									  "href": "#parent1",
 									  "nodes" : [],
 									  "displayCheckbox": False,
-									  "tags": [str(tags[0])]
+									  "tags": [""]
 									} ) # Top Level 
 			old[0] = row[0]         
 			index[0] = index[0] + 1 # Increment the index
@@ -367,9 +367,8 @@ def pv_internal(connection, link_name=None, ret_id=None):
 			tags[1] = 0
 			pydict["nodes"][index[0] - 1 ]["nodes"].append( { "href":"#child",
 															  "expanded": "false",
-															  "tags":[str(tags[1])],
+															  "tags":[""],
 															  "displayCheckbox": False,
-															  "showTags" : True,
 															  "text" : str(row[1]),
 															  "nodes": [],
 															  "href": app.config["WEB_ROOT"] + "/" + "pv_multiple_stream" + "/" + config["web_name"] + "/" + str(row[1])
@@ -389,7 +388,8 @@ def pv_internal(connection, link_name=None, ret_id=None):
 		if not link_name is None:
 			pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append({ 
 				"text" : str(row[2]), 
-				"tags" : [str(tags[1])], 
+				"tags" : ["ID: "+ str(row[3])],
+				"tagsClass": ['badge'],
 				"database": config["web_name"], 
 				"database_type": "postgres",
 				"ID": str(row[3]), 
@@ -400,7 +400,8 @@ def pv_internal(connection, link_name=None, ret_id=None):
 		else: 
 			pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append({ 
 				"text" : str(row[2]), 
-				"tags" : [str(tags[1])], 
+				"tags" : ["ID: "+ str(row[3])],
+				"tagsClass": ['badge'],
 				"database": config["web_name"], 
 				"database_type": "postgres",
 				"color" : "#229954",
@@ -409,7 +410,8 @@ def pv_internal(connection, link_name=None, ret_id=None):
 			}) # Level 3
 		
 		index[2] = index[2] + 1
-		tags[1] = tags[1] + 1
+		tags[1] = tags[1] + 1	
+	
 	# Decide what type of data to return
 	if ret_id is None:
 		return pydict # return the full tree
