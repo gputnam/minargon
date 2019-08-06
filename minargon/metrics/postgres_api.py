@@ -52,6 +52,11 @@ class PostgresConnectionError:
         self.msg = "Error opening secret key file: %s" % err[1]
         return self
 
+    def register_notfound_error(self, name):
+	self.name = name
+	self.msg = "Database (%s) not found" % name
+	return self
+
     def message(self):
         return self.msg
     def database_name(self):
@@ -105,7 +110,7 @@ def postgres_route(func):
                                 error = connection.with_front_end(front_end_abort)
 				return abort(503, error)
 		else:
-			return abort(404)
+			return abort(404, PostgresConnectionError().register_notfound_error(connection).with_front_end(front_end_abort))
 		
 	return wrapper
 #________________________________________________________________________________________________

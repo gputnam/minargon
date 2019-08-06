@@ -1,0 +1,11 @@
+{% extends "layout.html" | front_ended %}
+{% block title %}{{code}} Error{% endblock %}
+{% block body %}
+{{ super() }}
+{% if database_error %}
+  <h1>Error {{code}}: Database Connection Error ({{database_name}}):</h1>
+{% else %}
+  <h1>Error {{code}}:</h1>
+{% endif %}
+<p> {{description|safe}}</p>
+{% endblock %}

@@ -22,6 +22,11 @@ class RedisConnectionError:
         self.name = name
         return self
 
+    def register_notfound_error(self, name):
+        self.name = name
+        self.msg = "Database (%s) not found" % name
+        return self
+
     def message(self):
         return self.msg
 
@@ -49,7 +54,7 @@ def redis_route(func):
                 error = RedisConnectionError(front_end_abort).register_redis_error(err, rconnect)
                 return abort(503, error)
         else:
-            return abort(404)
+            return abort(404, RedisConnectionError(front_end_abort).register_notfound_error(rconnect))
         
     return wrapper
 """
