@@ -139,6 +139,11 @@ def pv_single_stream(database, ID):
     }
     return render_template('common/pv_single_stream.html', **render_args)
 
+#_______________________________________________________________________________
+# Define a sorting function
+def takeSecond(elem):
+    return elem[0]
+#_______________________________________________________________________________
 # View a variable with multiple IDs
 @app.route('/pv_multiple_stream/<database>/<var>')
 def pv_multiple_stream(database, var):
@@ -146,26 +151,45 @@ def pv_multiple_stream(database, var):
     # Get the list of IDs for the var name
     IDs = postgres_api.pv_internal(database, ret_id=var, front_end_abort=True)
 
-    # get the configs for each ID
-    configs, starts, ends, toggles, downloads, pv_descriptions = [], [], [], [], [], []
+    # Get the indexes
+    indexs, sort_list = [], []
     for ID in IDs:
+        index = (postgres_api.postgres_indexes(database, ID))
+        sort_list.append((index, ID))
+   
+    # Sort the list
+    sort_list.sort(key = takeSecond)
+    
+    # Return the list of sorted IDs
+    IDs_sorted = []
+    for ID in sort_list:
+        IDs_sorted.append(ID[1])
+
+   
+    # get the configs for each ID
+    configs, starts, ends, toggles, downloads, pv_descriptions  = [], [], [], [], [], []
+    for ID in IDs_sorted:
         configs.append(postgres_api.pv_meta_internal(database, ID, front_end_abort=True))
         starts.append("start-"+str(ID))
         ends.append("end-"+str(ID))
         toggles.append("toggle-"+str(ID))
         downloads.append("download-"+str(ID))
         pv_descriptions.append(postgres_api.get_pv_description(ID))
+        
+    
+    for i in range(len(indexs)):
+        print indexs[i], "  ", IDs[i]
 
     # print config
     render_args = {
-      "var": var, 
-      "IDs": IDs,
-      "configs": configs,
-      "starts" : starts,
-      "ends" : ends,
-      "toggles" : toggles,
-      "downloads" : downloads,
-      "database": database,
+      "var":             var, 
+      "IDs":             IDs_sorted,
+      "configs":         configs,
+      "starts" :         starts,
+      "ends" :           ends,
+      "toggles" :        toggles,
+      "downloads" :      downloads,
+      "database":        database,
       "pv_descriptions": pv_descriptions
     }
     return render_template('common/pv_multiple_stream.html', **render_args)

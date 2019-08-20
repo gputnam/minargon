@@ -144,7 +144,6 @@ def postgres_query(ID, start_t, stop_t, connection, config):
         data = []
 
     return data
-
 #________________________________________________________________________________________________
 # Gets the sample step size in unix miliseconds
 @app.route("/<connection>/ps_step/<ID>")
@@ -297,7 +296,6 @@ def ps_series(connection, ID):
 def pv_internal(connection, link_name=None, ret_id=None):
     config = connection[1]
     database = connection[1]["name"]
-    config = connection[1]
     connection = connection[0]
 
     # Cursor allows python to execute a postgres command in the database session. 
@@ -443,7 +441,6 @@ def get_pv_description(ID):
         return datastore[str(ID)][1]
     except KeyError:
         return "Description field has not been set for this variable"
-
 #________________________________________________________________________________________________
 @postgres_route
 def get_gps(connection):
@@ -490,4 +487,39 @@ def get_gps(connection):
         #dbrows
     
     return formatted
+#________________________________________________________________________________________________
+# Make the DB query and return the display indexes
+@postgres_route
+def postgres_indexes(connection, ID):
+   
+    config     = connection[1]
+    database   = connection[1]["name"]
+    connection = connection[0]
+
+    # return nothing if no connection
+    if connection is None:
+        return []
     
+    # Make PostgresDB connection
+    cursor = connection.cursor(cursor_factory=RealDictCursor) 
+
+    # Database query to execute, times converted to unix [ms]
+    if (database == "sbnteststand"):
+        query="""SELECT disp_index
+            FROM DCS_ARCHIVER.CHANNEL WHERE CHANNEL_ID=%s"""% ( ID )
+    
+    else:
+        query="""SELECT disp_index
+            FROM DCS_PRD.CHANNEL WHERE CHANNEL_ID=%s"""% ( ID )
+    
+    # Execute query, rollback connection if it fails
+    try:
+        cursor.execute(query)
+        data = cursor.fetchall()
+    except:
+        print "Error! Rolling back connection"
+        cursor.execute("ROLLBACK")
+        connection.commit()
+        data = []
+
+    return data[0]['disp_index']
