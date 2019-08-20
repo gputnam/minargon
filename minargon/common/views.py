@@ -165,7 +165,6 @@ def pv_multiple_stream(database, var):
     for ID in sort_list:
         IDs_sorted.append(ID[1])
 
-   
     # get the configs for each ID
     configs, starts, ends, toggles, downloads, pv_descriptions  = [], [], [], [], [], []
     for ID in IDs_sorted:
@@ -176,10 +175,6 @@ def pv_multiple_stream(database, var):
         downloads.append("download-"+str(ID))
         pv_descriptions.append(postgres_api.get_pv_description(ID))
         
-    
-    for i in range(len(indexs)):
-        print indexs[i], "  ", IDs[i]
-
     # print config
     render_args = {
       "var":             var, 
