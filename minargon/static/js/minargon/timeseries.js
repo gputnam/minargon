@@ -133,6 +133,8 @@ export class PlotlyController {
   updateStep(step) {
     if (step < 1000) step = 1000;
     this.step = step;
+    // set the plot to ignore data from big skips in time
+    this.scatter.crop_range = this.step * 100;
   }
   // ---------------------------------------------------------------------------
   // set the step for the first time
@@ -271,6 +273,7 @@ export class PlotlyController {
   // ---------------------------------------------------------------------------
   runBuffer() {
     if (this.is_live) {
+      this.scatter.crop_old_data = true;
       // set the start
       // to be on the safe side, get back to ~1000 data points
       this.start = new Date(); 
@@ -278,6 +281,7 @@ export class PlotlyController {
       this.buffer.start(this.start);
     }
     else {
+      this.scatter.crop_old_data = false;
       this.buffer.getData(this.start, this.end);
     }
   }

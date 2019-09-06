@@ -19,6 +19,11 @@ export class TimeSeriesScatter {
       this._y_axes = [];
       this._trace_names = [];
       this.x_domain_hi = 1;
+
+      // whether to crop data points that are too old
+      this.crop_old_data = false;
+      // range of what to crop
+      this.crop_range = -1;
     }
 
     set title(title) {
@@ -110,6 +115,12 @@ export class TimeSeriesScatter {
         this.timestamps[i].length = 0;
         for (var j = 0; j < buffer.size; j++) {
           var dat = buffer.get(j);
+          // avoid any big skips in time if configured to
+          if (this.crop_old_data && this.crop_range > 0) {
+            if (j > 0 && Math.abs(this.timestamps[i][j] - this.timestamps[i][j-1]) > this.crop_range) {
+              break;
+            }
+          }
           this.timestamps[i][j] = Math.round(dat[0] / 1000); // ms -> s
           this.times[i][j] = moment.unix(Math.round(dat[0] / 1000)) // ms -> s
             .format("YYYY-MM-DD HH:mm:ss");
