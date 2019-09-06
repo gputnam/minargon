@@ -13,6 +13,13 @@ def TPC():
     args["stream"] = "fast"
     return timeseries_view(args, "tpc_channel", "", "wireLink")
 
+@app.route('/PMT')
+def PMT():
+    args = dict(**request.args)
+    args["data"] = "rms"
+    args["stream"] = "fast"
+    return timeseries_view(args, "PMT", "")
+
 # snapshot of data on channel (fft and waveform)
 @app.route('/channel_snapshot')
 def channel_snapshot():
@@ -33,3 +40,18 @@ def channel_snapshot():
     }
     return render_template('icarus/channel_snapshot.html', **template_args)
 
+
+@app.route('/Purity')
+def purity():
+    instance_name = "TPC"
+    metric_name = "purity"
+
+    # get the config for this group from redis
+    config = online_metrics.get_group_config("online", instance_name, front_end_abort=True)
+
+    render_args = {
+        'title': metric_name,
+        'config': config,
+    }
+
+    return render_template('icarus/purity_timeseries.html', **render_args)
