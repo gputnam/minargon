@@ -20,6 +20,23 @@ def PMT():
     args["stream"] = "fast"
     return timeseries_view(args, "PMT", "")
 
+@app.route('/PMT_snapshot')
+def PMT_snapshot():
+    channel = request.args.get("PMT", 0, type=int)
+    group_name = "PMT"
+    # TODO: fix hardcode
+    pmt_range = range(360)
+    config = online_metrics.get_group_config("online", group_name, front_end_abort=True)
+
+    template_args = {
+      "channel": channel,
+      "config": config,
+      "pmt_range": pmt_range,
+      "view_ind": {"channel": channel},
+      "view_ind_opts": {"channel": pmt_range},
+    }
+    return render_template("icarus/pmt_snapshot.html", **template_args)
+
 # snapshot of data on channel (fft and waveform)
 @app.route('/channel_snapshot')
 def channel_snapshot():
