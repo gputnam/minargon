@@ -1,4 +1,5 @@
 import {CircularBuffer} from "./circular_buffer.js";
+import {throw_database_error} from "./error.js";
 
 export class D3DataBuffer {
   // input:
@@ -114,6 +115,9 @@ export class D3DataSource {
           var func = self.listeners[i];
           func(value);
         }
+      })
+      .catch(function(error) {
+        throw_database_error(error, "source_data");
       });
   }
 
@@ -183,6 +187,9 @@ export class D3DataPoll {
             var func = self.listeners[i];
             func(value, false);
           }
+        })
+        .catch(function(error) {
+          throw_database_error(error, "poll_get_data");
         });
     }
     
@@ -212,6 +219,9 @@ export class D3DataPoll {
                 var next_start = start;
                 if (value.min_end_time != 0 && value.min_end_time != undefined) next_start = value.min_end_time;
                 setTimeout(function() { self.run(next_start); }, self.timeout);
+            })
+            .catch(function(error) {
+              throw_database_error(error, "poll_run");
             });
     }
 
@@ -262,7 +272,7 @@ export class D3DataChain {
       .then(function(data) {
         var steps = [];
         for (var i = 0; i < data.length; i ++) {
-          steps.push(data.step)
+          steps.push(data[i].step)
         }
         var inp = {};
         inp.step = Math.min(...steps)
@@ -336,7 +346,11 @@ export class D3DataLink {
 
   // function to get step w/ callback
   get_step(callback) {
-    d3.json(this.link_builder.step_link(), function(data) {
+    d3.json(this.link_builder.step_link(), function(err, data) {
+      if (!data) {
+        data = {"step": 0};
+        throw_database_error(err, "get_step");        
+      }
       callback(data);
     });
   }
@@ -372,7 +386,10 @@ export class D3DataLink {
   get_data_promise(start, stop) {
     var self = this;
     return new Promise(function(resolve, reject) {
-      d3.json(self.link_builder.data_link(start, stop), function(data) {
+      d3.json(self.link_builder.data_link(start, stop), function(err, data) {
+        if (!data) {
+          return reject(err);
+        }
         resolve(data);
      });
      });

@@ -2,6 +2,7 @@ import * as DataLink from "./DataLink.js";
 import * as TimeSeriesControllers from "./timeseries.js";
 import * as GroupDataControllers from "./group_data.js";
 import * as Data from "./Data.js";
+import {throw_custom_error} from "./error.js";
 
 // Class for handling configuration of groups of metrics and for
 // changing the names of metric/stream/etc.
@@ -122,7 +123,7 @@ export class GroupConfigController {
 
   runAll() {
     if (this.config.streams.length == 0 || this.config.metric_list == 0) {
-      alert("No data available for the requested group");
+      throw_custom_error("No data available for requested group");
       return;
     }
     var self = this;

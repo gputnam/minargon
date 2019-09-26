@@ -2,6 +2,7 @@
 import * as Data from "./Data.js";
 import * as DataLink from "./DataLink.js";
 import * as Chart from "./charts.js";
+import {throw_custom_error} from "./error.js";
 
 // This class provides a scatter plot of all of the streams provided by
 // the input data_link parameter.  
@@ -150,7 +151,7 @@ export class GroupDataScatterController {
   run() {
     // if no provided streams, don't run
     if (this.data_link === undefined) {
-      alert("No data streams available for requested page");
+      throw_custom_error("No data streams available for requested page");
       return;
     }
 
@@ -440,7 +441,7 @@ export class GroupDataHistoController {
   run() {
     // if no provided streams, don't run
     if (this.data_link === undefined) {
-      alert("No data streams available for requested page");
+      throw_custom_error("No data streams available for requested page");
       return;
     }
 
@@ -495,8 +496,8 @@ export class GroupDataHistoController {
   // (if such configuration exists)
   metricParam() {
     var metric_param = this.metric_config;
-    if (metric_param !== undefined && metric_param.range !== undefined) {
-      this.range = metric_param.dsplay_range;
+    if (metric_param !== undefined && metric_param.display_range !== undefined) {
+      this.range = metric_param.display_range;
     }
     else {
       this.range = [];

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 """
 ########################################
-This script will connect to a database,
-execute a database query and then convert
-this query into a json format
+This script contains all the functions
+used to access the PostgreSQL database
+and useful helper functions related to
+this.
 ########################################
 """
 
@@ -13,7 +14,6 @@ import psycopg2
 import json
 from psycopg2.extras import RealDictCursor
 from minargon.tools import parseiso, parseiso_or_int, stream_args
-
 from minargon import app
 from flask import jsonify, request, render_template, abort
 from datetime import datetime, timedelta # needed for testing only
@@ -21,6 +21,48 @@ import time
 import calendar
 from pytz import timezone
 
+# status interpreter functions
+from checkStatus import statusString
+from checkStatus import oscillatorString
+from checkStatus import transferString
+from checkStatus import messageString
+
+
+# error class for connecting to postgres
+class PostgresConnectionError:
+    def __init__(self):
+        self.err = None
+        self.msg = "Unknown Error"
+        self.name = "Unknown"
+
+
+    def with_front_end(self, front_end_abort):
+        self.front_end_abort = front_end_abort
+	return self
+
+    def register_postgres_error(self, err, name):
+        self.err = err
+        self.name = name
+        self.msg = str(err)
+        return self
+
+    def register_fileopen_error(self, err, name):
+        self.err = err
+        self.name = name
+        self.msg = "Error opening secret key file: %s" % err[1]
+        return self
+
+    def register_notfound_error(self, name):
+	self.name = name
+	self.msg = "Database (%s) not found" % name
+	return self
+
+    def message(self):
+        return self.msg
+    def database_name(self):
+        return self.name
+
+#________________________________________________________________________________________________
 # database connection configuration
 postgres_instances = app.config["POSTGRES_INSTANCES"]
 # storing different connections to be accessed by routes
@@ -32,30 +74,46 @@ for connection_name, config in postgres_instances.items():
 	database_name = config["name"]
 	host = config["host"]
 	port = config["port"]
-	with open(key) as f:
-		u = (f.readline()).strip() # strip: removes leading and trailing chars
-		p = (f.readline()).strip()
+        try:
+		with open(key) as f:
+			u = (f.readline()).strip() # strip: removes leading and trailing chars
+			p = (f.readline()).strip()
+	except IOError as err:
+		connection = PostgresConnectionError().register_fileopen_error(err, connection_name)
+		success = False
+		p_databases[connection_name] = (connection, config, success)
+		continue
 	
         config["web_name"] = connection_name
 	# Connect to the database
-	connection = psycopg2.connect(database=database_name, user=u, password=p, host=host, port=port)
+	try:
+		connection = psycopg2.connect(database=database_name, user=u, password=p, host=host, port=port)
+		success = True
+	except psycopg2.OperationalError as err:
+		connection = PostgresConnectionError().register_postgres_error(err, connection_name)
+		success = False
 	
 	# store it
-	p_databases[connection_name] = (connection, config)
-
+	p_databases[connection_name] = (connection, config, success)
+#________________________________________________________________________________________________
 # decorator for getting the correct database from the provided link
 def postgres_route(func):
 	from functools import wraps
 	@wraps(func)
 	def wrapper(connection, *args, **kwargs):
+		front_end_abort = kwargs.pop("front_end_abort", False)
 		if connection in p_databases:
-			connection = p_databases[connection]
-			return func(connection, *args, **kwargs)
+			connection, config, success = p_databases[connection]
+			if success:
+				return func((connection,config), *args, **kwargs)
+			else:
+                                error = connection.with_front_end(front_end_abort)
+				return abort(503, error)
 		else:
-			return abort(404)
+			return abort(404, PostgresConnectionError().register_notfound_error(connection).with_front_end(front_end_abort))
 		
 	return wrapper
-
+#________________________________________________________________________________________________
 # Make the DB query and return the data
 def postgres_query(ID, start_t, stop_t, connection, config):
 	# return nothing if no connection
@@ -86,7 +144,7 @@ def postgres_query(ID, start_t, stop_t, connection, config):
 
 	return data
 
-
+#________________________________________________________________________________________________
 # Gets the sample step size in unix miliseconds
 @app.route("/<connection>/ps_step/<ID>")
 @postgres_route
@@ -114,19 +172,19 @@ def ps_step(connection, ID):
 		step_size = 1e3
 
 	return jsonify(step=step_size)
-
+#________________________________________________________________________________________________
 # Function to check None Values and empty unit
 def CheckVal(var):
 	if var == None or var == " ":
 		return True
 	else:
 		return False
-	
+#________________________________________________________________________________________________
 # Function to get the metadata for the PV
 @app.route("/<connection>/pv_meta/<ID>")
 def pv_meta(connection, ID):
 	return jsonify(metadata=pv_meta_internal(connection, ID))
-
+#________________________________________________________________________________________________
 @postgres_route
 def pv_meta_internal(connection, ID):
 	
@@ -190,7 +248,7 @@ def pv_meta_internal(connection, ID):
 
 	# Setup the return dictionary
 	return ret
-
+#________________________________________________________________________________________________
 @app.route("/<connection>/ps_series/<ID>")
 @postgres_route
 def ps_series(connection, ID):
@@ -233,10 +291,10 @@ def ps_series(connection, ID):
 	}
 
 	return jsonify(values=ret)
-
+#________________________________________________________________________________________________
 @postgres_route
-def test_pv_internal(connection, link_name=None):
-        config = connection[1]
+def pv_internal(connection, link_name=None, ret_id=None):
+	config = connection[1]
 	database = connection[1]["name"]
 	config = connection[1]
 	connection = connection[0]
@@ -273,14 +331,23 @@ def test_pv_internal(connection, link_name=None):
 		pydict =	{ 
 			"text" : ["SBN Test Stand Process Variables"],
 			"expanded": "true",
+			"selectable" : "false",
+			"displayCheckbox": False,
 			"nodes" : []
 		}
 	else: # ICARUS
 		pydict =	{ 
 			"text" : ["ICARUS Process Variables"],
 			"expanded": "true",
+			"color" : "#000000",
+			"selectable" : "false",
+			"displayCheckbox": False,
 			"nodes" : []
 		}
+
+	# A list of id numbers for a variable
+	list_id=[]
+	id_flag=False 
 
 	# Create a python dictonary out of the database query
 	for row in rows:
@@ -288,7 +355,7 @@ def test_pv_internal(connection, link_name=None):
 		if row[0] != old[0]: # only use chan name part 1 once in loop to avoid overcounting e.g. grab APC then skip block until CRYO
 			tags[0] = 0
 			tags[1] = 0
-			pydict["nodes"].append( {"expanded": "false", "text" : str(row[0]), "href": "#parent1","nodes" : [], "tags": [str(tags[0])]} ) # Top Level 
+			pydict["nodes"].append( { "color" : "#7D3C98","expanded": "false", "text" : str(row[0]), "href": "#parent1","nodes" : [], "displayCheckbox": False, "tags": [str(tags[0])]} ) # Top Level 
 			old[0] = row[0]         
 			index[0] = index[0] + 1 # Increment the index
 			index[1] = 0
@@ -296,24 +363,93 @@ def test_pv_internal(connection, link_name=None):
 		# Header 2
 		if row[1] != old[1]: # only use chan name part 2 once in loop to avoid overcounting 
 			tags[1] = 0
-			pydict["nodes"][index[0] - 1 ]["nodes"].append( {"href":"#child","expanded": "false","tags":[str(tags[1])], "text" : str(row[1]), "nodes": []  } ) # Level 2
+			pydict["nodes"][index[0] - 1 ]["nodes"].append( {"href":"#child","expanded": "false","tags":[str(tags[1])], "displayCheckbox": False,
+				"text" : str(row[1]), "nodes": [], "href": app.config["WEB_ROOT"] + "/" + "pv_multiple_stream" + "/" + config["web_name"] + "/" + str(row[1])  } ) # Level 2
 			index[1] = index[1] + 1
 			tags[0] = tags[0] + 1
-			old[1] = row[1]
-
+			old[1] = row[1]			
+		
 		# the "timestamp column does not correspond to a metric
 		if str(row[2]) == "timestamp": continue
 
-		# Push back every time       
-                if not link_name is None:
-		    pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "database": config["web_name"], "ID": str(row[3]), "name": str(row[2]), "href": app.config["WEB_ROOT"] + "/" + link_name + "/" + config["web_name"] + "/" + str(row[3])  }) # Level 3
-                else: 
-		    pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append( {"text" : str(row[2]), "tags" : [str(tags[1])], "database": config["web_name"], "ID": str(row[3]), "name": str(row[2])  }) # Level 3
+		# Append the ID numbers for selected variable name
+		if row[1] == ret_id:
+			list_id.append(str(row[3]))
+		
+		# Push back every time
+		if not link_name is None:
+			pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append({ 
+				"text" : str(row[2]), 
+				"tags" : [str(tags[1])], 
+				"database": config["web_name"], 
+				"database_type": "postgres",
+				"ID": str(row[3]), 
+				"name": str(row[2]), 
+				"color" : "#229954",
+				"href": app.config["WEB_ROOT"] + "/" + link_name + "/" + config["web_name"] + "/" + str(row[3])  
+			}) # Level 3
+		else: 
+			pydict["nodes"][index[0] - 1 ]["nodes"][index[1] - 1]["nodes"].append({ 
+				"text" : str(row[2]), 
+				"tags" : [str(tags[1])], 
+				"database": config["web_name"], 
+				"database_type": "postgres",
+				"color" : "#229954",
+				"ID": str(row[3]), 
+				"name": str(row[2])  
+			}) # Level 3
+		
 		index[2] = index[2] + 1
 		tags[1] = tags[1] + 1
-
-        return pydict
-
+	# Decide what type of data to return
+	if ret_id is None:
+		return pydict # return the full tree
+	else:
+		return list_id # return the ids of a variable
  
+#________________________________________________________________________________________________
+@postgres_route
+def get_gps(connection):
+    cursor = connection[0].cursor();
+    # since strings cannot coalesce with floating point or integer types, we must first convert those into numeric and then strings to be able to coalesce.
+    # ex: (float::numeric)::text
+    # get the unit from another table (num_metadata) by using a left join
+    query = """select c1.name, c1.last_smpl_time, coalesce((c1.last_num_val::numeric)::text,(c1.last_float_val::numeric)::text, c1.last_str_val), m1.unit from dcs_prd.channel c1 left join dcs_prd.num_metadata m1 on c1.channel_id = m1.channel_id where c1.channel_id in (3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,20,21,42,43) order by c1.channel_id;"""
+   # where name like '%GPS%' order by c1.channel_id;"""
 
-
+    #
+    cursor.execute(query);
+    dbrows = cursor.fetchall();
+    cursor.close();
+    
+    # converting to a list does not work : yields another tuple and thus immutable
+    # why do we need to change an element? Because 4 components need to go through an interpreter
+    # to interpret the status ( the integer has a corresponding message/code/string )
+    # solution: create new list, copy elements into list, getting the new strings from checkStatus.py
+    # note: elements in formatted are still immutable. Most likely due to row[0] being a tuple
+    formatted = []
+    i = 0
+    for row in dbrows:
+	time = row[1].strftime("%Y-%m-%d %H:%M")
+        if row[0].endswith("/message"):
+	    formatted.append((row[0], time, messageString(row[2]), row[3]))
+	elif row[0].endswith("/transferQuality"):
+	    formatted.append((row[0], time, transferString(row[2]), row[3]))
+	elif row[0].endswith("/oscillatorQuality"):
+	    formatted.append((row[0], time, oscillatorString(row[2]), row[3]))
+	elif row[0].endswith("/status"):
+	    formatted.append((row[0], time, statusString(row[2]), row[3]))
+	elif row[0].endswith("/TimeStampString"):
+	    formatted.insert(0, (row[0], time, row[2], row[3]))
+	elif row[0].endswith("/location"):
+	    formatted.insert(0, (row[0], time, row[2], row[3]))
+	elif row[0].endswith("/sigmaPPS") or row[0].endswith("/systemDifference"):
+	    flt_val = float(row[2]) #"{:.4f}".format(row[2])
+	    flt_str = "{:.4f}".format(flt_val)
+	    formatted.append((row[0], time, flt_str, row[3]))
+	else:
+	    formatted.append((row[0], time, unicode(row[2], "utf-8"), row[3]))
+	i = i + 1
+      	#dbrows
+    return formatted
+	

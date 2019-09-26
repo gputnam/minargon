@@ -27,7 +27,7 @@ export {DataLink, Data};
 //
 // Alternatively, you can also set them up through the
 // GroupConfigController if you want them to handle a group of metrics
-
+// -----------------------------------------------------------------------------
 export class PlotlyController {
   // target: the div-id (including the '#') where the cubism plots will
   //         be drawn
@@ -53,17 +53,18 @@ export class PlotlyController {
     }
 
     this.is_live = true;
+    this.is_running = false;
   }
-
+  // ---------------------------------------------------------------------------
   // commuicate to the "config" wrapper -- whether or not the # of instances in this class should be restricted
   restrictNumInstances() {
     return true;
   }
-
+  // ---------------------------------------------------------------------------
   buildScatterAxes() {
     var ret = [];
     for (var i = 0; i < this.metric_config.length; i++) {
-      var title;
+      var title = "";
       if (this.metric_config[i].yTitle !== undefined) {
         if (this.metric_config[i].unit !== undefined) {
           title = this.metric_config[i].yTitle + " [" + this.metric_config[i].unit + "]";
@@ -71,6 +72,9 @@ export class PlotlyController {
         else {
           title = this.metric_config[i].yTitle;
         }
+      }
+      else {
+        title = this.titles[i];
       }
       var range;
       if (this.metric_config[i].range !== undefined && this.metric_config[i].range.length == 2) {
@@ -81,7 +85,7 @@ export class PlotlyController {
     }
     return ret;
   }
-
+  // ---------------------------------------------------------------------------
   // Internal function: grap the time step from the server and run a
   // callback
   getTimeStep(callback) {
@@ -90,22 +94,23 @@ export class PlotlyController {
         callback(self, data.step);
     });
   }
-
+  // ---------------------------------------------------------------------------
   // start running
   run() {
-    this.is_live = true;
+    this.is_running = true;
     this.getTimeStep(function(self, step) {
       self.updateStep(step);
       self.updateData(self.link);
     });
   }
-
+  // ---------------------------------------------------------------------------
   // Functions called by the GroupConfigController
   // update the titles
   updateTitles(titles) {
     this.scatter.titles = titles;
+    this.titles = titles;
   }
-
+  // ---------------------------------------------------------------------------
   // update the metric config option
   updateMetricConfig(config, do_append) {
     if (do_append === undefined || !do_append) {
@@ -123,18 +128,18 @@ export class PlotlyController {
       this.scatter.add_warning_line(this.metric_config[0].yTitle, this.metric_config[0].warningRange, 0);
     }
   }
-
+  // ---------------------------------------------------------------------------
   // update the data step
   updateStep(step) {
     if (step < 1000) step = 1000;
     this.step = step;
   }
-
+  // ---------------------------------------------------------------------------
   // set the step for the first time
   setStep(step) {
     this.updateStep(step);
   }
-
+  // ---------------------------------------------------------------------------
   // update the data link and start polling for new data
   updateData(link) {
     this.link = link;
@@ -156,13 +161,21 @@ export class PlotlyController {
     // run it
     this.runBuffer();
   }
+ 
+  setDataRange(start, stop) {
+    this.is_live = false;
+    this.start = start;
+    this.end = end;
+  }
 
+  // ---------------------------------------------------------------------------
   // Tell the buffer to get data for a specific time range
   getData(start, stop) {
+    console.log("we are getting data")
     this.buffer.stop();
     this.buffer.getData(start, stop);
   }
-
+  // ---------------------------------------------------------------------------
   // Connect setting the time range of the data to be shown to an HTML
   // form
   // id_start: The id of the datatimepicker controlled form field which
@@ -174,9 +187,10 @@ export class PlotlyController {
   //            from the id_start/id_end time range
   timeRangeController(id_start, id_end, id_toggle) {
     var self = this;
+    
     $(id_toggle).on("date-change", function() {
       var toggle_val = $(id_toggle).val();
-      if (toggle_val == "live") {
+      if (toggle_val == "live" ) {
         self.is_live = true;
       }
       else if (toggle_val == "lookback") {
@@ -188,17 +202,52 @@ export class PlotlyController {
           self.buffer.stop();
         }
       }
+      else if (toggle_val == "hour"){
+        var d = new Date();
+        d.setHours(d.getHours() -1);
+        self.start = d;
+        self.end = Date.now();
+        self.is_live = false;
+        // stop the buffer
+        if (self.buffer.isRunning()) {
+          self.buffer.stop();
+        }
+
+      }
+      else if (toggle_val == "day"){
+        var d = new Date();
+        d.setDate(d.getDate() -1);
+        self.start = d;
+        self.end = Date.now();
+        self.is_live = false;
+        // stop the buffer
+        if (self.buffer.isRunning()) {
+          self.buffer.stop();
+        }
+
+      }
+
       self.runBuffer();
     });
     return this;
   }
-
+  // ---------------------------------------------------------------------------
   downloadDataController(id) {
     var self = this;
     $(id).click(function() {
       self.download("data.json", JSON.stringify(self.downloadFormat()));
     });
     return this;
+  }
+
+  addLink(link, config, name) {
+    this.link = this.link.add(link);
+    this.titles.push(name);
+    this.updateMetricConfig(config, true);
+    this.scatter.add_trace(name, this.metric_config.length - 1); 
+    if (this.is_running) {
+      this.updateData(this.link);
+    }
   }
 
   treeSelectController(id, type) {
@@ -213,18 +262,13 @@ export class PlotlyController {
 
         // get the config and then finish updating the plot
         d3.json(postgres_link.config_link(), function(config) {
-          self.link = self.link.add(new Data.D3DataLink(postgres_link));
-          // update the chart
-          self.updateMetricConfig(config.metadata, true);
-          self.scatter.add_trace(node.name, self.metric_config.length - 1);
-          // update the data
-          self.updateData(self.link);
+          self.addLink(new Data.D3DataLink(postgres_link), config.metadata, node.name);
         });
       }
     });
     return this;
   }
-
+  // ---------------------------------------------------------------------------
   runBuffer() {
     if (this.is_live) {
       // set the start
@@ -237,7 +281,7 @@ export class PlotlyController {
       this.buffer.getData(this.start, this.end);
     }
   }
-
+  // ---------------------------------------------------------------------------
   setTimeAxes() {
     if (this.is_live) {
       // let plotly set the x-range
@@ -248,7 +292,7 @@ export class PlotlyController {
       this.scatter.x_range = [moment(this.start).format("YYYY-MM-DD HH:mm:ss"), moment(this.end).format("YYYY-MM-DD HH:mm:ss")];
     }
   }
-
+  // ---------------------------------------------------------------------------
   downloadFormat() {
     // get the number of input streams controlled by this plot
     var n_data = this.link.accessors().length;
@@ -258,7 +302,7 @@ export class PlotlyController {
     }
     return ret;
   }
-
+  // ---------------------------------------------------------------------------
   download(filename, data) {
     var blob = new Blob([data], {type: 'text/csv'});
     if(window.navigator.msSaveOrOpenBlob) {
@@ -274,7 +318,8 @@ export class PlotlyController {
     }
   }
 }
-
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 export class CubismController {
   // target: the div-id (including the '#') where the cubism plots will
@@ -428,7 +473,7 @@ export class CubismController {
       }
     }
   }
-
+  // use updateParam to update thresholds.
   // Internal function: update a display parameter of the cubism charts
   updateParam(input, param_name) {
     // update this param

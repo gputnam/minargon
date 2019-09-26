@@ -83,8 +83,8 @@
         {%- endmacro %}
         <nav class="navbar navbar-expand-md bg-maroon navbar-dark fixed-top">
           <a class="navbar-brand" href="{{ url_for('index') }}">
-            <img src="{{ url_for('static', filename='images/SBND-color.png') }}" width="30" height="30" class="d-inline-block align-top" alt="">
-            &nbsp;SBND Monitoring
+            <img src="{{ url_for('static', filename='images/image_icarus.png') }}" width="30" height="30" class="d-inline-block align-top" alt="">
+            &nbsp;ICARUS Monitoring
           </a>
           <!--<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" 
                   aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
@@ -92,22 +92,14 @@
           </button>-->
           <div class="navbar-collapse collapse" id="navbar">
             <ul class="navbar-nav mr-auto">
-              <li class='dropdown nav-item'>
-              <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>Raw Data<b class='caret'></b></a>
-                <ul class='dropdown-menu bg-maroon'>
-                  {{ nav_link('noise_snapshot', 'Noise Snapshot') }}
-                  {{ nav_link('channel_snapshot', 'Channel Snapshot') }}
-                  {{ nav_link('fem_snapshot', 'FEM Snapshot') }}
-                </ul>
-              </li>
-              {{ nav_link('wireplane_view', 'Wire Plane View') }}
-              {{ nav_link('single_stream', 'Example Metric', stream_name='example_metric:slow') }}
-              {{ nav_link('online_group', 'Example Group', group_name='example') }}
-              {{ nav_link('online_group', 'DAQ', group_name='DABBoardReader') }}
-              {{ nav_link('test_pv', 'ICARUS EPICS', connection='epics') }}
-            </ul>
+             {{ nav_link('TPC', 'TPC') }}
+             {{ nav_link('pvTree', 'ICARUS EPICS', connection='epics') }}
+             {{ nav_link('online_group', 'Side CRT', group_name='CRT_board') }}
+             {{ nav_link('channel_snapshot', 'Waveform') }}
+           </ul>
           </div><!--/.navbar-collapse -->
         </nav>
+        <div class="alert-holder"></div>
 
 <!--
         {% with messages = get_flashed_messages(with_categories=True) %}
