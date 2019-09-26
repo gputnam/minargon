@@ -93,9 +93,12 @@
           <div class="navbar-collapse collapse" id="navbar">
             <ul class="navbar-nav mr-auto">
              {{ nav_link('TPC', 'TPC') }}
+             {{ nav_link('PMT_snapshot', 'PMT Waveforms') }}
+             {{ nav_link('PMT', 'PMT') }}
              {{ nav_link('pvTree', 'ICARUS EPICS', connection='epics') }}
              {{ nav_link('online_group', 'Side CRT', group_name='CRT_board') }}
              {{ nav_link('channel_snapshot', 'Waveform') }}
+             {{ nav_link('purity', 'Purity', group_name='TPC')}}
            </ul>
           </div><!--/.navbar-collapse -->
         </nav>
