@@ -50,7 +50,7 @@ def redis_route(func):
             # try to make a connection
             try:
                 return func(r, *args, **kwargs)
-            except (redis.exceptions.ConnectionError, redis.exceptions.BusyLoadingError, redis.exceptions.ResponseError) as err:
+            except (redis.exceptions.ConnectionError, redis.exceptions.BusyLoadingError, redis.exceptions.ResponseError, redis_api.MalformedRedisEntry) as err:
                 error = RedisConnectionError(front_end_abort).register_redis_error(err, rconnect)
                 return abort(503, error)
         else:
@@ -84,6 +84,17 @@ def snapshot(rconnect, data):
         redis_key += ":%s:%s" % (k, v)
     return jsonify(values=redis_api.get_key(rconnect, redis_key))
 
+@app.route('/<rconnect>/waveform/<data>')
+@redis_route
+def waveform(rconnect, data):
+    redis_key = "snapshot:%s" % data
+    # args should be key-value pairs of specifiers in the redis keys
+    # e.g. /waveform/sparse_waveform?wire=1
+    # decodes to the redis key snapshot:sparse_waveform:wire:1
+    for (k, v) in request.args.iteritems():
+        redis_key += ":%s:%s" % (k, v)
+    data, offsets, period = redis_api.get_waveform(rconnect, redis_key)
+    return jsonify(data=data, offsets=offsets, period=period)
 
 def get_min_end_time(data):
     min_end_time = 0

@@ -1,7 +1,90 @@
 from redis import Redis
 from flask import jsonify
+import struct
 
 # import gevent
+
+class MalformedRedisEntry(Exception):
+    pass
+
+def type_to_struct_type(name):
+    if name == "int8_t": return "b"
+    if name == "int16_t": return "h"
+    if name == "int32_t": return "i"
+    if name == "int64_t": return "q"
+
+    if name == "uint8_t": return "B"
+    if name == "uint16_t": return "H"
+    if name == "uint32_t": return "I"
+    if name == "uint64_t": return "Q"
+
+    if name == "float": return "f"
+    if name == "double": return "d"
+    return None
+
+def type_to_size(name):
+    if name == "int8_t": return 1
+    if name == "int16_t": return 2
+    if name == "int32_t": return 4
+    if name == "int64_t": return 8
+
+    if name == "uint8_t": return 1
+    if name == "uint16_t": return 2
+    if name == "uint32_t": return 4
+    if name == "uint64_t": return 8
+
+    if name == "float": return 4
+    if name == "double": return 8
+
+def parse_binary(binary, typename):
+    size = type_to_size(typename)
+    form = type_to_struct_type(typename)
+    ret = []
+    for i in range(len(binary) / size):
+       dat = binary[i*size : (i+1)*size]
+       ret.append(struct.unpack(form, dat)[0])
+
+    return ret
+
+def extract_datum(dat):
+    if "dat" in dat: return dat["dat"]
+    typename = dat.keys()[0]
+    structname = type_to_struct_type(typename)
+    if structname is None:
+        raise MalformedRedisEntry("Redis Steam entry missing binary type.")
+    return struct.unpack(structname, dat[typename])[0]
+
+def get_waveform(rdb, key):
+    data_type = rdb.hget(key, "DataType")
+    offset_type = rdb.hget(key, "OffsetType")
+    size_type = rdb.hget(key, "SizeType")
+    period = rdb.hget(key, "TickPeriod")
+    data = rdb.hget(key, "Data")
+    sizes = rdb.hget(key, "Sizes")
+    offsets = rdb.hget(key, "Offsets")
+    if data:
+        data = parse_binary(data, data_type)
+    else:
+        data = []
+    if sizes:
+        sizes = parse_binary(sizes, size_type)
+    else:
+        sizes = [len(data)]
+    if period is not None:
+        period = float(period)
+    else:
+        period = 0.
+    split_data = []
+    index = 0
+    for s in sizes:
+        split_data.append(data[index:index+s])
+        index += s
+
+    if offsets:
+        offsets = parse_binary(offsets, offset_type)
+    else:
+        offsets = [0]
+    return split_data, offsets, period
 
 # get a single redis key value
 def get_key(rdb, key):
@@ -25,9 +108,7 @@ def get_last_streams(rdb, stream_list,count=1):
         ret[stream] = []
         for datapoint in data:
             time = datapoint[0].split("-")[0]
-            if "dat" not in datapoint[1]:
-                continue
-            val = datapoint[1]["dat"]
+            val = extract_datum(datapoint[1])
             ret[stream].append((time, val))
     return ret
 
@@ -47,9 +128,7 @@ def get_streams(rdb, stream_list, n_data=None, start=None, stop=None):
         ret[stream] = []
         for d in data:
             time =  d[0].split("-")[0]
-            if "dat" not in d[1]:
-                 continue
-            val = d[1]["dat"]
+            val = extract_datum(d[1])
             ret[stream].append( (time, val) )
     return ret
 
@@ -66,7 +145,7 @@ def block_streams(rdb, streams):
                 for d in stream_data[1]:
                     n_received += 1
                     time = d[0].split("-")[0]
-                    val = d[1]["dat"]
+                    val = extract_datum(d[1])
                     ret[stream].append( (time, val) )
                 streams[stream] = ret[stream][-1][0]
         yield ret
