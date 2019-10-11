@@ -18,7 +18,7 @@ def PMT():
     args = dict(**request.args)
     args["data"] = "rms"
     args["stream"] = "fast"
-    return timeseries_view(args, "PMT", "")
+    return timeseries_view(args, "PMT", "", "pmtLink")
 
 @app.route('/PMT_snapshot')
 def PMT_snapshot():
