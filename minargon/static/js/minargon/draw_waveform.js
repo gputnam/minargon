@@ -1,5 +1,6 @@
 // requires d3 and plotly loaded
 // TODO: use import modules
+import {throw_database_error} from "./error.js";
 
 // Helper function for drawing a waveform from a snapshot as provided by the 
 // raw data api from the Flask backend
@@ -13,15 +14,29 @@
 // param: dictionary where the key-value pairs will be GET params for the URL specified
 //        to get data from the backend raw data API
 export function draw_waveform(target, param) {
-  d3.json($SCRIPT_ROOT + "/online/snapshot/waveform?" + $.param(param), function(err, data) {
-    if (data == null || data.values == null) return;
-    var waveform = data.values;
+  d3.json($SCRIPT_ROOT + "/online/waveform/waveform?" + $.param(param), function(err, data) {
+    if (!data) {
+      throw_database_error(err, "draw_waveform");
+      return;
+    }
 
-    var xrange = Array.apply(null, Array(waveform.length)).map(function (_, i) {return i * 0.4 /* scale to usec */;});
+    if (data == null || data.data == null || data.offsets == null || data.period == null) return;
+    var waveform = data.data;
+    var offsets = data.offsets;
+    var period = data.period;
+
+    var xrange = [];
+    var yrange = [];
+    for (var i = 0; i < waveform.length; i++) {
+      for (var j = 0; j < waveform[i].length; j++) {
+        xrange.push(offsets[i] + j * period);
+        yrange.push(waveform[i][j]);
+      }
+    }
 
     var trace = {
       x: xrange,
-      y: waveform,
+      y: yrange,
       type: 'scatter'
     };
 
@@ -43,12 +58,18 @@ export function draw_waveform(target, param) {
 // param: dictionary where the key-value pairs will be GET params for the URL specified
 //        to get data from the backend raw data API
 export function draw_fft(target, param) {
-  d3.json($SCRIPT_ROOT + "/online/snapshot/fft?" + $.param(param), function(err, data) {
-    if (data == null || data.values == null) return;
-    var fft_vals = data.values;
+  d3.json($SCRIPT_ROOT + "/online/waveform/fft?" + $.param(param), function(err, data) {
+    if (!data) {
+      throw_database_error(err, "draw_fft");
+      return;
+    }
+
+    if (data == null || data.data == null || data.period == null) return;
+    var fft_vals = data.data;
     if (!fft_vals.length) return;
 
-    var khz_scaling_value = 1250./(fft_vals.length - 1); // max value in fft should be 1.25MHz for ICARUS VST
+    // get the xrange from the "tick period" -- which should be in units of frequency
+    var mhz_scaling_value = data.period;
 
     // ignore the first element of the fft, corresponding to the baseline
     var xrange = Array.apply(null, Array(fft_vals.length - 1)).map(function (_, i) {return i * khz_scaling_value;});
@@ -68,7 +89,7 @@ export function draw_fft(target, param) {
 
     var layout = {
       xaxis: {
-        title: "Frequency (KHz)",
+        title: "Frequency (MHz)",
       },
       yaxis: {
         title: "Transformed ADC Count (Non-Normalized)",
