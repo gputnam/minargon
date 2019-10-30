@@ -107,7 +107,9 @@ function channelLink(group, instance) {
 }
 
 function pmtLink(group, instance) {
-  return "PMT_snapshot?channel=" + instance;
+  // ANOTHER TEMPORARY HACK....
+  instance = String(Number(instance) * 2);
+  return "PMT_snapshot?PMT=" + instance;
 }
 
 </script>
