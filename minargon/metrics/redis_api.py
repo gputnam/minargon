@@ -47,12 +47,21 @@ def parse_binary(binary, typename):
     return ret
 
 def extract_datum(dat):
-    if "dat" in dat: return dat["dat"]
-    typename = dat.keys()[0]
-    structname = type_to_struct_type(typename)
-    if structname is None:
-        raise MalformedRedisEntry("Redis Steam entry missing binary type.")
-    return struct.unpack(structname, dat[typename])[0]
+    invert = "INVERT" in dat
+    dat.pop("INVERT", None)
+
+    if "dat" in dat: 
+        val = dat["dat"]
+    else:
+        typename = dat.keys()[0]
+        structname = type_to_struct_type(typename)
+        if structname is None:
+            raise MalformedRedisEntry("Redis Steam entry missing binary type.")
+        val = struct.unpack(structname, dat[typename])[0]
+    if invert:
+      if abs(val) < 1e-4: return float('Inf')
+      return 1. / val
+    return val
 
 def get_waveform(rdb, key):
     data_type = rdb.hget(key, "DataType")
