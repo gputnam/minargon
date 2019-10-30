@@ -32,8 +32,8 @@ def PMT_snapshot():
       "channel": channel,
       "config": config,
       "pmt_range": pmt_range,
-      "view_ind": {"channel": channel},
-      "view_ind_opts": {"channel": pmt_range},
+      "view_ind": {"PMT": channel},
+      "view_ind_opts": {"PMT": pmt_range},
     }
     return render_template("icarus/pmt_snapshot.html", **template_args)
 
