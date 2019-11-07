@@ -4,6 +4,7 @@ gevent==1.3
 #numpy
 #pyzmq
 redis==3.0
+plotly==4.2
 #argparse
 #sphinx
 #requests
