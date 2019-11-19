@@ -1,6 +1,7 @@
 from redis import Redis
 from flask import jsonify
 import struct
+import math
 
 # import gevent
 
@@ -59,8 +60,9 @@ def extract_datum(dat):
             raise MalformedRedisEntry("Redis Steam entry missing binary type.")
         val = struct.unpack(structname, dat[typename])[0]
     if invert:
-      if abs(val) < 1e-4: return "inf" # JSON compatible infinity
-      return 1. / val
+        if abs(val) < 1e-4: return "inf" # JSON compatible infinity
+        val = 1. / val
+    if math.isnan(val): val = 0
     return val
 
 def get_waveform(rdb, key):
