@@ -59,7 +59,7 @@ def extract_datum(dat):
             raise MalformedRedisEntry("Redis Steam entry missing binary type.")
         val = struct.unpack(structname, dat[typename])[0]
     if invert:
-      if abs(val) < 1e-4: return float('Inf')
+      if abs(val) < 1e-4: return "inf" # JSON compatible infinity
       return 1. / val
     return val
 
