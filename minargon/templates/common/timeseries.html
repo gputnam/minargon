@@ -90,7 +90,7 @@ config_controller.runAll();
 // function to update href
 function wireLink(group, instance) {
   // TEMPORARY HACK FOR ICARUS VST -- hardcode instance -> wire # map as wire = (instance) * 24
-  instance = String(Number(instance) * 24);
+  instance = String(Number(instance) * 47);
   return "channel_snapshot?channel=" + instance;
 }
 
