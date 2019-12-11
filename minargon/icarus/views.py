@@ -44,7 +44,7 @@ def channel_snapshot():
 
     view_ind = {'channel': channel}
     # TODOL fix..... all of this
-    view_ind_opts = {'channel': range(576)}
+    view_ind_opts = {'channel': range(2304)}
 
     instance_name = "tpc_channel"
     config = online_metrics.get_group_config("online", instance_name, front_end_abort=True)
