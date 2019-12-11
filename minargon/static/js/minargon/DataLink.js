@@ -106,8 +106,23 @@ export class MetricStreamLink {
     }
     else {
       var instances = "";
-      for (var i = 0; i < this.instances.length; i++) {
-        instances = instances + this.instances[i] + ',';
+
+      // check if sequential
+      var is_sequential = true;
+      for (var i = 1; i < this.instances.length; i++) {
+        if (this.instances[i] - 1 != this.instances[i-1]) {
+          is_sequential = false;
+          break;
+        }
+      }
+
+      if (!is_sequential) {
+        for (var i = 0; i < this.instances.length; i++) {
+          instances = instances + this.instances[i] + ',';
+        }
+      }
+      else {
+        instances = this.instances[0] + "/" + this.instances[this.instances.length-1];
       }
     }
     var metrics = "";
