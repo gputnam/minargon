@@ -37,6 +37,36 @@ def PMT_snapshot():
     }
     return render_template("icarus/pmt_snapshot.html", **template_args)
 
+@app.route('/CRT_board/')
+def CRT_board():
+    return timeseries_view(request.args, "CRT_board", "", "crtBoardLink")
+
+@app.route('/CRT_board_snapshot/')
+def CRT_board_snapshot():
+    board_no = int(request.args.get("board_no", 0))
+    # get the config for this group from redis
+    config_board = online_metrics.get_group_config("online", "CRT_board", front_end_abort=True)
+    config_channel = online_metrics.get_group_config("online", "CRT_channel", front_end_abort=True)
+
+    view_ind = {'board_no': board_no}
+    # TODOL fix..... all of this
+    view_ind_opts = {'board_no': range(8)}
+
+    # TODO: implement real channel mapping
+    board_channels = range(board_no*32, (board_no+1)*32)
+
+    render_args = {
+        'title': ("CRT Board %i Snapshot" % board_no),
+        'board_config': config_board,
+        'channel_config': config_channel,
+        'board_no': board_no,
+        'view_ind': view_ind,
+        'view_ind_opts': view_ind_opts,
+        'board_channels': board_channels
+    }
+
+    return render_template("icarus/crt_board_snapshot.html", **render_args)
+
 # snapshot of data on channel (fft and waveform)
 @app.route('/channel_snapshot')
 def channel_snapshot():

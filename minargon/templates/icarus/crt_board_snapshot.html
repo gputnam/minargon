@@ -1,0 +1,99 @@
+{% import "stream_options_macro.html" | common as stream_options %}
+
+{% extends "layout.html" | front_ended %}
+{% block title %}{{title}}{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+<div class="row">
+    {% include 'data_header.html' | front_ended %}
+</div>
+
+<div class="row">
+<h1>CRT Board {{board_no}} Data</h1>
+</div>
+<div class="row">
+<div class="col-md-4 vcenter">
+        <div class="card hcenter">
+            <div class="card-header">Display Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
+                    {{ stream_options.metric_option(board_config["metric_config"], metric, "board-form-metric") }}
+                    {{ stream_options.stream_option(board_config.streams, board_config.streams[0], "board-form-stream") }}
+                    {{ stream_options.download("board-download") }}
+                </form>
+            </div>  
+       	    </div>    
+         </div>
+         <div class="col-md-8" style="padding:0" id="board-time-scatter"></div>
+</div>
+
+<div class="row">
+<h1>CRT Board {{board_no}} Channel Data</h1>
+</div>
+<div class="row">
+<div class="col-md-4 vcenter">
+        <div class="card hcenter">
+            <div class="card-header">Display Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
+                    {{ stream_options.metric_option(channel_config["metric_config"], metric, "channel-form-metric") }}
+                    {{ stream_options.stream_option(channel_config.streams, channel_config.streams[0], "channel-form-stream") }}
+                    {{ stream_options.warning_option("channel-form-warning-range-lo", "channel-form-warning-range-hi") }}
+                    {{ stream_options.time_range("channel-start", "channel-end", "channel-toggle") }}
+                    {{ stream_options.download("channel-download") }}
+                </form>
+            </div>  
+       	    </div>    
+         </div>
+         <div class="col-md-8" style="padding:0" id="channel-time-scatter"></div>
+</div>
+<div class="row">
+    <div class="col-md-6 vcenter" style="padding:0">
+        <div id="histogram"></div>
+    </div>
+    <div class="col-md-6 vcenter" style="padding:0">
+        <div id="scatter"></div>
+    </div>
+</div>
+
+</div>
+{%endblock%}
+{% block script %}
+<script defer type="module">
+import * as Config from "{{ url_for('static', filename='js/minargon/config.js') }}";
+
+// get the configuration
+var board_config = {{board_config|tojson|safe}};
+
+var board_config_controller = new Config.GroupConfigController(board_config, undefined, [], [{{board_no}}], 0, 25)
+    .metricController("#board-form-metric")
+    .streamController("#board-form-stream"); 
+
+var board_plotly = board_config_controller.addPlotlyController("board-time-scatter")
+   .timeRangeController("#board-start", "#board-end", "#board-toggle")
+   .downloadDataController("#board-download");
+
+// add the scatter plot
+var channel_config = {{channel_config|tojson|safe}};
+
+var channel_config_controller = new Config.GroupConfigController(channel_config, undefined, [], {{board_channels|tojson|safe}}, 0, 25)
+    .metricController("#channel-form-metric")
+    .streamController("#channel-form-stream"); 
+var channel_plotly = channel_config_controller.addPlotlyController("channel-time-scatter")
+   .timeRangeController("#channel-start", "#channel-end", "#channel-toggle")
+   .downloadDataController("#channel-download");
+
+// add the scatter plot
+var scatter = channel_config_controller.addGroupDataScatterController("scatter", "CRT Board {{board_no}} Channel Scatter")
+  .rangeController("#channel-form-range-lo", "#channel-form-range-hi", false)
+  .warningrangeController("#channel-form-warning-range-lo", "#channel-form-warning-range-hi")
+  .set();
+
+// and histogram
+var histo = channel_config_controller.addGroupDataHistoController("histogram", "CRT Board {{board_no}} Channel Histogram")
+  .rangeController("#channel-form-range-lo", "#channel-form-range-hi", false)
+  .set();
+
+</script>
+{% endblock %}
