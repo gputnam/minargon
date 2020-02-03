@@ -66,7 +66,7 @@ import * as Config from "{{ url_for('static', filename='js/minargon/config.js') 
 // get the configuration
 var board_config = {{board_config|tojson|safe}};
 
-var board_config_controller = new Config.GroupConfigController(board_config, undefined, [], [{{board_no}}], 0, 25)
+var board_config_controller = new Config.GroupConfigController(board_config, undefined, ["{{board_config['metric_list'][0]}}"], [{{board_no}}], 0, 32)
     .metricController("#board-form-metric")
     .streamController("#board-form-stream"); 
 
@@ -77,7 +77,7 @@ var board_plotly = board_config_controller.addPlotlyController("board-time-scatt
 // add the scatter plot
 var channel_config = {{channel_config|tojson|safe}};
 
-var channel_config_controller = new Config.GroupConfigController(channel_config, undefined, [], {{board_channels|tojson|safe}}, 0, 25)
+var channel_config_controller = new Config.GroupConfigController(channel_config, undefined, undefined, {{board_channels|tojson|safe}}, 0, 32)
     .metricController("#channel-form-metric")
     .streamController("#channel-form-stream"); 
 var channel_plotly = channel_config_controller.addPlotlyController("channel-time-scatter")
@@ -94,6 +94,10 @@ var scatter = channel_config_controller.addGroupDataScatterController("scatter",
 var histo = channel_config_controller.addGroupDataHistoController("histogram", "CRT Board {{board_no}} Channel Histogram")
   .rangeController("#channel-form-range-lo", "#channel-form-range-hi", false)
   .set();
+
+// start the controllers
+board_config_controller.runAll();
+channel_config_controller.runAll();
 
 </script>
 {% endblock %}

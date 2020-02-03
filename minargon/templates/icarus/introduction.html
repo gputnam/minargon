@@ -8,5 +8,60 @@ ICARUS Online Monitoring
 </h1>
 <p>
 Online monitoring website for the ICARUS Detector. 
+
+<br>
+
+Online monitoring operation is: <span id="OM-status"> </span>
+
+<br>
+
+Archiver operation is: <span id="AR-status"> </span>
 </p>
 {%endblock%}
+
+{% block script %}
+<script defer type="module">
+import * as Data from "{{ url_for('static', filename='js/minargon/Data.js') }}";
+import * as DataLink from "{{ url_for('static', filename='js/minargon/DataLink.js') }}";
+
+// monitor DAQConsumer
+var timeout = 5 * 1000; // ms
+
+function is_recent(time, time_is_ok) {
+  var now = moment(new Date).tz("America/Chicago").unix() * 1000. /* s -> ms */;
+  var ret = (now - time) < time_is_ok;
+  return ret;
+}
+
+
+function update_is_recent(data_link, spanid, time_is_ok) {
+  data_link.get_data(function(data, err) {
+    var datalist = data.values[data_link.accessors()[0][0]];
+    var recent;
+    if (datalist.length == 0) {
+      recent = false;
+    }
+    else {
+      recent = is_recent(datalist[datalist.length-1][0], time_is_ok);
+    }
+    if (recent) {
+      $(spanid).text("ON");
+      $(spanid).css({"color": "green"});
+    }
+    else {
+      $(spanid).text("OFF");
+      $(spanid).css({"color": "red"});
+    }
+  });
+
+  setTimeout(function() {update_is_recent(data_link, spanid, time_is_ok);}, timeout);
+}
+
+var data_link_om = new Data.D3DataLink(new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", "DAQConsumer")); 
+update_is_recent(data_link_om, "#OM-status", 10 * 1000 /* ms*/);
+
+var data_link_ar = new Data.D3DataLink(new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", "archiver_heartbeat"));
+update_is_recent(data_link_ar, "#AR-status", 120 * 1000 /* ms */);
+</script> 
+{%endblock%}
+

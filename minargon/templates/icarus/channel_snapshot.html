@@ -39,16 +39,6 @@
 import * as Config from "{{ url_for('static', filename='js/minargon/config.js') }}";
 import * as draw from "{{ url_for('static', filename='js/minargon/draw_waveform.js') }}";
 
-// get snapshot time
-d3.json($SCRIPT_ROOT + "/online/snapshot/time", function(err, data) {
-  var time = moment(new Date(data.value * 1000));
-  $("#update-time").html("Snapshot At: " + time.format("MM/DD HH:mm:ss"));
-});
-
-d3.json($SCRIPT_ROOT + "/online/snapshot/sub_run", function(err, data) {
-  $("#update-subrun").html("SubRun: "  + data.value);
-});
-
 draw.draw_waveform('waveform', {wire: {{channel}} });
 draw.draw_fft('fft', {wire: {{channel}} });
 
