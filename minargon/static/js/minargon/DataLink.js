@@ -122,7 +122,7 @@ export class MetricStreamLink {
         }
       }
       else {
-        instances = this.instances[0] + "/" + this.instances[this.instances.length-1];
+        instances = this.instances[0] + "/" + this.instances[this.instances.length-1]+1;
       }
     }
     var metrics = "";
@@ -182,7 +182,7 @@ function flatten(arr) {
 // start/stop can be a date or an integer
 function timeArgs(start, stop) {
   // if start is undefined, just return null
-  if (start === undefined) return null;
+  if (start === undefined) return {};
   var ret = {
     now: new Date().toISOString(),
   };

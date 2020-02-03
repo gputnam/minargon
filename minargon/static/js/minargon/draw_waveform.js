@@ -65,14 +65,14 @@ export function draw_fft(target, param) {
     }
 
     if (data == null || data.data == null || data.period == null) return;
-    var fft_vals = data.data;
+    var fft_vals = data.data[0];
     if (!fft_vals.length) return;
 
     // get the xrange from the "tick period" -- which should be in units of frequency
-    var mhz_scaling_value = data.period;
+    var mhz_scaling_value = (data.period*2) / fft_vals.length;
 
     // ignore the first element of the fft, corresponding to the baseline
-    var xrange = Array.apply(null, Array(fft_vals.length - 1)).map(function (_, i) {return i * khz_scaling_value;});
+    var xrange = Array.apply(null, Array(fft_vals.length - 1)).map(function (_, i) {return i * mhz_scaling_value;});
 
     // and scale the fft by its length
     // (version stored in redis is an unnormalized one, as calculated by fftw3)
