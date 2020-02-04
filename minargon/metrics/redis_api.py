@@ -52,7 +52,10 @@ def extract_datum(dat):
     dat.pop("INVERT", None)
 
     if "dat" in dat: 
-        val = float(dat["dat"])
+        try:
+            val = float(dat["dat"])
+        except:
+            return dat["dat"]
     else:
         typename = dat.keys()[0]
         structname = type_to_struct_type(typename)
