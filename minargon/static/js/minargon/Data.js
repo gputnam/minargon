@@ -369,13 +369,7 @@ export class D3DataLink {
   // stop: (optional) stop index into the stream -- set to current time by default
   get_data(d3_callback, start, stop) {
      var self = this;
-     return d3.json(self.link_builder.data_link(start, stop),
-	function(err, data) {
-	    if (!data) {
-                return d3_callback(new Error('unable to load data'));
-            }
-	    return d3_callback(data);
-	});
+     return d3.json(self.link_builder.data_link(start, stop), d3_callback);
   }
 
   // input:

@@ -23,6 +23,7 @@ Archiver operation is: <span id="AR-status"> </span>
 <script defer type="module">
 import * as Data from "{{ url_for('static', filename='js/minargon/Data.js') }}";
 import * as DataLink from "{{ url_for('static', filename='js/minargon/DataLink.js') }}";
+import {throw_database_error} from "{{ url_for('static', filename='js/minargon/error.js') }}";
 
 // monitor DAQConsumer
 var timeout = 5 * 1000; // ms
@@ -35,7 +36,12 @@ function is_recent(time, time_is_ok) {
 
 
 function update_is_recent(data_link, spanid, time_is_ok) {
-  data_link.get_data(function(data, err) {
+  data_link.get_data(function(err, data) {
+    if (err) {
+      throw_database_error(err, "update_heartbeat: " + data_link.accessors()[0][0]);
+      return;
+    }
+
     var datalist = data.values[data_link.accessors()[0][0]];
     var recent;
     if (datalist.length == 0) {
@@ -52,9 +58,9 @@ function update_is_recent(data_link, spanid, time_is_ok) {
       $(spanid).text("OFF");
       $(spanid).css({"color": "red"});
     }
+    setTimeout(function() {update_is_recent(data_link, spanid, time_is_ok);}, timeout);
   });
 
-  setTimeout(function() {update_is_recent(data_link, spanid, time_is_ok);}, timeout);
 }
 
 var data_link_om = new Data.D3DataLink(new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", "DAQConsumer")); 
