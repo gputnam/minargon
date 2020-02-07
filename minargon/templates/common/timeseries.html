@@ -89,8 +89,6 @@ config_controller.runAll();
 
 // function to update href
 function wireLink(group, instance) {
-  // TEMPORARY HACK FOR ICARUS VST -- hardcode instance -> wire # map as wire = (instance) * 24
-  instance = String(Number(instance) * 139);
   return "channel_snapshot?channel=" + instance;
 }
 
@@ -107,8 +105,6 @@ function channelLink(group, instance) {
 }
 
 function pmtLink(group, instance) {
-  // ANOTHER TEMPORARY HACK....
-  instance = String(Number(instance) * 2);
   return "PMT_snapshot?PMT=" + instance;
 }
 

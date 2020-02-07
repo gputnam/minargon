@@ -151,7 +151,12 @@ export class GroupConfigController {
   // user clicks on a strip chart 
   getLink(index) {
     if (!(this.href === undefined)) {
-        return this.href(this.config.group, this.config.instances[index]);
+        // Look up the field at the correct index 
+        //
+        // This is defined only for cubism controllers. Cubism controllers
+        // do have instance_skip set, so we get the correct index
+        // by including it 
+        return this.href(this.config.group, this.config.instances[index * this.instance_skip]);
     }
     return undefined;
   }
