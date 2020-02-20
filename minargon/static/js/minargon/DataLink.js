@@ -96,13 +96,20 @@ export class MetricStreamLink {
   }
  
   step_link() {
-    var link = this.root + '/infer_step_size/' + this.stream + '/' + this.metrics[0] + '/' + this.group + '/' + this.instances[0];
+    var metric_list = "";
+    for (var i = 0; i < this.metrics.length; i++) {
+      metric_list = metric_list + this.metrics[i] + ",";
+    }
+    var link = this.root + '/infer_step_size/' + this.stream + '/' + metric_list + '/' + this.group + '/' + this.instances[0];
     return link;
   }
   
   data_link_internal(base, start, stop) {
     if (this.sequence) {
-      var instances = '/' + this.field_start + '/' + this.field_end; 
+      var instances = this.field_start + '/' + this.field_end; 
+    }
+    else if (this.instances.length == 1) {
+      var instances = this.instances[0] + ","; 
     }
     else {
       var instances = "";
@@ -110,7 +117,7 @@ export class MetricStreamLink {
       // check if sequential
       var is_sequential = true;
       for (var i = 1; i < this.instances.length; i++) {
-        if (this.instances[i] - 1 != this.instances[i-1]) {
+        if (Number(this.instances[i]) - 1 != Number(this.instances[i-1])) {
           is_sequential = false;
           break;
         }
@@ -122,7 +129,7 @@ export class MetricStreamLink {
         }
       }
       else {
-        instances = this.instances[0] + "/" + this.instances[this.instances.length-1]+1;
+        instances = this.instances[0] + "/" + (Number(this.instances[this.instances.length-1])+1);
       }
     }
     var metrics = "";

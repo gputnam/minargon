@@ -1,7 +1,12 @@
 var prior_warnings = [];
 
 export function throw_database_error(d3_error, reporter) {
-  var response_info = JSON.parse(d3_error.response);
+  if (d3_error.response) {
+      var response_info = JSON.parse(d3_error.response);
+  }
+  else {
+    var response_info = "";
+  }
   var warning_text = "";
   if (response_info.database_name !== undefined && response_info.description !== undefined) {
     warning_text = "Database connection error " + String(d3_error.status) + " (" + response_info.database_name + "): " + response_info.description;
