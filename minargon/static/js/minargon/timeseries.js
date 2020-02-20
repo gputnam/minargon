@@ -260,7 +260,7 @@ export class PlotlyController {
         // collapse the tree
         $(id).treeview('collapseAll', { silent: true });
         // make the link and get the config object
-        var postgres_link = new DataLink.PostgresStreamLink($SCRIPT_ROOT, node.database, node.ID)
+        var postgres_link = new DataLink.EpicsStreamLink($SCRIPT_ROOT, node.database, node.ID)
 
         // get the config and then finish updating the plot
         d3.json(postgres_link.config_link(), function(config) {

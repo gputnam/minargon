@@ -41,12 +41,12 @@
 <script defer type="module">
 import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
 // build the links
-var link = new module.Data.D3DataLink(new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{database}}", "{{ID}}"));
+var link = new module.Data.D3DataLink(new module.DataLink.EpicsStreamLink($SCRIPT_ROOT, "{{database}}", "{{ID}}"));
 var links = [];
 var configs = [];
 var names = [];
 {% for (ID, database, config) in postgres_streams %}
-    links.push(new module.Data.D3DataLink(new module.DataLink.PostgresStreamLink($SCRIPT_ROOT, "{{database}}", "{{ID}}")));
+    links.push(new module.Data.D3DataLink(new module.DataLink.EpicsStreamLink($SCRIPT_ROOT, "{{database}}", "{{ID}}")));
     configs.push({{config|tojson}});
     {% if "yTitle" in config %}
       names.push("{{config['yTitle']}}");

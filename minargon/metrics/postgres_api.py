@@ -124,14 +124,7 @@ def postgres_route(func):
 	return wrapper
 #________________________________________________________________________________________________
 # Make the DB query and return the data
-def postgres_query(ID, start_t, stop_t, connection, config, **table_args):
-	# return nothing if no connection
-	if connection is None:
-		return []
-	
-	# Make PostgresDB connection
-	cursor = connection.cursor(cursor_factory=RealDictCursor) 
-
+def postgres_querymaker(IDs, start_t, stop_t, config, **table_args):
         # build the value string
 	value_string = ""
 	for i,v in enumerate(config["value_names"]):
@@ -151,14 +144,19 @@ def postgres_query(ID, start_t, stop_t, connection, config, **table_args):
 		"TABLE": table_name,
 		"START": str(start_t / 1000.),
 		"STOP": str(stop_t / 1000.),
-		"ID": str(ID)
+                "IDs": ",".join(IDs)
 	}
 
 	# Database query to execute, times converted to unix [ms]
-	query = "SELECT extract(epoch FROM {TIME})*1000 AS SAMPLE_TIME {VALUE_STRING} FROM {TABLE} WHERE CHANNEL_ID={ID}"\
+	query = "SELECT extract(epoch FROM {TIME})*1000 AS SAMPLE_TIME, CHANNEL_ID AS ID {VALUE_STRING} FROM {TABLE} WHERE CHANNEL_ID in ({IDs})"\
                 " AND {TIME} BETWEEN to_timestamp({START}) AND to_timestamp({STOP}) ORDER BY {TIME}".format(**query_builder)
-	print query
+	return query
 	
+def postgres_query(IDs, start_t, stop_t, connection, config, **table_args):
+	# Make PostgresDB connection
+	cursor = connection.cursor(cursor_factory=RealDictCursor) 
+
+	query = postgres_querymaker(IDs, start_t, stop_t, config, **table_args)
 	# Execute query, rollback connection if it fails
 	try:
 		cursor.execute(query)
@@ -168,7 +166,6 @@ def postgres_query(ID, start_t, stop_t, connection, config, **table_args):
 		connection.commit()
 		# let website handle error
 		raise	
-	print data
 
 	return data
 
@@ -184,7 +181,7 @@ def ps_step(connection, ID):
 	start_t = calendar.timegm(start_t.timetuple()) *1e3 + start_t.microsecond/1e3 # convert to unix ms
 	stop_t  = calendar.timegm(stop_t.timetuple())  *1e3 + stop_t.microsecond/1e3 
 
-	data = postgres_query(ID, start_t, stop_t, *connection, **request.args.to_dict())
+	data = postgres_query([ID], start_t, stop_t, *connection, **request.args.to_dict())
 
 	# Predeclare variable otherwise it will complain the variable doesnt exist 
 	step_size = None
@@ -295,7 +292,7 @@ def ps_series(connection, ID):
 		now = datetime.now(timezone('UTC')) # Get the time now in UTC
 		stop_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
 
-	data = postgres_query(ID, start_t, stop_t, *connection, **request.args.to_dict())
+	data = postgres_query([ID], start_t, stop_t, *connection, **request.args.to_dict())
 
 	# Format the data from database query
 	data_list = []

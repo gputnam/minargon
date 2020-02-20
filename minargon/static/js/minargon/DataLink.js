@@ -1,13 +1,11 @@
 // all the datalinks...
 
-
-
-// DataLink which connects a postgres stream given the ID
+// DataLink which connects a epics stream given the ID
 
 // Arguments to constructor:
 // root: the root path wehre all of the API endpoints are defined
-// ID: the postgres table ID
-export class PostgresStreamLink {
+// ID: the epics channel ID
+export class EpicsStreamLink {
   constructor(root, database, ID) {
     this.root = root;
     this.database = database;

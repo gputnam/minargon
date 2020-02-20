@@ -5,8 +5,13 @@ import redis.exceptions
 import json
 from minargon.tools import parseiso, parseiso_or_int, stream_args
 from functools import wraps
+from datetime import datetime, timedelta # needed for testing only
+import calendar
+from pytz import timezone
 
 import redis_api
+import postgres_api
+from psycopg2.extras import RealDictCursor
 
 # error class for connecting to redis
 class RedisConnectionError:
@@ -195,16 +200,151 @@ def stream_group_subscribe(rconnect, stream_type, metric_names, group_name, inst
     # TODO: how to detect?
     return Response(event_stream(), mimetype="text/event-stream")
 
-@app.route('/<rconnect>/stream_group/<stream_type>/<list:metric_names>/<group_name>/<int:instance_start>/<int:instance_end>')
-@app.route('/<rconnect>/stream_group/<stream_type>/<list:metric_names>/<group_name>/<list:instance_list>')
-@redis_route
-def stream_group(rconnect, stream_type, metric_names, group_name, instance_start=None, instance_end=None, instance_list=None):
+@app.route('/<connect>/stream_group/<stream_type>/<list:metric_names>/<group_name>/<int:instance_start>/<int:instance_end>')
+@app.route('/<connect>/stream_group/<stream_type>/<list:metric_names>/<group_name>/<list:instance_list>')
+def stream_group(connect, stream_type, metric_names, group_name, instance_start=None, instance_end=None, instance_list=None):
     args = stream_args(request.args)
 
     if instance_list is not None:
         instances = instance_list
     else: 
         instances = [str(x) for x in range(instance_start, instance_end)]
+
+    if stream_type == "archived":
+        return stream_group_archived(connect, stream_type, metric_names, group_name, instances, args)
+    else:
+        return stream_group_online(connect, stream_type, metric_names, group_name, instances, args)
+
+@postgres_api.postgres_route
+def infer_step_size_archived(connection, stream_type, metric_names, group_name, instance):
+    connection, config = connection
+
+    # first figure out if any of the provided metrics are being archived
+    cursor = connection.cursor(cursor_factory=RealDictCursor)
+    query = "SELECT POSTGRES_TABLE from MONITOR_MAP where CHANNEL_ID = {INSTANCE} AND GROUP_NAME = '{GROUP_NAME}' "\
+            "AND METRIC = '{METRIC_NAME}'"
+    for metric in metric_names:
+        query_builder = {
+          "INSTANCE": instance,
+          "METRIC_NAME": metric,
+          "GROUP_NAME": group_name
+        }
+        q = query.format(**query_builder)
+        try:
+            cursor.execute(q)
+        except:
+            cursor.execute("ROLLBACK")
+            connection.commit()
+            raise
+
+        data = cursor.fetchall()
+        if len(data) > 0:
+            metric_name = metric
+            break
+ 
+    # no table exists -- just return step of 0
+    else:
+        return jsonify(step=0)
+
+    start = datetime.now(timezone('UTC')) - timedelta(days=100)  # Start time
+    start = calendar.timegm(start.timetuple()) *1e3 + start.microsecond/1e3 # convert to unix ms
+    stop = datetime.now(timezone('UTC'))
+    stop = calendar.timegm(stop.timetuple()) *1e3 + stop.microsecond/1e3 # convert to unix ms
+
+    cursor = connection.cursor(cursor_factory=RealDictCursor)
+
+    query = postgres_api.postgres_querymaker([instance], start, stop, config, name=group_name, metric=metric_name, avg="mean")
+    try:
+        cursor.execute(query)
+    except:
+        cursor.execute("ROLLBACK")
+        connection.commit()
+        raise
+
+    data = cursor.fetchall()
+    # Get the sample size from last two values in query
+    step_size = None
+    if len(data) >= 2:
+        step_size = data[len(data) - 1]['sample_time'] - data[len(data) - 2]['sample_time'] 
+
+    # Catch for if no step size exists
+    if step_size == None:
+        step_size = 1e3
+
+    return jsonify(step=step_size)
+
+@postgres_api.postgres_route
+def stream_group_archived(connection, stream_type, metric_names, group_name, instances, args):
+    connection, config = connection
+    args = stream_args(request.args)
+
+    # first check if the table exists
+    cursor = connection.cursor(cursor_factory=RealDictCursor)
+
+    existing_metrics = []
+    for metric in metric_names:
+        query = "SELECT POSTGRES_TABLE from MONITOR_MAP where CHANNEL_ID = {INSTANCE} AND GROUP_NAME = '{GROUP_NAME}' "\
+                "AND METRIC = '{METRIC_NAME}'"
+        query_builder = {
+          "INSTANCE": instances[0],
+          "METRIC_NAME": metric,
+          "GROUP_NAME": group_name
+        }
+        q = query.format(**query_builder)
+        try:
+            cursor.execute(q)
+        except:
+            cursor.execute("ROLLBACK")
+            connection.commit()
+            raise
+        table_data = cursor.fetchall()
+        if len(table_data) > 0:
+            existing_metrics.append(metric)
+    metric_names = existing_metrics
+
+    start = args["start"]
+    stop = args["stop"]
+    if start is None:
+        start = datetime.now(timezone('UTC')) - timedelta(days=100)  # Start time
+        start = calendar.timegm(start.timetuple()) *1e3 + start.microsecond/1e3 # convert to unix ms
+    if stop is None:
+        stop = datetime.now(timezone('UTC'))
+        stop = calendar.timegm(stop.timetuple()) *1e3 + stop.microsecond/1e3 # convert to unix ms
+
+    ret = {}
+    for metric in metric_names:
+        ret[metric] = {}
+        for inst in instances:
+            ret[metric][inst] = []
+
+    # build the query
+    query = ";".join([postgres_api.postgres_querymaker(instances, start, stop, config, name=group_name, metric=metric, avg="mean") for metric in metric_names])
+    if len(query) > 0:
+        try:
+            cursor.execute(query)
+        except:
+            cursor.execute("ROLLBACK")
+            connection.commit()
+            raise
+
+        data = cursor.fetchall()
+    else:
+        data = []
+
+    for line in data:
+        ID = str(line["id"])
+        val = line["val0"]
+        time = line["sample_time"]
+        ret[metric_names[0]][ID].append((time, val))
+
+    #for line in data:
+    #    ret[metric][instance].appen
+
+    return jsonify(values=ret)
+
+@redis_route
+def stream_group_online(rconnect, stream_type, metric_names, group_name, instances, args):
+    args = stream_args(request.args)
 
     stream_names = []
     for metric in metric_names:
@@ -221,14 +361,20 @@ def stream_group(rconnect, stream_type, metric_names, group_name, instance_start
 
     return jsonify(values=values, min_end_time=min_end_time)
 
-@app.route('/<rconnect>/infer_step_size/<stream_type>/<metric_name>/<group_name>/<instance_name>')
-@app.route('/<rconnect>/infer_step_size/<stream_name>')
+@app.route('/<connect>/infer_step_size/<stream_type>/<list:metric_names>/<group_name>/<instance_name>')
+@app.route('/<connect>/infer_step_size/<stream_name>')
+def infer_step_size(connect, stream_name=None, stream_type=None, metric_names=None, group_name=None, instance_name=None):
+    if stream_type == "archived":
+        return infer_step_size_archived(connect, stream_type, metric_names, group_name, instance_name)
+    else:
+        if stream_name is None:
+            key = "%s:%s:%s:%s" % (group_name, instance_name, metric_names[0], stream_type)
+        else: 
+            key = stream_name
+        return infer_step_size_online(connect, key)
+
 @redis_route
-def infer_step_size(rconnect, stream_name=None, stream_type=None, metric_name=None, group_name=None, instance_name=None):
-    if stream_name is None:
-        key = "%s:%s:%s:%s" % (group_name, instance_name, metric_name, stream_type)
-    else: 
-        key = stream_name
+def infer_step_size_online(rconnect, key):
     data = redis_api.get_last_streams(rconnect, [key], count=3)
     times = [t for t, _ in data[key]] 
     
@@ -349,5 +495,10 @@ def get_group_config(rconnect, group_name):
     config["metric_list"] = config["metric_config"].keys()
     # set the group name
     config["group"] = group_name
+
+    # add the archiving database
+    if "archiving" in config["streams"]:
+        config["streams"].append("archived")
+        config["stream_links"].append("metric_archiving")
 
     return config
