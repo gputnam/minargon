@@ -32,6 +32,11 @@
         <div id="fft"></div>
     </div>
     </div>
+    <div class="row">
+    <div class="col-md-12" style="padding:0" id="avgFFT-holder">
+        <div id="avgfft"></div>
+    </div>
+    </div>
 </div>
 {%endblock%}
 {% block script %}
@@ -39,8 +44,9 @@
 import * as Config from "{{ url_for('static', filename='js/minargon/config.js') }}";
 import * as draw from "{{ url_for('static', filename='js/minargon/draw_waveform.js') }}";
 
-draw.draw_waveform('waveform', {wire: {{channel}} });
-draw.draw_fft('fft', {wire: {{channel}} });
+draw.draw_waveform('waveform', {wire: {{channel}} }, "waveform", "Waveform");
+draw.draw_fft('fft', {wire: {{channel}} }, "fft", "FFT");
+draw.draw_fft('avgfft', {wire: {{channel}} }, "avgfft", "Avg. FFT");
 
 var config = {{config|tojson|safe}};
 

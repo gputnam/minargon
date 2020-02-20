@@ -96,6 +96,14 @@ def waveform(rconnect, data):
     data, offsets, period = redis_api.get_waveform(rconnect, redis_key)
     return jsonify(data=data, offsets=offsets, period=period)
 
+@app.route('/<rconnect>/hget/<name>/<list:keys>')
+@redis_route
+def hget(rconnect, name, keys):
+    pipeline = rconnect.pipeline()
+    for key in keys:
+        pipeline.hget(name, key)
+    return jsonify(**dict([(key,val) for key,val in zip(keys, pipeline.execute())]))
+
 def get_min_end_time(data):
     min_end_time = 0
     for _, val in data.items():
