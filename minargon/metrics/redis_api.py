@@ -68,6 +68,9 @@ def extract_datum(dat):
     if math.isnan(val): val = 0
     return val
 
+def get_waveform_binary(rdb, key):
+    return rdb.hget(key, "Data")
+
 def get_waveform(rdb, key):
     data_type = rdb.hget(key, "DataType")
     offset_type = rdb.hget(key, "OffsetType")

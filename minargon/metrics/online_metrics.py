@@ -99,7 +99,22 @@ def waveform(rconnect, data):
     for (k, v) in request.args.iteritems():
         redis_key += ":%s:%s" % (k, v)
     data, offsets, period = redis_api.get_waveform(rconnect, redis_key)
-    return jsonify(data=data, offsets=offsets, period=period)
+    print "Jsonifying"
+    ret = jsonify(data=data, offsets=offsets, period=period)
+    print "Done!"
+    return ret
+
+@app.route('/<rconnect>/waveform_binary/<data>')
+@redis_route
+def waveform_binary(rconnect, data):
+    redis_key = "snapshot:%s" % data
+    # args should be key-value pairs of specifiers in the redis keys
+    # e.g. /waveform/sparse_waveform?wire=1
+    # decodes to the redis key snapshot:sparse_waveform:wire:1
+    for (k, v) in request.args.iteritems():
+        redis_key += ":%s:%s" % (k, v)
+    data = redis_api.get_waveform_binary(rconnect, redis_key)
+    return Response(data, mimetype="application/octet-stream")
 
 @app.route('/<rconnect>/hget/<name>/<list:keys>')
 @redis_route

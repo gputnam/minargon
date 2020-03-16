@@ -6,6 +6,10 @@ from minargon.tools import parseiso
 from minargon.metrics import online_metrics
 from minargon.common.views import timeseries_view
 
+@app.route('/NoiseCorr')
+def NoiseCorr():
+    return render_template("icarus/noise_snapshot.html")
+
 @app.route('/TPC')
 def TPC():
     args = dict(**request.args)
