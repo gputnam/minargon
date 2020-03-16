@@ -236,7 +236,7 @@ def infer_step_size_archived(connection, stream_type, metric_names, group_name, 
 
     # first figure out if any of the provided metrics are being archived
     cursor = connection.cursor(cursor_factory=RealDictCursor)
-    query = "SELECT POSTGRES_TABLE from MONITOR_MAP where CHANNEL_ID = {INSTANCE} AND GROUP_NAME = '{GROUP_NAME}' "\
+    query = "SELECT POSTGRES_TABLE from RUNCON_PRD.MONITOR_MAP where CHANNEL_ID = {INSTANCE} AND GROUP_NAME = '{GROUP_NAME}' "\
             "AND METRIC = '{METRIC_NAME}'"
     for metric in metric_names:
         query_builder = {
@@ -298,7 +298,7 @@ def stream_group_archived(connection, stream_type, metric_names, group_name, ins
 
     existing_metrics = []
     for metric in metric_names:
-        query = "SELECT POSTGRES_TABLE from MONITOR_MAP where CHANNEL_ID = {INSTANCE} AND GROUP_NAME = '{GROUP_NAME}' "\
+        query = "SELECT POSTGRES_TABLE from RUNCON_PRD.MONITOR_MAP where CHANNEL_ID = {INSTANCE} AND GROUP_NAME = '{GROUP_NAME}' "\
                 "AND METRIC = '{METRIC_NAME}'"
         query_builder = {
           "INSTANCE": instances[0],
