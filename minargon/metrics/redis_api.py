@@ -1,6 +1,7 @@
 from redis import Redis
 from flask import jsonify
 import struct
+import math
 
 # import gevent
 
@@ -47,12 +48,28 @@ def parse_binary(binary, typename):
     return ret
 
 def extract_datum(dat):
-    if "dat" in dat: return dat["dat"]
-    typename = dat.keys()[0]
-    structname = type_to_struct_type(typename)
-    if structname is None:
-        raise MalformedRedisEntry("Redis Steam entry missing binary type.")
-    return struct.unpack(structname, dat[typename])[0]
+    invert = "INVERT" in dat
+    dat.pop("INVERT", None)
+
+    if "dat" in dat: 
+        try:
+            val = float(dat["dat"])
+        except:
+            return dat["dat"]
+    else:
+        typename = dat.keys()[0]
+        structname = type_to_struct_type(typename)
+        if structname is None:
+            raise MalformedRedisEntry("Redis Steam entry missing binary type.")
+        val = struct.unpack(structname, dat[typename])[0]
+    if invert:
+        if abs(val) < 1e-4: return "inf" # JSON compatible infinity
+        val = 1. / val
+    if math.isnan(val): val = 0
+    return val
+
+def get_waveform_binary(rdb, key):
+    return rdb.hget(key, "Data")
 
 def get_waveform(rdb, key):
     data_type = rdb.hget(key, "DataType")

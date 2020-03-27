@@ -1,13 +1,11 @@
 // all the datalinks...
 
-
-
-// DataLink which connects a postgres stream given the ID
+// DataLink which connects a epics stream given the ID
 
 // Arguments to constructor:
 // root: the root path wehre all of the API endpoints are defined
-// ID: the postgres table ID
-export class PostgresStreamLink {
+// ID: the epics channel ID
+export class EpicsStreamLink {
   constructor(root, database, ID) {
     this.root = root;
     this.database = database;
@@ -96,18 +94,40 @@ export class MetricStreamLink {
   }
  
   step_link() {
-    var link = this.root + '/infer_step_size/' + this.stream + '/' + this.metrics[0] + '/' + this.group + '/' + this.instances[0];
+    var metric_list = "";
+    for (var i = 0; i < this.metrics.length; i++) {
+      metric_list = metric_list + this.metrics[i] + ",";
+    }
+    var link = this.root + '/infer_step_size/' + this.stream + '/' + metric_list + '/' + this.group + '/' + this.instances[0];
     return link;
   }
   
   data_link_internal(base, start, stop) {
     if (this.sequence) {
-      var instances = '/' + this.field_start + '/' + this.field_end; 
+      var instances = this.field_start + '/' + this.field_end; 
+    }
+    else if (this.instances.length == 1) {
+      var instances = this.instances[0] + ","; 
     }
     else {
       var instances = "";
-      for (var i = 0; i < this.instances.length; i++) {
-        instances = instances + this.instances[i] + ',';
+
+      // check if sequential
+      var is_sequential = true;
+      for (var i = 1; i < this.instances.length; i++) {
+        if (Number(this.instances[i]) - 1 != Number(this.instances[i-1])) {
+          is_sequential = false;
+          break;
+        }
+      }
+
+      if (!is_sequential) {
+        for (var i = 0; i < this.instances.length; i++) {
+          instances = instances + this.instances[i] + ',';
+        }
+      }
+      else {
+        instances = this.instances[0] + "/" + (Number(this.instances[this.instances.length-1])+1);
       }
     }
     var metrics = "";
@@ -167,7 +187,7 @@ function flatten(arr) {
 // start/stop can be a date or an integer
 function timeArgs(start, stop) {
   // if start is undefined, just return null
-  if (start === undefined) return null;
+  if (start === undefined) return {};
   var ret = {
     now: new Date().toISOString(),
   };

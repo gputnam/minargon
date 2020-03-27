@@ -62,6 +62,10 @@ class PostgresConnectionError:
     def database_name(self):
         return self.name
 
+# exception for bad arguments to URL
+class PostgresURLException(Exception): 
+	pass
+
 #________________________________________________________________________________________________
 # database connection configuration
 postgres_instances = app.config["POSTGRES_INSTANCES"]
@@ -101,11 +105,16 @@ def postgres_route(func):
 	from functools import wraps
 	@wraps(func)
 	def wrapper(connection, *args, **kwargs):
+                connection_name = connection
 		front_end_abort = kwargs.pop("front_end_abort", False)
 		if connection in p_databases:
 			connection, config, success = p_databases[connection]
 			if success:
-				return func((connection,config), *args, **kwargs)
+				try:
+					return func((connection,config), *args, **kwargs)
+				except (psycopg2.Error, PostgresURLException) as err:
+					error = PostgresConnectionError().register_postgres_error(err, connection_name).with_front_end(front_end_abort)
+					return abort(503, error)
 			else:
                                 error = connection.with_front_end(front_end_abort)
 				return abort(503, error)
@@ -115,32 +124,48 @@ def postgres_route(func):
 	return wrapper
 #________________________________________________________________________________________________
 # Make the DB query and return the data
-def postgres_query(ID, start_t, stop_t, connection, config):
-	# return nothing if no connection
-	if connection is None:
-		return []
+def postgres_querymaker(IDs, start_t, stop_t, config, **table_args):
+        # build the value string
+	value_string = ""
+	for i,v in enumerate(config["value_names"]):
+		value_string += ", %s as VAL%i" % (v, i)
+
+	# build the table name
+	try:
+		table_name = config["table_func"](**table_args)
+	# if the function can't be called, wrong table args were provided
+	except TypeError:
+		raise PostgresURLException("Incorrect args to access table for database %s" % config["name"])
+		
+        # information needed by the query
+        query_builder = {
+		"TIME": config["time_name"],
+		"VALUE_STRING": value_string,
+		"TABLE": table_name,
+		"START": str(start_t / 1000.),
+		"STOP": str(stop_t / 1000.),
+                "IDs": ",".join(IDs)
+	}
+
+	# Database query to execute, times converted to unix [ms]
+	query = "SELECT extract(epoch FROM {TIME})*1000 AS SAMPLE_TIME, CHANNEL_ID AS ID {VALUE_STRING} FROM {TABLE} WHERE CHANNEL_ID in ({IDs})"\
+                " AND {TIME} BETWEEN to_timestamp({START}) AND to_timestamp({STOP}) ORDER BY {TIME}".format(**query_builder)
+	return query
 	
+def postgres_query(IDs, start_t, stop_t, connection, config, **table_args):
 	# Make PostgresDB connection
 	cursor = connection.cursor(cursor_factory=RealDictCursor) 
 
-	# Database query to execute, times converted to unix [ms]
-	if (config["name"] == "sbnteststand"):
-		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME,FLOAT_VAL AS VALUE, FLOAT_VAL
-			FROM DCS_ARCHIVER.SAMPLE WHERE CHANNEL_ID=%s AND SMPL_TIME BETWEEN to_timestamp(%s) AND to_timestamp(%s) ORDER BY SAMPLE_TIME"""% ( ID , start_t / 1000., stop_t / 1000. )
-	
-	else:
-		query="""SELECT extract(epoch from SMPL_TIME)*1000 AS SAMPLE_TIME, NUM_VAL AS VALUE, FLOAT_VAL
-			FROM DCS_PRD.SAMPLE WHERE CHANNEL_ID=%s AND SMPL_TIME BETWEEN to_timestamp(%s) AND to_timestamp(%s) ORDER BY SAMPLE_TIME"""% ( ID , start_t / 1000., stop_t / 1000. )
-	
+	query = postgres_querymaker(IDs, start_t, stop_t, config, **table_args)
 	# Execute query, rollback connection if it fails
 	try:
 		cursor.execute(query)
 		data = cursor.fetchall()
 	except:
-		print "Error! Rolling back connection"
 		cursor.execute("ROLLBACK")
 		connection.commit()
-		data = []
+		# let website handle error
+		raise	
 
 	return data
 
@@ -150,13 +175,13 @@ def postgres_query(ID, start_t, stop_t, connection, config):
 @postgres_route
 def ps_step(connection, ID):
 	# Define time to request for the postgres database
-	start_t = datetime.now(timezone('UTC')) - timedelta(days=1)  # Start time
+	start_t = datetime.now(timezone('UTC')) - timedelta(days=100)  # Start time
 	stop_t  = datetime.now(timezone('UTC'))    	                 # Stop time
 
 	start_t = calendar.timegm(start_t.timetuple()) *1e3 + start_t.microsecond/1e3 # convert to unix ms
 	stop_t  = calendar.timegm(stop_t.timetuple())  *1e3 + stop_t.microsecond/1e3 
 
-	data = postgres_query(ID, start_t, stop_t, *connection)
+	data = postgres_query([ID], start_t, stop_t, *connection, **request.args.to_dict())
 
 	# Predeclare variable otherwise it will complain the variable doesnt exist 
 	step_size = None
@@ -256,6 +281,10 @@ def ps_series(connection, ID):
 	# Make a request for time range
 	args = stream_args(request.args)
 	start_t = args['start']    # Start time
+	if start_t is None:
+		start_t = datetime.now(timezone('UTC')) - timedelta(days=100)  # Start time
+		start_t = calendar.timegm(start_t.timetuple()) *1e3 + start_t.microsecond/1e3 # convert to unix ms
+
 	stop_t  = args['stop']     # Stop time
 
 	# Catch for if no stop time exists
@@ -263,27 +292,28 @@ def ps_series(connection, ID):
 		now = datetime.now(timezone('UTC')) # Get the time now in UTC
 		stop_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
 
-	data = postgres_query(ID, start_t, stop_t, *connection)
+	data = postgres_query([ID], start_t, stop_t, *connection, **request.args.to_dict())
 
 	# Format the data from database query
 	data_list = []
 
 	for row in data:
-	
-		# Switch between value and float value, if both null then skip
-		if (row['value'] == None):
-			row['value'] = row['float_val']
-		
-		# skip null values
-		if (row['float_val'] == None):
-			continue 
-		
-		# Throw out values > 1e30 which seem to be an error
-		if (row['value'] > 1e30):
+		value = None
+		for i in range(len(config["value_names"])):
+			accessor = "val%i" % i
+			if row[accessor] is not None:
+				value = row[accessor]
+				break
+		else: # no good data here, ignore this time value
 			continue
+				
+		# Throw out values > 1e30 which seem to be an error
+		if value > 1e30:
+			continue
+	
 
 		# Add the data to the list
-		data_list.append( [ row['sample_time'], row['value'] ] )
+		data_list.append( [row['sample_time'], value] )
 	
 	# Setup the return dictionary
 	ret = {
