@@ -445,6 +445,8 @@ def build_link_tree(rconnect):
             "displayCheckbox": False,
             "nodes" : []
         })
+	if "metric_config" not in config: continue
+
         for metric,_ in config["metric_config"].items():
             tree_dict["nodes"][-1]["nodes"].append({
               "expanded": False,
