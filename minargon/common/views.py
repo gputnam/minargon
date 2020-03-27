@@ -173,7 +173,7 @@ def build_data_browser_tree(checked=None):
     # get the redis instance names
     redis_names = [name for name,_ in app.config["REDIS_INSTANCES"].items()]
     # and the postgres isntance names
-    postgres_names = [name for name,_ in app.config["POSTGRES_INSTANCES"].items()]
+    postgres_names = [name for name in app.config["EPICS_INSTANCES"]]
     # build all of the trees
     trees = [postgres_api.pv_internal(name, front_end_abort=True) for name in postgres_names] + [online_metrics.build_link_tree(name, front_end_abort=True) for name in redis_names]
     # wrap them up at a top level
