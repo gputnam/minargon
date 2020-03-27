@@ -175,7 +175,9 @@ def build_data_browser_tree(checked=None):
     # and the postgres isntance names
     postgres_names = [name for name in app.config["EPICS_INSTANCES"]]
     # build all of the trees
-    trees = [postgres_api.pv_internal(name, front_end_abort=True) for name in postgres_names] + [online_metrics.build_link_tree(name, front_end_abort=True) for name in redis_names]
+    trees = [postgres_api.pv_internal(name, front_end_abort=True) for name in postgres_names if postgres_api.is_valid_connection(name)] \
+        + [online_metrics.build_link_tree(name, front_end_abort=True) for name in redis_names]
+
     # wrap them up at a top level
     tree_dict = {
       "text": "Data Browser",

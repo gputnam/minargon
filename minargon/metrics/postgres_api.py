@@ -122,6 +122,13 @@ def postgres_route(func):
 			return abort(404, PostgresConnectionError().register_notfound_error(connection).with_front_end(front_end_abort))
 		
 	return wrapper
+
+def is_valid_connection(connection_name):
+    if connection_name not in p_databases:
+        return False
+    connection, config, success = p_databases[connection_name]
+    return success
+
 #________________________________________________________________________________________________
 # Make the DB query and return the data
 def postgres_querymaker(IDs, start_t, stop_t, config, **table_args):
@@ -292,7 +299,14 @@ def ps_series(connection, ID):
 		now = datetime.now(timezone('UTC')) # Get the time now in UTC
 		stop_t = calendar.timegm(now.timetuple()) *1e3 + now.microsecond/1e3 # convert to unix ms
 
-	data = postgres_query([ID], start_t, stop_t, *connection, **request.args.to_dict())
+        # remove the timing keys from the dict
+        table_args = request.args.to_dict()
+        table_args.pop('start', None)
+        table_args.pop('stop', None)
+        table_args.pop('n_data', None)
+        table_args.pop('now', None)
+
+	data = postgres_query([ID], start_t, stop_t, *connection, **table_args)
 
 	# Format the data from database query
 	data_list = []
