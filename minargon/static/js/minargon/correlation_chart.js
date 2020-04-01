@@ -142,7 +142,7 @@ export class CorrelationScatter {
 
         // find the closest time within the reslution
         var min_j = j;
-        while (j < other_data.length && other_timestamps[j] + step < base_timestamps[i]) j++;
+        while (j < other_data.length && Math.abs(other_timestamps[j] - base_timestamps[i]) < step) j++;
         var max_j = j;
 
         var closest_time = step * 10;
