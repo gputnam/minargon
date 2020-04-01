@@ -2,7 +2,14 @@ var prior_warnings = [];
 
 export function throw_database_error(d3_error, reporter) {
   if (d3_error.response) {
-      var response_info = JSON.parse(d3_error.response);
+      try {
+        var response_info = JSON.parse(d3_error.response);
+      }
+      catch (err) {
+        prior_warnings.push(d3_error.response);
+        throw_error_internal(d3_error.response);
+        return;
+      }
   }
   else {
     var response_info = "";
