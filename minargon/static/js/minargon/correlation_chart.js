@@ -20,8 +20,7 @@ export class CorrelationScatter {
           x: this.correlation_data_x,
           y: this.correlation_data_y,
           text: this.text,
-          hoverinfo: 'text',
-          mode: 'markers'
+          mode: 'markers',
         }
       ];
 
@@ -34,11 +33,10 @@ export class CorrelationScatter {
     }
 
     textformat(x, y, time_x, time_y) {
-      var format = d3.format(".3s")
-      return 'X: ' + format(x) + '<br>' +
-             'time: ' + time_x + '<br>' +
-             'Y: ' + format(y) + '<br>' +
-             'time: ' + time_y;
+      return this._xname +
+             ' at: ' + time_x + '<br>' +
+             this._yname +
+             ' at: ' + time_y;
     }
 
     set title(title) {
@@ -187,7 +185,13 @@ export class CorrelationScatter {
 
     build_layout() {
       // build the layout for this plot
-      var layout = {};
+      var layout = {
+        hoverlabel: {
+          align: "right"
+        },
+        hovermode: "closest"
+      };
+
       layout["name"] = this._title;
       layout["xaxis"] = {
         title: this._xname
