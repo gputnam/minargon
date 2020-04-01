@@ -232,17 +232,25 @@ def view_streams():
     redis_stream_info = {}
     # parse GET parameters
     try:
-        for arg, val in request.args.items():
+        for arg, val in request.args.items(multi=True):
             # postgres streams
             if arg.startswith("postgres_"):
                 database_name = arg[9:]
                 database_ids = [int(x) for x in val.split(",") if x]
-                postgres_stream_info[database_name] = database_ids
+                if database_name not in postgres_stream_info:
+                    postgres_stream_info[database_name] = database_ids
+                else:
+                    postgres_stream_info[database_name] += database_ids
             # redis streams
             elif arg.startswith("redis_"):
                 database_name = arg[6:]
                 database_keys = val.split(",")
-                redis_stream_info[database_name] = database_keys
+                if database_name not in redis_stream_info:
+                    redis_stream_info[database_name] = database_keys
+                else:
+                    redis_stream_info[database_name] += database_keys
+            else:
+               raise ValueError
     except:
         return abort(404)
 
@@ -256,7 +264,15 @@ def view_streams():
     # TODO: collect redis stream configuration
     for database, keys in redis_stream_info.items():
         for key in keys:
-            redis_streams.append( (key, database, {}) )
+            try:
+                metric_name = key.split(":")[-2]
+            except:
+                metric_name = key
+            config = {
+              "title": key,
+              "yTitle": metric_name 
+            }
+            redis_streams.append( (key, database, config) )
 
     checked = []
     # get the currently checked items
@@ -269,10 +285,21 @@ def view_streams():
 
     # build the data tree
     tree = build_data_browser_tree(checked)
+
+    # functions to build the "Stream" object from the config
+    def make_redis_stream(info):
+      key, database, _ = info
+      return RedisDataStream(database, key)
+    def make_postgres_stream(info):
+      ID, database, _ = info
+      return PostgresDataStream(database, ID)
+
     render_args = {
       "tree": tree,
       "redis_streams": redis_streams,
-      "postgres_streams": postgres_streams
+      "postgres_streams": postgres_streams,
+      "make_redis_stream": make_redis_stream,
+      "make_postgres_stream": make_postgres_stream
     }
     return render_template("common/view_streams.html", **render_args)
 

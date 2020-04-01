@@ -2,46 +2,93 @@
 
 {% extends "layout.html" | front_ended %}
 {% block title %}Stream: {{ID}}{% endblock %}
+
+{% block style %}
+#wrapper {
+  padding-left: 350px;
+  transition: all 0.4s ease 0s;
+}
+
+#sidebar-wrapper {
+  margin-left: -350px;
+  left: 350px;
+  width: 350px;
+  position: fixed;
+  height: 100%;
+  overflow-y: auto;
+  z-index: 1000;
+  transition: all 0.4s ease 0s;
+  border-right-color: #CCC;
+  border-right-style: solid;
+}
+
+#page-content-wrapper {
+  width: 100%;
+}
+{% endblock %}
+
 {% block body %}
 {{ super() }}
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
+<div id="wrapper">
+  <div id="sidebar-wrapper">
+                <form class="form" role="form">
+                    {% if postgres_streams|length + redis_streams|length == 2 %}
+                    <div class="form-group row">
+                      <div class="col-sm-12">
+                        <button type="button" class="btn btn-link">
+                          {% if postgres_streams|length == 2 %}
+                          <a href="{{ url_for('view_correlation', streamX=make_postgres_stream(postgres_streams[0]), streamY=make_postgres_stream(postgres_streams[1])) }}"> 
+                          {% elif redis_streams|length == 2 %}
+                          <a href="{{ url_for('view_correlation', streamX=make_redis_stream(redis_streams[0]), streamY=make_redis_stream(redis_streams[1])) }}">
+                          {% else %}
+                          <a href="{{ url_for('view_correlation', streamX=make_postgres_stream(postgres_streams[0]), streamY=make_redis_stream(redis_streams[0])) }}">
+                          {% endif %}
+                            View Correlation
+                          </a>
+                        </button>
+                      </div>
+                    </div>
+                    {% endif %}
+
+	   	    {{ stream_options.tree_select([tree], "tree") }}
+		</form>
+  </div>
+</div>
+
+<div id="page-content-wrapper">
+  <div class="page-content">
+
 <div class="container">
 <div class="row">
-    <div class="col-md-4">
-        <div class="row">
+    <div class="col-md-12">
+	<!-- plotly div -->
+	<div style="padding:0" id="plotly-timeseries"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4 hcenter">
         <div class="card">
             <div class="card-header">Display Options</div>
             <div class="card-body">
                 <form class="form" role="form">
+                    {% block display_form %}
                     {{ stream_options.time_range("start", "end", "toggle") }}
                     {{ stream_options.download("download") }}
+                    {% endblock %}
 	        </form>
             </div>
         </div>
-        </div>
-        <br>
-        <div class="row">
-         <div class="card">
-             <div class="card-header">Data Select</div>
-	     <div class="card-body">
-                <form class="form" role="form">
-	   	    {{ stream_options.tree_select([tree], "tree") }}
-		</form>
-	    </div>
-	</div>
     </div>
-    </div>
-    <div class="col-md-8">
-	<!-- plotly div -->
-	<div style="padding:0" id="plotly-timeseries"></div>
-    </div>
+</div>
+
+  </div>
 </div>
 {%endblock%}
 {% block script %}
 <script defer type="module">
 import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
 // build the links
-var link = new module.Data.D3DataLink(new module.DataLink.EpicsStreamLink($SCRIPT_ROOT, "{{database}}", "{{ID}}"));
 var links = [];
 var configs = [];
 var names = [];
@@ -62,7 +109,7 @@ var names = [];
 
 if (links.length > 0) {
   // build plotly controller
-  var plotly_controller = new module.PlotlyController("plotly-timeseries", links[0], [configs[0]['yTitle']], configs[0])
+  var plotly_controller = new module.PlotlyController("plotly-timeseries", links[0], [names[0]], configs[0])
     .timeRangeController("#start", "#end", "#toggle")
     .downloadDataController("#download");
   // add the other links
