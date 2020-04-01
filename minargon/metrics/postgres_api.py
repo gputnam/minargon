@@ -370,24 +370,14 @@ def pv_internal(connection, link_name=None, ret_id=None):
 	tags = [0, 0, 0]
 	index = [ 0, 0, 0 ]
 
-	# Top level pydict
-	if (database == "sbnteststand"):
-		pydict =	{ 
-			"text" : ["SBN Test Stand Process Variables"],
-			"expanded": "true",
-			"selectable" : "false",
-			"displayCheckbox": False,
-			"nodes" : []
-		}
-	else: # ICARUS
-		pydict =	{ 
-			"text" : ["ICARUS Process Variables"],
-			"expanded": "true",
-			"color" : "#000000",
-			"selectable" : "false",
-			"displayCheckbox": False,
-			"nodes" : []
-		}
+	pydict = { 
+		"text" : [database],
+		"expanded": "true",
+		"color" : "#000000",
+		"selectable" : "false",
+		"displayCheckbox": False,
+		"nodes" : []
+	}
 
 	# A list of id numbers for a variable
 	list_id=[]
