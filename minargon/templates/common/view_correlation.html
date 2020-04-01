@@ -1,0 +1,95 @@
+{% import "stream_options_macro.html" | common as stream_options %}
+
+{% extends "layout.html" | front_ended %}
+{% block title %}Stream: {{ID}}{% endblock %}
+{% block body %}
+{{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
+<div class="container">
+<div class="row">
+    <div class="col-md-12">
+	<!-- plotly div -->
+	<div style="padding:0" id="plotly-correlation"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4 hcenter">
+        <div class="card">
+            <div class="card-header">Display Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
+                    <div class="form-group row">
+                      <div class="col-sm-12">
+                        <button type="button" class="btn btn-link">
+                          <a href="{{ url_for('view_correlation', streamX=urlStreamY, streamY=urlStreamX) }}"> 
+                            Flip Axes
+                          </a>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="form-group row">
+                      <div class="col-sm-12">
+                        <button type="button" class="btn btn-link">
+                          <a href="{{ url_for('view_streams') }}?{{streamXarg}}&{{streamYarg}}"> 
+                            View Streams
+                          </a>
+                        </button>
+                      </div>
+                    </div>
+                    {{ stream_options.time_range("start", "end", "toggle") }}
+                    {{ stream_options.download("download") }}
+	        </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{%endblock%}
+{% block script %}
+<script defer type="module">
+import * as module from "{{ url_for('static', filename='js/minargon/correlation.js') }}";
+console.log($SCRIPT_ROOT);
+
+{% set typeX,IDX,databaseX,configX = streamX %}
+{% set typeY,IDY,databaseY,configY = streamY %}
+
+{% if typeX == "redis" %}
+  var linkX = new module.Data.D3DataLink(new module.DataLink.SingleStreamLink($SCRIPT_ROOT + '/{{databaseX}}', "{{IDX}}"));
+  var configX = {{configX|tojson}};
+  var nameX = "{{IDX}}";
+{% elif typeX == "postgres" %}
+  var linkX = new module.Data.D3DataLink(new module.DataLink.EpicsStreamLink($SCRIPT_ROOT, '{{databaseX}}', "{{IDX}}"));
+  var configX = {{configX|tojson}};
+  {% if "yTitle" in configX %}
+      var nameX = "{{configX['yTitle']}}";
+  {% else %}
+      var nameX = "{{IDX}}";
+  {% endif %}
+{% endif %}
+
+{% if typeY == "redis" %}
+  var linkY = new module.Data.D3DataLink(new module.DataLink.SingleStreamLink($SCRIPT_ROOT + '/{{databaseY}}', "{{IDY}}"));
+  var configY = {{configY|tojson}};
+  var nameY = "{{IDY}}";
+{% elif typeY == "postgres" %}
+  var linkY = new module.Data.D3DataLink(new module.DataLink.EpicsStreamLink($SCRIPT_ROOT, '{{databaseY}}', "{{IDY}}"));
+  var configY = {{configY|tojson}};
+  {% if "yTitle" in configY %}
+      var nameY = "{{configY['yTitle']}}";
+  {% else %}
+      var nameY = "{{IDY}}";
+  {% endif %}
+{% endif %}
+
+console.log($SCRIPT_ROOT);
+
+// build the plot controller
+var plot_controller = new module.CorrelationController("plotly-correlation", linkX, nameX, configX, linkY, nameY, configY)
+    .timeRangeController("#start", "#end", "#toggle")
+    .downloadDataController("#download");
+   
+// start it
+plot_controller.run();
+
+</script>
+{% endblock %}

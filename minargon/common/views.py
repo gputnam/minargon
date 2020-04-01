@@ -2,7 +2,7 @@ from minargon import app
 from flask import render_template, jsonify, request, redirect, url_for, flash
 from minargon.metrics import postgres_api
 
-from minargon.tools import parseiso
+from minargon.tools import parseiso, RedisDataStream, PostgresDataStream
 from minargon.metrics import online_metrics
 import os.path
 from datetime import date, datetime
@@ -202,6 +202,29 @@ def build_data_browser_tree(checked=None):
                     # if we've found the vertex, we can exit the search
                     break
     return tree_dict
+
+@app.route('/view_correlation/<stream:streamX>/<stream:streamY>')
+def view_correlation(streamX, streamY):
+    if isinstance(streamX, PostgresDataStream):
+        streamXarg = "postgres_" + streamX.name + "=" + str(streamX.ID)
+    else:
+        streamXarg = "redis_" + streamX.name + "=" + str(streamX.key)
+
+    if isinstance(streamY, PostgresDataStream):
+        streamYarg = "postgres_" + streamY.name + "=" + str(streamY.ID)
+    else:
+        streamYarg = "redis_" + streamY.name + "=" + str(streamY.key)
+ 
+
+    render_args = {
+      "streamX": streamX.to_config(),
+      "streamY": streamY.to_config(),
+      "urlStreamX": streamX,
+      "urlStreamY": streamY,
+      "streamXarg": streamXarg,
+      "streamYarg": streamYarg
+    }
+    return render_template("common/view_correlation.html", **render_args)
 
 @app.route('/view_streams')
 def view_streams():

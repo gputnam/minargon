@@ -52,8 +52,9 @@ app.wsgi_app = ReverseProxied(app.wsgi_app, app.config["WEB_ROOT"])
 app.template_folder = "templates"
 
 # url converters
-from .tools import ListConverter
+from .tools import ListConverter, StreamConverter
 app.url_map.converters['list'] = ListConverter
+app.url_map.converters['stream'] = StreamConverter
 
 # routes
 if app.config["FRONT_END"] == "sbnd":
