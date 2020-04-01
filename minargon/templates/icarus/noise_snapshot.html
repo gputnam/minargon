@@ -36,7 +36,7 @@ d3.json($SCRIPT_ROOT + '/online/hget/snapshot:' + CORRNAME + '/time', function(e
 $('#correlation').html("LOADING CORRELATION MATRIX...");
 
 var oReq = new XMLHttpRequest();
-oReq.open("GET", "/online/waveform_binary/" + CORRNAME, true);
+oReq.open("GET", $SCRIPT_ROOT + "/online/waveform_binary/" + CORRNAME, true);
 oReq.responseType = "arraybuffer";
 
 oReq.onload = function (oEvent) {
