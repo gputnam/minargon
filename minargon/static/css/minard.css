@@ -185,12 +185,6 @@ body {
     shape-rendering: auto;
 }
 
-.line {
-  fill: none;
-  stroke: #000;
-  stroke-width: 1.5px;
-}
-
 .area {
     fill: #31a354;
     stroke: #000;
@@ -249,8 +243,3 @@ svg {
     shape-rendering: crispEdges;
 }
 
-.line {
-    background: #000;
-    opacity: .2;
-    z-index: 2;
-}
