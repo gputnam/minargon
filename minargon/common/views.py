@@ -84,9 +84,9 @@ def pv_single_stream(database, ID):
     # tree = postgres_api.test_pv_internal(database)
 
     # check the currently visited item
-    checked = [("postgres", database, str(ID))]
-    tree = build_data_browser_tree(checked)
-    # print config
+    checked = postgres_api.get_configs(database, [ID])
+
+    tree = build_data_browser_tree()
    
     #low and high thresholds given by url parameters 
     low = request.args.get('low')
@@ -135,7 +135,8 @@ def pv_single_stream(database, ID):
       "start_time": start_time,
       "end_time": end_time,
       "start_timestamp": start_timestamp_int,
-      "end_timestamp": end_timestamp_int
+      "end_timestamp": end_timestamp_int,
+      "checked": checked
     }
     return render_template('common/pv_single_stream.html', **render_args)
 
@@ -168,10 +169,27 @@ def pv_multiple_stream(database, var):
     }
     return render_template('common/pv_multiple_stream.html', **render_args)
 
+@app.route("/data_list")
+def data_list():
+    return jsonify(data=build_data_browser_list())
 
-def build_data_browser_tree(checked=None):
+def build_data_browser_list():
     # get the redis instance names
     redis_names = [name for name,_ in app.config["REDIS_INSTANCES"].items()]
+    # and the postgres isntance names
+    postgres_names = [name for name in app.config["EPICS_INSTANCES"]]
+    # build all of the lists
+    data = [] 
+    for name in postgres_names:
+        if postgres_api.is_valid_connection(name):
+            data += postgres_api.pv_list(name, front_end_abort=False)
+    for name in redis_names:
+        data += online_metrics.build_link_list(name, front_end_abort=False)
+    return data
+    
+def build_data_browser_tree(checked=None):
+    # get the redis instance names
+    redis_names = [] #name for name,_ in app.config["REDIS_INSTANCES"].items()]
     # and the postgres isntance names
     postgres_names = [name for name in app.config["EPICS_INSTANCES"]]
     # build all of the trees
@@ -277,14 +295,13 @@ def view_streams():
     checked = []
     # get the currently checked items
     for database, IDs in postgres_stream_info.items():
-        for ID in IDs:
-            checked.append( ("postgres", database, str(ID)) )
+        configs = postgres_api.get_configs(database, IDs)
+        checked += configs
     for database, keys in redis_stream_info.items():
-        for key in keys:
-            checked.append( ("redis", database, key) )
+        checked += online_metrics.get_configs(database, keys)
 
     # build the data tree
-    tree = build_data_browser_tree(checked)
+    tree = build_data_browser_tree()
 
     # functions to build the "Stream" object from the config
     def make_redis_stream(info):
@@ -299,7 +316,8 @@ def view_streams():
       "redis_streams": redis_streams,
       "postgres_streams": postgres_streams,
       "make_redis_stream": make_redis_stream,
-      "make_postgres_stream": make_postgres_stream
+      "make_postgres_stream": make_postgres_stream,
+      "checked": checked
     }
     return render_template("common/view_streams.html", **render_args)
 

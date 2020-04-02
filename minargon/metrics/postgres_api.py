@@ -280,6 +280,87 @@ def pv_meta_internal(connection, ID):
 
 	# Setup the return dictionary
 	return ret
+
+#________________________________________________________________________________________________
+@postgres_route
+def pv_list(connection, link_name=None, IDs=None):
+	config = connection[1]
+	database = connection[1]["name"]
+	config = connection[1]
+	connection = connection[0]
+
+	# Cursor allows python to execute a postgres command in the database session. 
+	cursor = connection.cursor() # Fancy way of using cursor
+
+	# Database command to execute
+	if (database == "sbnteststand"):
+		query="""
+		SELECT DCS_ARCHIVER.CHAN_GRP.NAME, SPLIT_PART(DCS_ARCHIVER.CHANNEL.NAME,'/',1), SPLIT_PART(DCS_ARCHIVER.CHANNEL.NAME,'/',2), DCS_ARCHIVER.CHANNEL.CHANNEL_ID
+		FROM DCS_ARCHIVER.CHANNEL, DCS_ARCHIVER.CHAN_GRP
+		WHERE DCS_ARCHIVER.CHANNEL.GRP_ID = DCS_ARCHIVER.CHAN_GRP.GRP_ID 
+		ORDER BY DCS_ARCHIVER.CHAN_GRP.NAME, DCS_ARCHIVER.CHANNEL.NAME;
+		"""
+	else:
+		query="""
+		SELECT DCS_PRD.CHAN_GRP.NAME,SPLIT_PART(DCS_PRD.CHANNEL.NAME,'/',1),
+		SPLIT_PART(DCS_PRD.CHANNEL.NAME,'/',2),DCS_PRD.CHANNEL.CHANNEL_ID
+		FROM DCS_PRD.CHANNEL,DCS_PRD.CHAN_GRP WHERE DCS_PRD.CHANNEL.GRP_ID=DCS_PRD.CHAN_GRP.GRP_ID 
+		ORDER BY DCS_PRD.CHAN_GRP.NAME,DCS_PRD.CHANNEL.NAME;
+		"""
+        # add in select for IDS
+        if isinstance(IDs, tuple):
+	        if (database == "sbnteststand"):
+                       query = query.replace("WHERE", "WHERE DCS_ARCHIVER.CHANNEL.CHANNEL_ID IN %s AND")
+                else:
+                       query = query.replace("WHERE", "WHERE DCS_PRD.CHANNEL.CHANNEL_ID IN %s AND")
+
+        if isinstance(IDs, tuple):
+	        cursor.execute(query, (IDs,))
+        else:
+	        cursor.execute(query)
+
+	rows = cursor.fetchall()
+
+	# some variables for bookkeeping
+	tags = [0, 0, 0]
+
+        ret = []
+
+	# A list of id numbers for a variable
+	list_id=[]
+	id_flag=False 
+
+	for row in rows:
+		# the timestamp column does not correspond to a metric
+		if str(row[2]) == "timestamp": continue
+
+		# Push back every time
+		if not link_name is None:
+			ret.append({ 
+                                "file": config["web_name"] + " " + str(row[0]) + " " + str(row[1]) + " " + str(row[2]),
+				"text" : str(row[2]), 
+				"tags" : [str(tags[1])], 
+				"database": config["web_name"], 
+				"database_type": "postgres",
+				"ID": str(row[3]), 
+				"name": str(row[2]), 
+				"href": app.config["WEB_ROOT"] + "/" + link_name + "/" + config["web_name"] + "/" + str(row[3])  
+			}) # Level 3
+		else: 
+			ret.append({ 
+                                "file": config["web_name"] + " " + str(row[0]) + " " + str(row[1]) + " " + str(row[2]),
+				"text" : str(row[2]), 
+				"tags" : [str(tags[1])], 
+				"database": config["web_name"], 
+				"database_type": "postgres",
+				"ID": str(row[3]), 
+				"name": str(row[2])  
+			}) # Level 3
+		
+		tags[1] = tags[1] + 1
+        
+        # return the list
+        return ret
 #________________________________________________________________________________________________
 @app.route("/<connection>/ps_series/<ID>")
 @postgres_route
@@ -335,6 +416,9 @@ def ps_series(connection, ID):
 	}
 
 	return jsonify(values=ret)
+
+def get_configs(connection, IDs):
+    return pv_list(connection, IDs=tuple(IDs))
 #________________________________________________________________________________________________
 @postgres_route
 def pv_internal(connection, link_name=None, ret_id=None):

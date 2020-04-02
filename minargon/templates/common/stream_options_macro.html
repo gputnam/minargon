@@ -1,26 +1,135 @@
-{% macro tree_select(data, id) %}
+{% macro checked_select(id, checked) %}
+<div class="form-group row">
+  <div class="col-sm-12" id={{id}}>
+    Selected:{% if checked|length == 0 %} None{% endif %}
+    <br>
+    <ul id={{id}}-list class="list-group">
+      {% for c in checked %}
+        <li id={{id}}-item-{{loop.index}} class='list-group-item {{id}}-item active'>
+        {{ c["file"] }}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<script>
+
+var checked = {{checked|tojson|safe}};
+$("#{{id}}-list li").each(function(i) {
+  $(this).data("node", checked[i]);
+});
+
+$(".{{id}}-item").click(function() {
+  if ($(this).hasClass("active")) {
+    $(this).removeClass("active");
+  }
+  else {
+    $(this).addClass("active");
+  }
+});
+
+</script>
+
+{% endmacro %}
+
+
+{% macro fuzzy_select_async(id) %}
+<div class="form-group row">
+  <div class="col-sm-12" id={{id}}>
+    Fuzzy Search: <input type="text" id={{id}}-input name="fname" placeholder="loading data...">
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-12" id={{id}}>
+  <ul id={{id}}-list class="list-group">
+
+  </ul>
+  </div>
+</div>
+
+<script src="https://rawgit.com/farzher/fuzzysort/master/fuzzysort.js"></script>
+
+<script>
+d3.json($SCRIPT_ROOT + '/data_list', function(err, data) {
+  if (err) {
+    $("#{{id}}-input").attr('placeholder', "Error Loading Data!");
+    return;
+  }
+
+  var targets = data.data;
+  targets.forEach(t => t.filePrepared = fuzzysort.prepare(t.file));
+
+  var options = {
+    limit: 20,
+    threshold: -100000,
+    key: 'file'
+  };
+
+  $("#{{id}}-input").on("input", function() {
+    var text = $(this).val();
+    $("#{{id}}-list").empty();
+    if (text.length == 0) return;
+    var results = fuzzysort.go(text, targets, options);
+    $("#{{id}}-list").empty();
+    for (var i = 0; i < results.length; i++) {
+      $("#{{id}}-list").append("<li id='{{id}}-item-" + String(i) + "' class='list-group-item {{id}}-item'>" + results[i].target + "</li>");
+
+      $("#{{id}}-item-"+String(i)).data('node', results[i].obj);
+
+    }
+
+    $(".{{id}}-item").click(function() {
+      if ($(this).hasClass("active")) {
+        $(this).removeClass("active");
+      }
+      else {
+        $(this).addClass("active");
+      }
+    });
+  });
+
+
+  $("#{{id}}-input").attr('placeholder', "Enter Fuzzy Text");
+  
+});
+
+
+</script>
+
+{% endmacro %}
+
+{% macro update_page(id, treeIDs, checkedIDs) %}
 <div class="form-group row">
   <div class="col-sm-12">
     <button type="button" class="btn btn-link" onclick="updateLink{{id}}()">Update Page</button>
   </div>
 </div>
-<div class="form-group row">
-  <div class="col-sm-12" id={{id}}></div>
-</div>
+
 <script>
-// Generate the treeview
-$('#{{id}}').treeview( {
-  levels: 4,
-  color: '#428bca',
-  data: {{data|tojson}},
-  showIcon: false,
-  showCheckbox: true,
-  enableLinks: false
-});
-
-
 function updateLink{{id}}() {
-  var checked =  $('#{{id}}').treeview('getChecked');
+  var checked = [];
+
+  {% for treeID in treeIDs %}
+  {
+    var tree = $('#{{treeID}}').treeview('getChecked');
+    for (var i = 0; i < tree.length; i++) {
+      checked.push(tree[i]);
+    }
+  }
+  {% endfor %}
+
+  {% for checkedID in checkedIDs %}
+  {
+    var thisChecked = [];
+    $("#{{checkedID}}-list li").each(function() {
+      if ($(this).hasClass("active")) {
+        checked.push($(this).data("node"));
+      }
+    }); 
+  }
+  {% endfor %}
+
   var dest_link = $SCRIPT_ROOT + "/view_streams";
   var args = {};
   for (var i = 0; i < checked.length; i++) {
@@ -37,6 +146,23 @@ function updateLink{{id}}() {
   }
   window.location.href = dest_link + "?" + $.param(args);
 }
+</script>
+{% endmacro %}
+
+{% macro tree_select(data, id) %}
+<div class="form-group row">
+  <div class="col-sm-12" id={{id}}></div>
+</div>
+<script>
+// Generate the treeview
+$('#{{id}}').treeview( {
+  levels: 4,
+  color: '#428bca',
+  data: {{data|tojson}},
+  showIcon: false,
+  showCheckbox: true,
+  enableLinks: false
+});
 
 
 </script>
