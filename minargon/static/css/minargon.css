@@ -1,7 +1,6 @@
 .hcenter {
     float: none;
     margin: 0 auto;
-    text-align:center
 }
 .vcenter {
     display: flex;
