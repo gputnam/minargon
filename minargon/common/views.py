@@ -36,6 +36,13 @@ def latest_gps_info(connection):
     return render_template('common/gps_info.html',rows=dbrows)
 
 
+@app.route('/<connection>/epics_last_value/<group>')
+def epics_last_value(connection,group):
+    dbrows = postgres_api.get_epics_last_value(connection,group)     
+
+    return render_template('common/'+group+'.html',rows=dbrows)
+
+
 @app.route('/online_group/<group_name>')
 def online_group(group_name):
     return timeseries_view(request.args, group_name)

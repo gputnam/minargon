@@ -448,7 +448,7 @@ def get_gps(connection):
     # since strings cannot coalesce with floating point or integer types, we must first convert those into numeric and then strings to be able to coalesce.
     # ex: (float::numeric)::text
     # get the unit from another table (num_metadata) by using a left join
-    query = """select c1.name, c1.last_smpl_time, coalesce((c1.last_num_val::numeric)::text,(c1.last_float_val::numeric)::text, c1.last_str_val), m1.unit from dcs_prd.channel c1 left join dcs_prd.num_metadata m1 on c1.channel_id = m1.channel_id where c1.channel_id in (3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,20,21,42,43) order by c1.channel_id;"""
+    query = """select c1.name, c1.last_smpl_time, coalesce((c1.last_num_val::numeric)::text,(c1.last_float_val::numeric)::text, C1.last_str_val), m1.unit from dcs_prd.channel c1 left join dcs_prd.num_metadata m1 on c1.channel_id = m1.channel_id where c1.channel_id in (3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,20,21,42,43) order by c1.channel_id;"""
    # where name like '%GPS%' order by c1.channel_id;"""
 
     #
@@ -487,3 +487,21 @@ def get_gps(connection):
       	#dbrows
     return formatted
 	
+@postgres_route
+def get_epics_last_value(connection,group):
+  cursor = connection[0].cursor();
+
+  query = """select c.name, c.descr, c.last_smpl_time, 
+   coalesce((c.last_num_val::numeric)::text,(trunc(c.last_float_val::numeric,3))::text, c.last_str_val)
+   from dcs_prd.channel c,dcs_prd.chan_grp g
+   where c.grp_id=g.grp_id and g.name='%s' order by c.name""" % group
+
+  cursor.execute(query);
+  dbrows = cursor.fetchall();
+  cursor.close();
+  formatted = []
+  for row in dbrows:  
+    time = row[2].strftime("%Y-%m-%d %H:%M")
+    formatted.append((row[0],row[1],time,row[3]))
+
+  return formatted
