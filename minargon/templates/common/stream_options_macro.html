@@ -97,8 +97,6 @@ d3.json($SCRIPT_ROOT + '/data_list', function(err, data) {
     }
   }
 
-  console.log(targets);
-
   targets.forEach(t => t.filePrepared = fuzzysort.prepare(t.file));
 
   var options = {
