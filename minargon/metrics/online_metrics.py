@@ -447,16 +447,15 @@ def build_link_list(rconnect):
     for group, config, this_members, in zip(groups, configs, members):
         config = json.loads(config)
 	if "metric_config" not in config: continue
-        for metric,_ in config["metric_config"].items():
-            for stream in config["streams"]:
-                for m in this_members:
-                    ret.append({
-                        "file": build_key(group, metric, m,stream, join=" "),
-			"text": m,
-			"database": "online",
-			"database_type": "redis",
-			"ID": build_key(group, metric, m,stream), 
-                    })
+        metrics = config["metric_config"].keys()
+        streams = config["streams"]
+        ret.append({
+            "multiply": [[group], this_members, metrics, streams],
+	    "database": "online",
+	    "database_type": "redis",
+            "file_join": " ",
+            "ID_join": ":"
+        })
     return ret
 
 @redis_route

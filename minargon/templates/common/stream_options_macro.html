@@ -51,13 +51,54 @@ $(".{{id}}-item").click(function() {
 <script src="https://rawgit.com/farzher/fuzzysort/master/fuzzysort.js"></script>
 
 <script>
+
+function multiplyKeys(argList, file_join, ID_join, base) {
+    var r = [], max = argList.length-1;
+    function helper(arr, i) {
+        for (var j=0, l=argList[i].length; j<l; j++) {
+            var a = arr.slice(0); // clone arr
+            a.push(argList[i][j]);
+            if (i==max) {
+                var copy = {};
+                Object.assign(copy, base);
+                copy.file = a.join(file_join);
+                copy.ID = a.join(ID_join);
+                r.push(copy);
+            }
+            else
+                helper(a, i+1);
+        }
+    }
+    helper([], 0);
+    return r;
+}
+
 d3.json($SCRIPT_ROOT + '/data_list', function(err, data) {
   if (err) {
     $("#{{id}}-input").attr('placeholder', "Error Loading Data!");
     return;
   }
 
-  var targets = data.data;
+  // setup the data
+  var data = data.data;
+
+  var targets = [];
+  // make the list of targets -- multiply stuff if needed
+  for (var i = 0; i < data.length; i++) {
+    if ("file" in data[i]) {
+      targets.push(data[i]);
+    }
+    else if ("multiply" in data[i] && "file_join" in data[i] && "ID_join" in data[i]) {
+      var base = {};
+      base.database = data[i].database;
+      base.database_type = data[i].database_type;
+      
+      targets = targets.concat(multiplyKeys(data[i].multiply, data[i].file_join, data[i].ID_join, base));
+    }
+  }
+
+  console.log(targets);
+
   targets.forEach(t => t.filePrepared = fuzzysort.prepare(t.file));
 
   var options = {
