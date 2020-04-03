@@ -50,8 +50,13 @@
                       </div>
                     </div>
                     {% endif %}
+                    {{ stream_options.update_page("update", ["tree"], ["fuzzy", "checked"]) }}
+
+                    {{ stream_options.checked_select("checked", checked) }}
 
 	   	    {{ stream_options.tree_select([tree], "tree") }}
+
+                    {{ stream_options.fuzzy_select_async("fuzzy") }}
 		</form>
   </div>
 </div>
@@ -61,7 +66,7 @@
 
 <div class="container">
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-12" id="plotly-wrapper">
 	<!-- plotly div -->
 	<div style="padding:0" id="plotly-timeseries"></div>
     </div>
@@ -122,7 +127,11 @@ if (links.length > 0) {
   
 }
 else {
-  alert("No Data Streams to Display");
+  $("#plotly-wrapper").html(
+    "<div class='hcenter' style='text-align:center;'>" +
+       "<h2>Select some data to display!</h2><br>" +
+     "</div>" 
+  );
 }
 </script>
 {% endblock %}

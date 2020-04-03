@@ -148,8 +148,8 @@ def front_end_key_api(data):
 
     return ret
 
-def build_key(group, metric, instance, stream):
-    return group + ":" + instance + ":" + metric + ":" + stream
+def build_key(group, metric, instance, stream, join=":"):
+    return group + join + instance + join + metric + join + stream
 
 # get data from a stream
 @app.route('/<rconnect>/stream/<name>')
@@ -412,6 +412,51 @@ def infer_step_size_online(rconnect, key):
             avg_delta_times = 0
     return jsonify(step=avg_delta_times)
 
+@redis_route
+def get_configs(rconnect, keys): 
+    ret = []
+    for k in keys:
+        ret.append({
+          "file": k.replace(":", " "),
+          "text": k.split(":")[-1],
+          "database": "online",
+          "database_type": "redis",
+          "ID": k
+        })
+
+    return ret
+
+@redis_route
+def build_link_list(rconnect):
+    groups = rconnect.smembers("GROUPS")
+    pipeline = rconnect.pipeline()
+    for group in groups:
+       pipeline.get("GROUP_CONFIG:%s" % group)
+       pipeline.lrange("GROUP_MEMBERS:%s" % group, 0, -1)
+    result = pipeline.execute()
+
+    configs = []
+    members = []
+    for i in range(0, len(result), 2):
+        configs.append( result[i])
+        members.append( result[i+1])
+
+    ret = []
+
+    # index by group, the metric, then instance
+    for group, config, this_members, in zip(groups, configs, members):
+        config = json.loads(config)
+	if "metric_config" not in config: continue
+        metrics = config["metric_config"].keys()
+        streams = config["streams"]
+        ret.append({
+            "multiply": [[group], this_members, metrics, streams],
+	    "database": "online",
+	    "database_type": "redis",
+            "file_join": " ",
+            "ID_join": ":"
+        })
+    return ret
 
 @redis_route
 def build_link_tree(rconnect):

@@ -48,8 +48,6 @@
 {% block script %}
 <script defer type="module">
 import * as module from "{{ url_for('static', filename='js/minargon/correlation.js') }}";
-console.log($SCRIPT_ROOT);
-
 {% set typeX,IDX,databaseX,configX = streamX %}
 {% set typeY,IDY,databaseY,configY = streamY %}
 
@@ -80,8 +78,6 @@ console.log($SCRIPT_ROOT);
       var nameY = "{{IDY}}";
   {% endif %}
 {% endif %}
-
-console.log($SCRIPT_ROOT);
 
 // build the plot controller
 var plot_controller = new module.CorrelationController("plotly-correlation", linkX, nameX, configX, linkY, nameY, configY)
