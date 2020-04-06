@@ -4,23 +4,284 @@
 
 {% block body %}
 {{ super() }}
+<h2>SBND TPC Readout Power Supplies Status </h2>
+<div class="row">
+<P>
+<TABLE>
+<TR><TH>Crate</TH><TH>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Status&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TH><TH>Power</TH><TH>SetVolt</TH>
+    <TH>SenseVolt</TH><TH>TermVolt</TH><TH>Current</TH><TH>Temp</TH>
+    <TH>MaxCurr</TH><TH>CurrLimit</TH><TH>VoltRise</TH><TH>VoltFall</TH><TH>TripDelay</TH><TH>TripBehave</TH>
+</TR>
+
+<TR align="center"><TD>01</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/volt_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/sensevolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/terminalvolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/curr_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/temp_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/configmaxcurr_rw">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/constcurrentmode_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/volt_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/volt_fallrate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/triptimemaxcurr_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/outputbehavior_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_01/outputconfig_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_01/configmaxsensevolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_01/configmaxterminalvolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_01/curr_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_01/curr_fallrate_set">&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>02</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/volt_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/sensevolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/terminalvolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/curr_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/temp_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/configmaxcurr_rw">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/constcurrentmode_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/volt_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/volt_fallrate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/triptimemaxcurr_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/outputbehavior_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_02/outputconfig_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_02/configmaxsensevolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_02/configmaxterminalvolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_02/curr_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_02/curr_fallrate_set">&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>03</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/volt_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/sensevolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/terminalvolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/curr_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/temp_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/configmaxcurr_rw">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/constcurrentmode_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/volt_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/volt_fallrate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/triptimemaxcurr_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/outputbehavior_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_03/outputconfig_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_03/configmaxsensevolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_03/configmaxterminalvolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_03/curr_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_03/curr_fallrate_set">&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>04</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/volt_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/sensevolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/terminalvolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/curr_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/temp_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/configmaxcurr_rw">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/constcurrentmode_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/volt_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/volt_fallrate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/triptimemaxcurr_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/outputbehavior_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_04/outputconfig_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_04/configmaxsensevolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_04/configmaxterminalvolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_04/curr_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_04/curr_fallrate_set">&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>05</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/volt_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/sensevolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/terminalvolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/curr_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/temp_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/configmaxcurr_rw">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/constcurrentmode_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/volt_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/volt_fallrate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/triptimemaxcurr_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/outputbehavior_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_05/outputconfig_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_05/configmaxsensevolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_05/configmaxterminalvolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_05/curr_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_05/curr_fallrate_set">&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>06</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/volt_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/sensevolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/terminalvolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/curr_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/temp_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/configmaxcurr_rw">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/constcurrentmode_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/volt_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/volt_fallrate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/triptimemaxcurr_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/outputbehavior_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_06/outputconfig_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_06/configmaxsensevolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_06/configmaxterminalvolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_06/curr_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_06/curr_fallrate_set">&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>07</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/volt_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/sensevolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/terminalvolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/curr_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/temp_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/configmaxcurr_rw">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/constcurrentmode_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/volt_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/volt_fallrate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/triptimemaxcurr_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/outputbehavior_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_07/outputconfig_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_07/configmaxsensevolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_07/configmaxterminalvolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_07/curr_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_07/curr_fallrate_set">&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>08</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/volt_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/sensevolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/terminalvolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/curr_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/temp_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/configmaxcurr_rw">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/constcurrentmode_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/volt_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/volt_fallrate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/triptimemaxcurr_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/outputbehavior_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_08/outputconfig_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_08/configmaxsensevolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_08/configmaxterminalvolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_08/curr_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_08/curr_fallrate_set">&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>09</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/volt_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/sensevolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/terminalvolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/curr_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/temp_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/configmaxcurr_rw">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/constcurrentmode_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/volt_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/volt_fallrate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/triptimemaxcurr_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/outputbehavior_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_09/outputconfig_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_09/configmaxsensevolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_09/configmaxterminalvolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_09/curr_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_09/curr_fallrate_set">&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>10</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/volt_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/sensevolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/terminalvolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/curr_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/temp_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/configmaxcurr_rw">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/constcurrentmode_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/volt_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/volt_fallrate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/triptimemaxcurr_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/outputbehavior_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_10/outputconfig_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_10/configmaxsensevolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_10/configmaxterminalvolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_10/curr_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_10/curr_fallrate_set">&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>11</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/volt_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/sensevolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/terminalvolt_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/curr_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/temp_read">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/configmaxcurr_rw">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/constcurrentmode_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/volt_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/volt_fallrate_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/triptimemaxcurr_set">&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/outputbehavior_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_11/outputconfig_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_11/configmaxsensevolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_11/configmaxterminalvolt_rw">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_11/curr_riserate_set">&nbsp;</span></td>
+    <TD style="text-align:center;visibility:hidden"><span id="sbnd_tpc_readout_11/curr_fallrate_set">&nbsp;</span></td>
+</TR>
+
+</TABLE>
+</div>
+
+<div class="row" style="margin-top: 25px;">
+<TABLE>
+<TR><TH>Rack</TH><TH>Main Power</TH><TH>Serial Number</TH><TH>Group Switch</TH>
+</TR>
+
+<TR align="center"><TD>0</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack0/ps_status">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack0/ps_serialnum">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack0/groupswitchhv_set">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>1</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack1/ps_status">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack1/ps_serialnum">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack1/groupswitchhv_set">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>2</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack2/ps_status">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack2/ps_serialnum">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack2/groupswitchhv_set">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+</TR>
+
+<TR align="center"><TD>3</TD>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack3/ps_status">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack3/ps_serialnum">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack3/groupswitchhv_set">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+</TR>
+
+</TABLE>
+</div>
+
 {%endblock%}
 
-<!---->
-{% block script %}
-<h2>SBND TPC Readout Power Supplies Status </h2>
-<!-- Grab depreciated glyphicons for bootstrap v4 
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
--->
-
- 
-    <title>SBND TPC Readout Power Supplies Status</title>
-    <link href="/cgi-bin/minargon/minargon.wsgi/static/css/bootstrap.css" rel="stylesheet">
-    <link href="/cgi-bin/minargon/minargon.wsgi/static/css/lights.css" rel="stylesheet">
-    <script src="/cgi-bin/minargon/minargon.wsgi/static/js/lights.js"></script>
-    <script src="/cgi-bin/minargon/minargon.wsgi/static/js/jquery.js"></script>
-    <script src="/cgi-bin/minargon/minargon.wsgi/static/js/bootstrap-treeview.js"></script>
-    <style>
+{% block style %}
       table
       {
         border:1px solid black;padding:5px;font-size: 140%
@@ -39,301 +300,41 @@
       {
         margin: 28px;
       }
-    </style>
-<P>
+{% endblock %}
 
-
-<TABLE>
-<TR><TH>Crate</TH><TH>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Status&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TH><TH>Power</TH><TH>SetVolt</TH>
-    <TH>SenseVolt</TH><TH>TermVolt</TH><TH>Current</TH><TH>Temp</TH>
-    <TH>MaxCurr</TH><TH>CurrLimit</TH><TH>VoltRise</TH><TH>VoltFall</TH><TH>TripDelay</TH><TH>TripBehave</TH>
-</TR>
-
-<TR align="center"><TD>01</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/volt_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/sensevolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/terminalvolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/curr_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/temp_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/configmaxcurr_rw">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/constcurrentmode_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/volt_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/volt_fallrate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/triptimemaxcurr_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/outputbehavior_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_01/outputconfig_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_01/configmaxsensevolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_01/configmaxterminalvolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_01/curr_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_01/curr_fallrate_set">&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>02</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/volt_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/sensevolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/terminalvolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/curr_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/temp_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/configmaxcurr_rw">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/constcurrentmode_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/volt_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/volt_fallrate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/triptimemaxcurr_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/outputbehavior_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_02/outputconfig_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_02/configmaxsensevolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_02/configmaxterminalvolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_02/curr_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_02/curr_fallrate_set">&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>03</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/volt_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/sensevolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/terminalvolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/curr_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/temp_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/configmaxcurr_rw">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/constcurrentmode_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/volt_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/volt_fallrate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/triptimemaxcurr_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/outputbehavior_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_03/outputconfig_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_03/configmaxsensevolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_03/configmaxterminalvolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_03/curr_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_03/curr_fallrate_set">&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>04</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/volt_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/sensevolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/terminalvolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/curr_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/temp_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/configmaxcurr_rw">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/constcurrentmode_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/volt_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/volt_fallrate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/triptimemaxcurr_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/outputbehavior_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_04/outputconfig_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_04/configmaxsensevolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_04/configmaxterminalvolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_04/curr_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_04/curr_fallrate_set">&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>05</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/volt_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/sensevolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/terminalvolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/curr_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/temp_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/configmaxcurr_rw">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/constcurrentmode_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/volt_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/volt_fallrate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/triptimemaxcurr_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/outputbehavior_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_05/outputconfig_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_05/configmaxsensevolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_05/configmaxterminalvolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_05/curr_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_05/curr_fallrate_set">&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>06</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/volt_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/sensevolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/terminalvolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/curr_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/temp_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/configmaxcurr_rw">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/constcurrentmode_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/volt_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/volt_fallrate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/triptimemaxcurr_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/outputbehavior_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_06/outputconfig_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_06/configmaxsensevolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_06/configmaxterminalvolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_06/curr_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_06/curr_fallrate_set">&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>07</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/volt_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/sensevolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/terminalvolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/curr_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/temp_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/configmaxcurr_rw">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/constcurrentmode_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/volt_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/volt_fallrate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/triptimemaxcurr_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/outputbehavior_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_07/outputconfig_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_07/configmaxsensevolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_07/configmaxterminalvolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_07/curr_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_07/curr_fallrate_set">&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>08</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/volt_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/sensevolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/terminalvolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/curr_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/temp_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/configmaxcurr_rw">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/constcurrentmode_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/volt_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/volt_fallrate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/triptimemaxcurr_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/outputbehavior_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_08/outputconfig_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_08/configmaxsensevolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_08/configmaxterminalvolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_08/curr_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_08/curr_fallrate_set">&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>09</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/volt_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/sensevolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/terminalvolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/curr_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/temp_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/configmaxcurr_rw">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/constcurrentmode_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/volt_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/volt_fallrate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/triptimemaxcurr_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/outputbehavior_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_09/outputconfig_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_09/configmaxsensevolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_09/configmaxterminalvolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_09/curr_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_09/curr_fallrate_set">&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>10</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/volt_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/sensevolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/terminalvolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/curr_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/temp_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/configmaxcurr_rw">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/constcurrentmode_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/volt_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/volt_fallrate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/triptimemaxcurr_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/outputbehavior_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_10/outputconfig_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_10/configmaxsensevolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_10/configmaxterminalvolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_10/curr_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_10/curr_fallrate_set">&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>11</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/switch_read">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/switch_set" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/volt_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/sensevolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/terminalvolt_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/curr_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/temp_read">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/configmaxcurr_rw">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/constcurrentmode_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/volt_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/volt_fallrate_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/triptimemaxcurr_set">&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/outputbehavior_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_11/outputconfig_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_11/configmaxsensevolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_11/configmaxterminalvolt_rw">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_11/curr_riserate_set">&nbsp;</text></td>
-    <TD style="text-align:center;visibility:hidden"><text id="sbnd_tpc_readout_11/curr_fallrate_set">&nbsp;</text></td>
-</TR>
-
-</TABLE>
-
-<TABLE>
-<TR><TH>Rack</TH><TH>Main Power</TH><TH>Serial Number</TH><TH>Group Switch</TH>
-</TR>
-
-<TR align="center"><TD>0</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack0/ps_status">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack0/ps_serialnum">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack0/groupswitchhv_set">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>1</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack1/ps_status">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack1/ps_serialnum">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack1/groupswitchhv_set">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>2</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack2/ps_status">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack2/ps_serialnum">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack2/groupswitchhv_set">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-</TR>
-
-<TR align="center"><TD>3</TD>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack3/ps_status">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack3/ps_serialnum">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack3/groupswitchhv_set">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
-</TR>
-
-</TABLE>
-
+{% block script %}
+<link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ url_for('static', filename='css/lights.css') }}" rel="stylesheet" type="text/css">
+<script src="{{ url_for('static', filename='js/lights.js') }}"></script>
 <!-- Populate above table -->
 <script type="text/javascript">
+$(document).ready(function() {
 {%for row in rows%}
-  item = document.getElementById("{{row[0]}}");
-  pvName = "{{row[0]}}";
-  if ( pvName.endsWith("switch_set") || pvName.endsWith("ps_status"))
-  {
-    pvValue = "{{row[3]}}";
-    if ( pvValue =="1.000" || pvValue == "1" )
+{
+  var item = document.getElementById("{{row[0]}}");
+  var pvName = "{{row[0]}}";
+
+  if (item) {
+    if ( pvName.endsWith("switch_set") || pvName.endsWith("ps_status"))
     {
-       item.className = "led-green";
+      var pvValue = "{{row[3]}}";
+      if ( pvValue =="1.000" || pvValue == "1" )
+      {
+         item.className = "led-green";
+      }
+      else
+      {
+         item.className = "led-red";
+      }
     }
     else
     {
-       item.className = "led-red";
+      item.innerHTML = "{{row[3]}}";
     }
   }
-  else
-  {
-    item.innerHTML = "{{row[3]}}";
-  }
+}
 {%endfor%}		
+});
 </script>
 
 <!-- <meta http-equiv="refresh" content="10">-->
