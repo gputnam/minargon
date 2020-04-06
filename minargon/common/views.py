@@ -1,5 +1,5 @@
 from minargon import app
-from flask import render_template, jsonify, request, redirect, url_for, flash
+from flask import render_template, jsonify, request, redirect, url_for, flash, abort
 from minargon.metrics import postgres_api
 
 from minargon.tools import parseiso, RedisDataStream, PostgresDataStream
@@ -40,8 +40,10 @@ def latest_gps_info(connection):
 def epics_last_value(connection,group):
     dbrows = postgres_api.get_epics_last_value(connection,group)     
 
-    return render_template('common/'+group+'.html',rows=dbrows)
-
+    try:
+        return render_template('common/'+group+'.html',rows=dbrows)
+    except:
+        abort(404)
 
 @app.route('/online_group/<group_name>')
 def online_group(group_name):
