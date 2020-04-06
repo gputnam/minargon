@@ -1,136 +1,26 @@
 {% extends "layout.html" | front_ended %}
 
-{% block title %}SBND SlowControls Status{% endblock %}
+{% block title %}SBND Slow Controls Status{% endblock %}
 
 {% block body %}
 {{ super() }}
-<h2>SBND SlowControls Status</h2>
-<P>
-<TABLE>
-<TR><TH>Crate</TH><TH>RPS Status</TH><TH>Interlock</TH><TH>Temperature &deg;C</TH><TH>Fan Speed 0</TH><TH>Fan Speed 1</TH><TH>Fan Speed 2</TH></TR>
-<TR align="center"><TD>TPC RO 01</TD>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack0/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_01/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_tpc_readout_01/temperature"></span></TD>
-    <td><span id="sbnd_tpc_readout_01/fan_speed0"></span></TD>
-    <td><span id="sbnd_tpc_readout_01/fan_speed1"></span></TD>
-    <td><span id="sbnd_tpc_readout_01/fan_speed2"></span></TD>
-</TR>
-
-<TR><TD>TPC RO 02</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</td>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_02/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_tpc_readout_02/temperature"></span></TD>
-    <td><span id="sbnd_tpc_readout_02/fan_speed0"></span></TD>
-    <td><span id="sbnd_tpc_readout_02/fan_speed1"></span></TD>
-    <td><span id="sbnd_tpc_readout_02/fan_speed2"></span></TD>
-</TR>
-
-<TR><TD>TPC RO NIM</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_nim/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_tpc_readout_nim/temperature"></span></TD>
-    <td><span id="sbnd_tpc_readout_nim/fan_speed0"></span></TD>
-    <td><span id="sbnd_tpc_readout_nim/fan_speed1"></span></TD>
-    <td><span id="sbnd_tpc_readout_nim/fan_speed2"></span></TD>
-</TR>
-
-<TR><TD>TPC RO 03</TD>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack1/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_03/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_tpc_readout_03/temperature">&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <td><span id="sbnd_tpc_readout_03/fan_speed0"></span></TD>
-    <td><span id="sbnd_tpc_readout_03/fan_speed1"></span></TD>
-    <td><span id="sbnd_tpc_readout_03/fan_speed2"></span></TD>
-</TR>
-
-<TR><TD>TPC RO 04</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_04/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_tpc_readout_04/temperature"></span></TD>
-    <td><span id="sbnd_tpc_readout_04/fan_speed0"></span></TD>
-    <td><span id="sbnd_tpc_readout_04/fan_speed1"></span></TD>
-    <td><span id="sbnd_tpc_readout_04/fan_speed2"></span></TD>
-</TR>
-
-<TR><TD>TPC RO 05</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_05/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_tpc_readout_05/temperature"></span></TD>
-    <td><span id="sbnd_tpc_readout_05/fan_speed0"></span></TD>
-    <td><span id="sbnd_tpc_readout_05/fan_speed1"></span></TD>
-    <td><span id="sbnd_tpc_readout_05/fan_speed2"></span></TD>
-</TR>
-
-<TR><TD>TPC RO 06</TD>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack2/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_06/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_tpc_readout_06/temperature"></span></TD>
-    <td><span id="sbnd_tpc_readout_06/fan_speed0"></span></TD>
-    <td><span id="sbnd_tpc_readout_06/fan_speed1"></span></TD>
-    <td><span id="sbnd_tpc_readout_06/fan_speed2"></span></TD>
-</TR>
-
-<TR><TD>TPC RO 07</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_07/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_tpc_readout_07/temperature"></span></TD>
-    <td><span id="sbnd_tpc_readout_07/fan_speed0"></span></TD>
-    <td><span id="sbnd_tpc_readout_07/fan_speed1"></span></TD>
-    <td><span id="sbnd_tpc_readout_07/fan_speed2"></span></TD>
-</TR>
-
-<TR><TD>TPC RO 08</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_08/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_tpc_readout_08/temperature"></span></TD>
-    <td><span id="sbnd_tpc_readout_08/fan_speed0"></span></TD>
-    <td><span id="sbnd_tpc_readout_08/fan_speed1"></span></TD>
-    <td><span id="sbnd_tpc_readout_08/fan_speed2"></span></TD>
-</TR>
-
-<TR><TD>TPC RO 09</TD>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_rack3/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_09/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_tpc_readout_09/temperature"></span></TD>
-    <td><span id="sbnd_tpc_readout_09/fan_speed0"></span></TD>
-    <td><span id="sbnd_tpc_readout_09/fan_speed1"></span></TD>
-    <td><span id="sbnd_tpc_readout_09/fan_speed2"></span></TD>
-</TR>
-
-<TR><TD>TPC RO 10</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_10/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_tpc_readout_10/temperature"></span></TD>
-    <td><span id="sbnd_tpc_readout_10/fan_speed0"></span></TD>
-    <td><span id="sbnd_tpc_readout_10/fan_speed1"></span></TD>
-    <td><span id="sbnd_tpc_readout_10/fan_speed2"></span></TD>
-</TR>
-
-<TR><TD>TPC RO 11</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><span id="sbnd_tpc_readout_11/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_tpc_readout_11/temperature"></span></TD>
-    <td><span id="sbnd_tpc_readout_11/fan_speed0"></span></TD>
-    <td><span id="sbnd_tpc_readout_11/fan_speed1"></span></TD>
-    <td><span id="sbnd_tpc_readout_11/fan_speed2"></span></TD>
-</TR>
-
-<TR><TD>PTB MTCA</TD>
-    <TD style="text-align:center"><span id="sbnd_ptb_rack/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <TD style="text-align:center"><span id="sbnd_ptb_mtca/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-    <td><span id="sbnd_ptb_mtca/temperature"></span></TD>
-    <td><span id="sbnd_ptb_mtca/fan_speed0"></span></TD>
-    <td><span id="sbnd_ptb_mtca/fan_speed1"></span></TD>
-    <td><span id="sbnd_ptb_mtca/fan_speed2"></span></TD>
-</TR>
-
-
-</TABLE>
-
 {%endblock%}
 
-{% block style %}
+<!---->
+{% block script %}
+<h2>SBND SlowControls Status</h2>
+<!-- Grab depreciated glyphicons for bootstrap v4 
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
+-->
+
+ 
+    <title>SBND SlowControls Status</title>
+    <link href="/cgi-bin/minargon/minargon.wsgi/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/cgi-bin/minargon/minargon.wsgi/static/css/lights.css" rel="stylesheet">
+    <script src="/cgi-bin/minargon/minargon.wsgi/static/js/lights.js"></script>
+    <script src="/cgi-bin/minargon/minargon.wsgi/static/js/jquery.js"></script>
+    <script src="/cgi-bin/minargon/minargon.wsgi/static/js/bootstrap-treeview.js"></script>
+    <style>
       table
       {
         border:1px solid black;padding:5px;font-size: 140%
@@ -149,44 +39,153 @@
       {
         margin: 28px;
       }
+    </style>
+<P>
 
-{% endblock %}
 
-<!---->
-{% block script %}
-<link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet" type="text/css">
-<link href="{{ url_for('static', filename='css/lights.css') }}" rel="stylesheet" type="text/css">
-<script src="{{ url_for('static', filename='js/lights.js') }}"></script>
+<TABLE>
+<TR><TH>Crate</TH><TH>RPS Status</TH><TH>Interlock</TH><TH>Temperature &deg;C</TH><TH>Fan Speed 0</TH><TH>Fan Speed 1</TH><TH>Fan Speed 2</TH></TR>
+<TR align="center"><TD>TPC RO 01</TD>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack0/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_01/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_tpc_readout_01/temperature"></text></TD>
+    <td><text id="sbnd_tpc_readout_01/fan_speed0"></text></TD>
+    <td><text id="sbnd_tpc_readout_01/fan_speed1"></text></TD>
+    <td><text id="sbnd_tpc_readout_01/fan_speed2"></text></TD>
+</TR>
+
+<TR><TD>TPC RO 02</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_02/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_tpc_readout_02/temperature"></text></TD>
+    <td><text id="sbnd_tpc_readout_02/fan_speed0"></text></TD>
+    <td><text id="sbnd_tpc_readout_02/fan_speed1"></text></TD>
+    <td><text id="sbnd_tpc_readout_02/fan_speed2"></text></TD>
+</TR>
+
+<TR><TD>TPC RO NIM</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_nim/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_tpc_readout_nim/temperature"></text></TD>
+    <td><text id="sbnd_tpc_readout_nim/fan_speed0"></text></TD>
+    <td><text id="sbnd_tpc_readout_nim/fan_speed1"></text></TD>
+    <td><text id="sbnd_tpc_readout_nim/fan_speed2"></text></TD>
+</TR>
+
+<TR><TD>TPC RO 03</TD>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack1/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_03/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_tpc_readout_03/temperature">&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <td><text id="sbnd_tpc_readout_03/fan_speed0"></text></TD>
+    <td><text id="sbnd_tpc_readout_03/fan_speed1"></text></TD>
+    <td><text id="sbnd_tpc_readout_03/fan_speed2"></text></TD>
+</TR>
+
+<TR><TD>TPC RO 04</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_04/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_tpc_readout_04/temperature"></text></TD>
+    <td><text id="sbnd_tpc_readout_04/fan_speed0"></text></TD>
+    <td><text id="sbnd_tpc_readout_04/fan_speed1"></text></TD>
+    <td><text id="sbnd_tpc_readout_04/fan_speed2"></text></TD>
+</TR>
+
+<TR><TD>TPC RO 05</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_05/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_tpc_readout_05/temperature"></text></TD>
+    <td><text id="sbnd_tpc_readout_05/fan_speed0"></text></TD>
+    <td><text id="sbnd_tpc_readout_05/fan_speed1"></text></TD>
+    <td><text id="sbnd_tpc_readout_05/fan_speed2"></text></TD>
+</TR>
+
+<TR><TD>TPC RO 06</TD>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack2/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_06/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_tpc_readout_06/temperature"></text></TD>
+    <td><text id="sbnd_tpc_readout_06/fan_speed0"></text></TD>
+    <td><text id="sbnd_tpc_readout_06/fan_speed1"></text></TD>
+    <td><text id="sbnd_tpc_readout_06/fan_speed2"></text></TD>
+</TR>
+
+<TR><TD>TPC RO 07</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_07/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_tpc_readout_07/temperature"></text></TD>
+    <td><text id="sbnd_tpc_readout_07/fan_speed0"></text></TD>
+    <td><text id="sbnd_tpc_readout_07/fan_speed1"></text></TD>
+    <td><text id="sbnd_tpc_readout_07/fan_speed2"></text></TD>
+</TR>
+
+<TR><TD>TPC RO 08</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_08/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_tpc_readout_08/temperature"></text></TD>
+    <td><text id="sbnd_tpc_readout_08/fan_speed0"></text></TD>
+    <td><text id="sbnd_tpc_readout_08/fan_speed1"></text></TD>
+    <td><text id="sbnd_tpc_readout_08/fan_speed2"></text></TD>
+</TR>
+
+<TR><TD>TPC RO 09</TD>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_rack3/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_09/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_tpc_readout_09/temperature"></text></TD>
+    <td><text id="sbnd_tpc_readout_09/fan_speed0"></text></TD>
+    <td><text id="sbnd_tpc_readout_09/fan_speed1"></text></TD>
+    <td><text id="sbnd_tpc_readout_09/fan_speed2"></text></TD>
+</TR>
+
+<TR><TD>TPC RO 10</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_10/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_tpc_readout_10/temperature"></text></TD>
+    <td><text id="sbnd_tpc_readout_10/fan_speed0"></text></TD>
+    <td><text id="sbnd_tpc_readout_10/fan_speed1"></text></TD>
+    <td><text id="sbnd_tpc_readout_10/fan_speed2"></text></TD>
+</TR>
+
+<TR><TD>TPC RO 11</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><text id="sbnd_tpc_readout_11/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_tpc_readout_11/temperature"></text></TD>
+    <td><text id="sbnd_tpc_readout_11/fan_speed0"></text></TD>
+    <td><text id="sbnd_tpc_readout_11/fan_speed1"></text></TD>
+    <td><text id="sbnd_tpc_readout_11/fan_speed2"></text></TD>
+</TR>
+
+<TR><TD>PTB MTCA</TD>
+    <TD style="text-align:center"><text id="sbnd_ptb_rack/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <TD style="text-align:center"><text id="sbnd_ptb_mtca/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</text></td>
+    <td><text id="sbnd_ptb_mtca/temperature"></text></TD>
+    <td><text id="sbnd_ptb_mtca/fan_speed0"></text></TD>
+    <td><text id="sbnd_ptb_mtca/fan_speed1"></text></TD>
+    <td><text id="sbnd_ptb_mtca/fan_speed2"></text></TD>
+</TR>
+
+
+</TABLE>
+
 <!-- Populate above table -->
 <script type="text/javascript">
 {%for row in rows%}
-$(document).ready(function() {
-{%for row in rows%}
-{
-  var item = document.getElementById("{{row[0]}}");
-  var pvName = "{{row[0]}}";
-
-  if (item) {
-    if ( pvName.endsWith("interlock") || pvName.endsWith("rps_status"))
+  item = document.getElementById("{{row[0]}}");
+  pvName = "{{row[0]}}";
+  if ( pvName.endsWith("interlock") || pvName.endsWith("rps_status") )
+  {
+    pvValue = "{{row[3]}}";
+    if ( pvValue =="1.000" )
     {
-      var pvValue = "{{row[3]}}";
-      if ( pvValue =="1.000" || pvValue == "1" )
-      {
-         item.className = "led-green";
-      }
-      else
-      {
-         item.className = "led-red";
-      }
+       item.className = "led-green";
     }
     else
     {
-      item.innerHTML = "{{row[3]}}";
+       item.className = "led-red";
     }
   }
-}
-{%endfor%}		
-});
+  else
+  {
+    item.innerHTML = "{{row[3]}}";
+  }
 {%endfor%}		
 </script>
 
