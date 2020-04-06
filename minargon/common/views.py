@@ -1,5 +1,6 @@
 from minargon import app
 from flask import render_template, jsonify, request, redirect, url_for, flash, abort
+import jinja2
 from minargon.metrics import postgres_api
 
 from minargon.tools import parseiso, RedisDataStream, PostgresDataStream
@@ -42,7 +43,7 @@ def epics_last_value(connection,group):
 
     try:
         return render_template('common/'+group+'.html',rows=dbrows)
-    except:
+    except jinja2.exceptions.TemplateNotFound:
         abort(404)
 
 @app.route('/online_group/<group_name>')
