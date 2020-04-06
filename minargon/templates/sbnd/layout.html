@@ -103,13 +103,20 @@
                   {{ nav_link('fem_snapshot', 'FEM Snapshot') }}
                 </ul>
               </li>
+              <li class='dropdown nav-item'>
+              <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>EPICS Status<b class='caret'></b></a>
+                <ul class='dropdown-menu bg-maroon'>
+                  {{ nav_link('epics_last_value', 'SlowControls', connection='sbnd_epics', group='slowcontrols') }}
+                  {{ nav_link('epics_last_value', 'TPC Readout Power', connection='sbnd_epics', group='tpc_readout_power') }}
+                </ul>
+              </li>
               {{ nav_link('wireplane_view', 'Wire Plane View') }}
               {{ nav_link('single_stream', 'Example Metric', stream_name='example_metric:slow') }}
               {{ nav_link('online_group', 'Example Group', group_name='example') }}
               {{ nav_link('online_group', 'DAQ', group_name='DABBoardReader') }}
               {{ nav_link('pvTree', 'ICARUS EPICS', connection='epics') }}
               {{ nav_link('pvTree', 'SBND EPICS', connection='sbnd_epics') }}
-             {{ nav_link('view_streams', 'Data Browser')}}
+              {{ nav_link('view_streams', 'Data Browser')}}
             </ul>
           </div><!--/.navbar-collapse -->
         </nav>
