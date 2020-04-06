@@ -1,26 +1,137 @@
 {% extends "layout.html" | front_ended %}
 
-{% block title %}SBND Slow Controls Status{% endblock %}
+{% block title %}SBND SlowControls Status{% endblock %}
 
 {% block body %}
 {{ super() }}
+<h2>SBND SlowControls Status</h2>
+<P>
+<TABLE>
+<TR><TH>Crate</TH><TH>RPS Status</TH><TH>Interlock</TH><TH>Temperature &deg;C</TH><TH>Fan Speed 0</TH><TH>Fan Speed 1</TH><TH>Fan Speed 2</TH></TR>
+<TR align="center"><TD>TPC RO 01</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='330') }}" id="sbnd_tpc_readout_rack0/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='283') }}" id="sbnd_tpc_readout_01/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='271') }}" id="sbnd_tpc_readout_01/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='294') }}" id="sbnd_tpc_readout_01/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='295') }}" id="sbnd_tpc_readout_01/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='296') }}" id="sbnd_tpc_readout_01/fan_speed2"></a></TD>
+</TR>
+
+<TR><TD>TPC RO 02</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='284') }}" id="sbnd_tpc_readout_02/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='272') }}" id="sbnd_tpc_readout_02/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='297') }}" id="sbnd_tpc_readout_02/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='298') }}" id="sbnd_tpc_readout_02/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='299') }}" id="sbnd_tpc_readout_02/fan_speed2"></a></TD>
+</TR>
+
+<TR><TD>TPC RO NIM</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='339') }}" id="sbnd_tpc_readout_nim/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='282') }}" id="sbnd_tpc_readout_nim/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='327') }}" id="sbnd_tpc_readout_nim/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='328') }}" id="sbnd_tpc_readout_nim/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='329') }}" id="sbnd_tpc_readout_nim/fan_speed2"></a></TD>
+</TR>
+
+<TR><TD>TPC RO 03</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='331') }}" id="sbnd_tpc_readout_rack1/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='285') }}" id="sbnd_tpc_readout_03/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='273') }}" id="sbnd_tpc_readout_03/temperature">&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='300') }}" id="sbnd_tpc_readout_03/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='301') }}" id="sbnd_tpc_readout_03/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='302') }}" id="sbnd_tpc_readout_03/fan_speed2"></a></TD>
+</TR>
+
+<TR><TD>TPC RO 04</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='286') }}" id="sbnd_tpc_readout_04/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='274') }}" id="sbnd_tpc_readout_04/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='303') }}" id="sbnd_tpc_readout_04/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='304') }}" id="sbnd_tpc_readout_04/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='305') }}" id="sbnd_tpc_readout_04/fan_speed2"></a></TD>
+</TR>
+
+<TR><TD>TPC RO 05</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='287') }}" id="sbnd_tpc_readout_05/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='275') }}" id="sbnd_tpc_readout_05/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='306') }}" id="sbnd_tpc_readout_05/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='307') }}" id="sbnd_tpc_readout_05/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='308') }}" id="sbnd_tpc_readout_05/fan_speed2"></a></TD>
+</TR>
+
+<TR><TD>TPC RO 06</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='332') }}" id="sbnd_tpc_readout_rack2/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='288') }}" id="sbnd_tpc_readout_06/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='276') }}" id="sbnd_tpc_readout_06/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='309') }}" id="sbnd_tpc_readout_06/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='310') }}" id="sbnd_tpc_readout_06/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='311') }}" id="sbnd_tpc_readout_06/fan_speed2"></a></TD>
+</TR>
+
+<TR><TD>TPC RO 07</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='289') }}" id="sbnd_tpc_readout_07/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='277') }}" id="sbnd_tpc_readout_07/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='312') }}" id="sbnd_tpc_readout_07/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='313') }}" id="sbnd_tpc_readout_07/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='314') }}" id="sbnd_tpc_readout_07/fan_speed2"></a></TD>
+</TR>
+
+<TR><TD>TPC RO 08</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='290') }}" id="sbnd_tpc_readout_08/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='278') }}" id="sbnd_tpc_readout_08/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='315') }}" id="sbnd_tpc_readout_08/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='316') }}" id="sbnd_tpc_readout_08/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='317') }}" id="sbnd_tpc_readout_08/fan_speed2"></a></TD>
+</TR>
+
+<TR><TD>TPC RO 09</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='333') }}" id="sbnd_tpc_readout_rack3/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='291') }}" id="sbnd_tpc_readout_09/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='279') }}" id="sbnd_tpc_readout_09/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='318') }}" id="sbnd_tpc_readout_09/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='319') }}" id="sbnd_tpc_readout_09/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='320') }}" id="sbnd_tpc_readout_09/fan_speed2"></a></TD>
+</TR>
+
+<TR><TD>TPC RO 10</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='292') }}" id="sbnd_tpc_readout_10/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='280') }}" id="sbnd_tpc_readout_10/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='321') }}" id="sbnd_tpc_readout_10/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='322') }}" id="sbnd_tpc_readout_10/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='323') }}" id="sbnd_tpc_readout_10/fan_speed2"></a></TD>
+</TR>
+
+<TR><TD>TPC RO 11</TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='293') }}" id="sbnd_tpc_readout_11/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='281') }}" id="sbnd_tpc_readout_11/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='324') }}" id="sbnd_tpc_readout_11/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='325') }}" id="sbnd_tpc_readout_11/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='326') }}" id="sbnd_tpc_readout_11/fan_speed2"></a></TD>
+</TR>
+
+<TR><TD>PTB MTCA</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='334') }}" id="sbnd_ptb_rack/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='363') }}" id="sbnd_ptb_mtca/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='338') }}" id="sbnd_ptb_mtca/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='335') }}" id="sbnd_ptb_mtca/fan_speed0"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='336') }}" id="sbnd_ptb_mtca/fan_speed1"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='337') }}" id="sbnd_ptb_mtca/fan_speed2"></a></TD>
+</TR>
+
+
+</TABLE>
+</P>
+
 {%endblock%}
 
-<!---->
-{% block script %}
-<h2>SBND SlowControls Status</h2>
-<!-- Grab depreciated glyphicons for bootstrap v4 
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
--->
-
- 
-    <title>SBND SlowControls Status</title>
-    <link href="/cgi-bin/minargon/minargon.wsgi/static/css/bootstrap.css" rel="stylesheet">
-    <link href="/cgi-bin/minargon/minargon.wsgi/static/css/lights.css" rel="stylesheet">
-    <script src="/cgi-bin/minargon/minargon.wsgi/static/js/lights.js"></script>
-    <script src="/cgi-bin/minargon/minargon.wsgi/static/js/jquery.js"></script>
-    <script src="/cgi-bin/minargon/minargon.wsgi/static/js/bootstrap-treeview.js"></script>
-    <style>
+{% block style %}
       table
       {
         border:1px solid black;padding:5px;font-size: 140%
@@ -39,154 +150,47 @@
       {
         margin: 28px;
       }
-    </style>
-<P>
+{% endblock %}
 
+<!---->
+{% block script %}
+<!-- Grab depreciated glyphicons for bootstrap v4 
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
+-->
 
-<TABLE>
-<TR><TH>Crate</TH><TH>RPS Status</TH><TH>Interlock</TH><TH>Temperature &deg;C</TH><TH>Fan Speed 0</TH><TH>Fan Speed 1</TH><TH>Fan Speed 2</TH></TR>
-<TR align="center"><TD>TPC RO 01</TD>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/330" id="sbnd_tpc_readout_rack0/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/283" id="sbnd_tpc_readout_01/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/271" id="sbnd_tpc_readout_01/temperature"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/294" id="sbnd_tpc_readout_01/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/295" id="sbnd_tpc_readout_01/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/296" id="sbnd_tpc_readout_01/fan_speed2"></a></TD>
-</TR>
-
-<TR><TD>TPC RO 02</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</td>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/284" id="sbnd_tpc_readout_02/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/272" id="sbnd_tpc_readout_02/temperature"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/297" id="sbnd_tpc_readout_02/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/298" id="sbnd_tpc_readout_02/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/299" id="sbnd_tpc_readout_02/fan_speed2"></a></TD>
-</TR>
-
-<TR><TD>TPC RO NIM</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/339" id="sbnd_tpc_readout_nim/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/282" id="sbnd_tpc_readout_nim/temperature"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/327" id="sbnd_tpc_readout_nim/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/328" id="sbnd_tpc_readout_nim/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/329" id="sbnd_tpc_readout_nim/fan_speed2"></a></TD>
-</TR>
-
-<TR><TD>TPC RO 03</TD>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/331" id="sbnd_tpc_readout_rack1/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/285" id="sbnd_tpc_readout_03/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/273" id="sbnd_tpc_readout_03/temperature">&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/300" id="sbnd_tpc_readout_03/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/301" id="sbnd_tpc_readout_03/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/302" id="sbnd_tpc_readout_03/fan_speed2"></a></TD>
-</TR>
-
-<TR><TD>TPC RO 04</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/286" id="sbnd_tpc_readout_04/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/274" id="sbnd_tpc_readout_04/temperature"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/303" id="sbnd_tpc_readout_04/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/304" id="sbnd_tpc_readout_04/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/305" id="sbnd_tpc_readout_04/fan_speed2"></a></TD>
-</TR>
-
-<TR><TD>TPC RO 05</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/287" id="sbnd_tpc_readout_05/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/275" id="sbnd_tpc_readout_05/temperature"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/306" id="sbnd_tpc_readout_05/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/307" id="sbnd_tpc_readout_05/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/308" id="sbnd_tpc_readout_05/fan_speed2"></a></TD>
-</TR>
-
-<TR><TD>TPC RO 06</TD>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/332" id="sbnd_tpc_readout_rack2/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/288" id="sbnd_tpc_readout_06/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/276" id="sbnd_tpc_readout_06/temperature"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/309" id="sbnd_tpc_readout_06/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/310" id="sbnd_tpc_readout_06/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/311" id="sbnd_tpc_readout_06/fan_speed2"></a></TD>
-</TR>
-
-<TR><TD>TPC RO 07</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/289" id="sbnd_tpc_readout_07/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/277" id="sbnd_tpc_readout_07/temperature"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/312" id="sbnd_tpc_readout_07/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/313" id="sbnd_tpc_readout_07/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/314" id="sbnd_tpc_readout_07/fan_speed2"></a></TD>
-</TR>
-
-<TR><TD>TPC RO 08</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/290" id="sbnd_tpc_readout_08/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/278" id="sbnd_tpc_readout_08/temperature"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/315" id="sbnd_tpc_readout_08/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/316" id="sbnd_tpc_readout_08/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/317" id="sbnd_tpc_readout_08/fan_speed2"></a></TD>
-</TR>
-
-<TR><TD>TPC RO 09</TD>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/333" id="sbnd_tpc_readout_rack3/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/291" id="sbnd_tpc_readout_09/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/279" id="sbnd_tpc_readout_09/temperature"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/318" id="sbnd_tpc_readout_09/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/319" id="sbnd_tpc_readout_09/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/320" id="sbnd_tpc_readout_09/fan_speed2"></a></TD>
-</TR>
-
-<TR><TD>TPC RO 10</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/292" id="sbnd_tpc_readout_10/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/280" id="sbnd_tpc_readout_10/temperature"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/321" id="sbnd_tpc_readout_10/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/322" id="sbnd_tpc_readout_10/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/323" id="sbnd_tpc_readout_10/fan_speed2"></a></TD>
-</TR>
-
-<TR><TD>TPC RO 11</TD>
-    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/293" id="sbnd_tpc_readout_11/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/281" id="sbnd_tpc_readout_11/temperature"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/324" id="sbnd_tpc_readout_11/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/325" id="sbnd_tpc_readout_11/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/326" id="sbnd_tpc_readout_11/fan_speed2"></a></TD>
-</TR>
-
-<TR><TD>PTB MTCA</TD>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/334" id="sbnd_ptb_rack/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <TD style="text-align:center"><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/363" id="sbnd_ptb_mtca/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/338" id="sbnd_ptb_mtca/temperature"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/335" id="sbnd_ptb_mtca/fan_speed0"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/336" id="sbnd_ptb_mtca/fan_speed1"></a></TD>
-    <td><a href="/cgi-bin/minargon/minargon.wsgi/pv_single_stream/sbnd_epics/337" id="sbnd_ptb_mtca/fan_speed2"></a></TD>
-</TR>
-
-
-</TABLE>
-
+<link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ url_for('static', filename='css/lights.css') }}" rel="stylesheet" type="text/css">
+<script src="{{ url_for('static', filename='js/lights.js') }}"></script>
+ 
 <!-- Populate above table -->
 <script type="text/javascript">
+$(document).ready(function() {
 {%for row in rows%}
-  item = document.getElementById("{{row[0]}}");
-  pvName = "{{row[0]}}";
-  if ( pvName.endsWith("interlock") || pvName.endsWith("rps_status") )
-  {
-    pvValue = "{{row[3]}}";
-    if ( pvValue =="1.000" )
+{
+  var item = document.getElementById("{{row[0]}}");
+  var pvName = "{{row[0]}}";
+
+  if (item) {
+    if ( pvName.endsWith("interlock") || pvName.endsWith("rps_status"))
     {
-       item.className = "led-green";
+      var pvValue = "{{row[3]}}";
+      if ( pvValue =="1.000" || pvValue == "1" )
+      {
+         item.className = "led-green";
+      }
+      else
+      {
+         item.className = "led-red";
+      }
     }
     else
     {
-       item.className = "led-red";
+      item.innerHTML = "{{row[3]}}";
     }
   }
-  else
-  {
-    item.innerHTML = "{{row[3]}}";
-  }
+}
 {%endfor%}		
+});
 </script>
 
 <!-- <meta http-equiv="refresh" content="10">-->
