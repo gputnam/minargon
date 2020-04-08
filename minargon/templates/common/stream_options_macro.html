@@ -48,9 +48,63 @@ $(".{{id}}-item").click(function() {
   </div>
 </div>
 
-<script src="https://rawgit.com/farzher/fuzzysort/master/fuzzysort.js"></script>
+<script src="{{ url_for('static', filename='js/library/fuzzysort.js') }}"></script>
+<script src="{{ url_for('static', filename='js/library/localforage.min.js') }}"></script>
 
 <script>
+
+
+$(document).ready(function() {
+// setup localforage
+var storage = localforage.createInstance({
+    driver      : localforage.INDEXEDDB, 
+    name        : 'minargonTargets',
+    version     : 1.0,
+    storeName   : 'minargonStreams', 
+    description : 'Storage for list of data streams accessible by minargon.'
+});
+
+// current UTC timestamp in seconds
+var now = Math.floor((new Date()).getTime() / 1000);
+
+// timeout in cached streams
+var TIMEOUT = 60 * 10; // 10 minutes
+
+// try to get the targets
+storage.getItem('streams')
+.then(function(streams) {
+  if ((now - streams.time) > TIMEOUT) {
+    throw "TIMEOUT"; // the error handler will update the value
+  }
+
+  initSearch(streams.targets);
+  
+})
+// error when value is old or not present -- get the new value
+.catch(function(err) {
+  get_targets(function(targets) {
+    if (!targets) {
+      throw_custom_error("Unable to get available streams -- searching not available");
+      return;
+    }
+    initSearch(targets);
+    storage.setItem('streams',
+      {
+        'time': now,
+        'targets': targets
+      },
+      function() {
+      }
+    );
+  }); 
+
+
+});
+
+
+});
+
+
 
 function multiplyKeys(argList, file_join, ID_join, base) {
     var r = [], max = argList.length-1;
@@ -73,10 +127,11 @@ function multiplyKeys(argList, file_join, ID_join, base) {
     return r;
 }
 
+function get_targets(callback) {
 d3.json($SCRIPT_ROOT + '/data_list', function(err, data) {
   if (err) {
     $("#{{id}}-input").attr('placeholder', "Error Loading Data!");
-    return;
+    return null;
   }
 
   // setup the data
@@ -98,6 +153,14 @@ d3.json($SCRIPT_ROOT + '/data_list', function(err, data) {
   }
 
   targets.forEach(t => t.filePrepared = fuzzysort.prepare(t.file));
+
+  callback(targets);
+
+});
+
+}
+
+function initSearch(targets) {
 
   var options = {
     limit: 20,
@@ -131,7 +194,7 @@ d3.json($SCRIPT_ROOT + '/data_list', function(err, data) {
 
   $("#{{id}}-input").attr('placeholder', "Enter Fuzzy Text");
   
-});
+}
 
 
 </script>
