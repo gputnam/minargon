@@ -71,21 +71,22 @@
 	<div style="padding:0" id="plotly-timeseries"></div>
     </div>
 </div>
+{% block content %}
 <div class="row">
     <div class="col-md-4 hcenter">
         <div class="card">
             <div class="card-header">Display Options</div>
             <div class="card-body">
                 <form class="form" role="form">
-                    {% block display_form %}
                     {{ stream_options.time_range("start", "end", "toggle") }}
                     {{ stream_options.download("download") }}
-                    {% endblock %}
 	        </form>
             </div>
         </div>
     </div>
 </div>
+
+{% endblock %}
 
   </div>
 </div>

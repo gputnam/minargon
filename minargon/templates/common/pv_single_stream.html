@@ -1,12 +1,71 @@
 {% import "stream_options_macro.html" | common as stream_options %}
 {% extends "common/view_streams.html" %}
 {% block title %}Stream: {{ID}}{% endblock %}
-{% block display_form %}
+
+{% block content %}
+    <style>
+      table
+      {
+        border:1px solid black;padding:5px;font-size: 110%
+      }
+      td
+      {
+        text-align:right;
+        border:1px solid grey;padding:5px;
+      }
+      th
+      {
+        text-align:center;
+        border:1px solid grey;padding:5px;
+      }
+      body
+      {
+        margin: 28px;
+      }
+    </style>
+<div class="row">
+    <div class="col-md-6 hcenter">
+{%for row in rows%}
+<table>
+<TR><TH>PV Name</TH><TH>{{row[0]}}</TH></TR>
+<TR><TH>Description</TH><TD>{{row[1]}}</TD></TR>
+<TR><TH>Last Sample Time</TH><TD>{{row[2]}}</TD></TR>
+<TR><TH>Last Sample Value</TH><TD>{{row[3]}}</TD></TR>
+<TR><TH>Channel ID</TH><TD>{{row[4]}}</TD></TR>
+<TR><TH>DataType</TH><TD>{{row[5]}}</TD></TR>
+<TR><TH>Group ID</TH><TD>{{row[6]}}</TD></TR>
+<TR><TH>Group Name</TH><TD>{{row[7]}}</TD></TR>
+<TR><TH>Group Description</TH><TD>{{row[8]}}</TD></TR>
+<TR><TH>Engine ID</TH><TD>{{row[9]}}</TD></TR>
+<TR><TH>Precision</TH><TD>{{row[10]}}</TD></TR>
+<TR><TH>Units</TH><TD>{{row[11]}}</TD></TR>
+<TR><TH>Low Display Range</TH><TD>{{row[12]}}</TD></TR>
+<TR><TH>High Display Range</TH><TD>{{row[13]}}</TD></TR>
+<TR><TH>Low Warning Limit</TH><TD>{{row[14]}}</TD></TR>
+<TR><TH>High Warning Limit</TH><TD>{{row[15]}}</TD></TR>
+<TR><TH>Low Alarm Limit</TH><TD>{{row[16]}}</TD></TR>
+<TR><TH>High Alarm Limit</TH><TD>{{row[17]}}</TD></TR>
+</table>
+<P>
+{%endfor%}		
+  </div>
+    <div class="col-md-4 hcenter">
+        <div class="card">
+            <div class="card-header">Display Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
                     {{ stream_options.height_option([25, 40, 60, 80, 100], 25, "form-height") }}
                     {{ stream_options.threshold_option("form-range-lo", "form-range-hi",low,high) }}
                     {{ stream_options.time_range("start", "end", "toggle",start_time,end_time) }}
                     {{ stream_options.download("download") }}
-{%endblock%}
+	        </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
 {% block script %}
 <script defer type="module">
 import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
@@ -39,4 +98,5 @@ plotly_controller.run();
 
 
 </script>
+
 {% endblock %}
