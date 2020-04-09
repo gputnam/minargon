@@ -46,6 +46,15 @@ def epics_last_value(connection,group):
     except jinja2.exceptions.TemplateNotFound:
         abort(404)
 
+@app.route('/<connection>/epics_last_value_pv/<pv>')
+def epics_last_value_pv(connection,pv):
+    dbrows = postgres_api.get_epics_last_value_pv(connection,pv)
+
+    try:
+        return render_template('common/pv.html',rows=dbrows)
+    except jinja2.exceptions.TemplateNotFound:
+        abort(404)
+
 @app.route('/online_group/<group_name>')
 def online_group(group_name):
     return timeseries_view(request.args, group_name)
