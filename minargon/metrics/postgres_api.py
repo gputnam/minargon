@@ -365,6 +365,7 @@ def pv_list(connection, link_name=None, IDs=None):
 @app.route("/<connection>/ps_series/<ID>")
 @postgres_route
 def ps_series(connection, ID):
+	config = connection[1]
 	
 	# Make a request for time range
 	args = stream_args(request.args)
@@ -396,7 +397,7 @@ def ps_series(connection, ID):
 		value = None
 		for i in range(len(config["value_names"])):
 			accessor = "val%i" % i
-			if row[accessor] is not None:
+ 			if row[accessor] is not None:
 				value = row[accessor]
 				break
 		else: # no good data here, ignore this time value
