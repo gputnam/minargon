@@ -576,7 +576,7 @@ def get_epics_last_value(connection,group):
   cursor = connection[0].cursor();
 
   query = """select c.name, c.descr, c.last_smpl_time, 
-   coalesce((c.last_num_val::numeric)::text,(trunc(c.last_float_val::numeric,3))::text, c.last_str_val)
+   coalesce((c.last_num_val::numeric)::text,(trunc(c.last_float_val::numeric,3))::text, c.last_str_val),channel_id
    from dcs_prd.channel c,dcs_prd.chan_grp g
    where c.grp_id=g.grp_id and g.name='%s' order by c.name""" % group
 
@@ -586,6 +586,27 @@ def get_epics_last_value(connection,group):
   formatted = []
   for row in dbrows:  
     time = row[2].strftime("%Y-%m-%d %H:%M")
-    formatted.append((row[0],row[1],time,row[3]))
+    formatted.append((row[0],row[1],time,row[3],row[4]))
+
+  return formatted
+
+@postgres_route
+def get_epics_last_value_pv(connection,pv):
+  cursor = connection[0].cursor();
+
+  query = """select c.name, c.descr, c.last_smpl_time, 
+   coalesce((c.last_num_val::numeric)::text,(trunc(c.last_float_val::numeric,3))::text, c.last_str_val),c.channel_id,
+   c.datatype,c.grp_id,g.name,g.descr,g.eng_id,m.prec,m.unit,m.low_disp_rng,m.high_disp_rng,
+   m.low_warn_lmt,m.high_warn_lmt,m.low_alarm_lmt,m.high_alarm_lmt
+   from dcs_prd.chan_grp g,dcs_prd.channel c left join dcs_prd.num_metadata m on c.channel_id=m.channel_id 
+   where c.channel_id=%s and c.grp_id=g.grp_id""" % pv
+
+  cursor.execute(query);
+  dbrows = cursor.fetchall();
+  cursor.close();
+  formatted = []
+  for row in dbrows:  
+    time = row[2].strftime("%Y-%m-%d %H:%M")
+    formatted.append((row[0],row[1],time,row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13],row[14],row[15],row[16],row[17]))
 
   return formatted

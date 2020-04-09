@@ -135,6 +135,8 @@ def pv_single_stream(database, ID):
         end_time = end
         end_timestamp_int = None
 
+    dbrows = postgres_api.get_epics_last_value_pv(database,ID)
+
     render_args = {
       "ID": ID,
       "config": config,
@@ -146,8 +148,11 @@ def pv_single_stream(database, ID):
       "end_time": end_time,
       "start_timestamp": start_timestamp_int,
       "end_timestamp": end_timestamp_int,
-      "checked": checked
+      "checked": checked,
+      "rows" : dbrows
     }
+
+
     return render_template('common/pv_single_stream.html', **render_args)
 
 # View a variable with multiple IDs
