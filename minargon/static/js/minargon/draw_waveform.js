@@ -45,6 +45,7 @@ export function draw_waveform(target, param, keyname, name) {
     var waveform = data.data;
     var offsets = data.offsets;
     var period = data.period;
+    if (!waveform.length || !waveform[0].length) return;
 
     var xrange = [];
     var yrange = [];
