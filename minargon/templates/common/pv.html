@@ -1,0 +1,70 @@
+{% extends "layout.html" | front_ended %}
+
+{% block title %}SBND Process Variable Status{% endblock %}
+
+{% block body %}
+{{ super() }}
+{%endblock%}
+
+<!---->
+{% block script %}
+<h2>SBND Process Variable Status </h2>
+<!-- Grab depreciated glyphicons for bootstrap v4 
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
+-->
+ 
+    <title>SBND Process Variable Status </title>
+    <link href="/cgi-bin/minargon/minargon.wsgi/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/cgi-bin/minargon/minargon.wsgi/static/css/lights.css" rel="stylesheet">
+    <script src="/cgi-bin/minargon/minargon.wsgi/static/js/lights.js"></script>
+    <script src="/cgi-bin/minargon/minargon.wsgi/static/js/jquery.js"></script>
+    <script src="/cgi-bin/minargon/minargon.wsgi/static/js/bootstrap-treeview.js"></script>
+    <style>
+      table
+      {
+        border:1px solid black;padding:5px;font-size: 110%
+      }
+      td
+      {
+        text-align:right;
+        border:1px solid grey;padding:5px;
+      }
+      th
+      {
+        text-align:center;
+        border:1px solid grey;padding:5px;
+      }
+      body
+      {
+        margin: 28px;
+      }
+    </style>
+
+{%for row in rows%}
+<table>
+<TR><TH>PV Name</TH><TH>{{row[0]}}</TH></TR>
+<TR><TH>Description</TH><TD>{{row[1]}}</TD></TR>
+<TR><TH>Last Sample Time</TH><TD>{{row[2]}}</TD></TR>
+<TR><TH>Last Sample Value</TH><TD>{{row[3]}}</TD></TR>
+<TR><TH>Channel ID</TH><TD>{{row[4]}}</TD></TR>
+<TR><TH>DataType</TH><TD>{{row[5]}}</TD></TR>
+<TR><TH>Group ID</TH><TD>{{row[6]}}</TD></TR>
+<TR><TH>Group Name</TH><TD>{{row[7]}}</TD></TR>
+<TR><TH>Group Description</TH><TD>{{row[8]}}</TD></TR>
+<TR><TH>Engine ID</TH><TD>{{row[9]}}</TD></TR>
+<TR><TH>Precision</TH><TD>{{row[10]}}</TD></TR>
+<TR><TH>Units</TH><TD>{{row[11]}}</TD></TR>
+<TR><TH>Low Display Range</TH><TD>{{row[12]}}</TD></TR>
+<TR><TH>High Display Range</TH><TD>{{row[13]}}</TD></TR>
+<TR><TH>Low Warning Limit</TH><TD>{{row[14]}}</TD></TR>
+<TR><TH>High Warning Limit</TH><TD>{{row[15]}}</TD></TR>
+<TR><TH>Low Alarm Limit</TH><TD>{{row[16]}}</TD></TR>
+<TR><TH>High Alarm Limit</TH><TD>{{row[17]}}</TD></TR>
+</table>
+<P>
+{%endfor%}		
+
+<P>
+<meta http-equiv="refresh" content="15">
+{%endblock%}
+

@@ -1,13 +1,14 @@
 {% extends "layout.html" | front_ended %}
 
-{% block title %}SBND SlowControls Status{% endblock %}
+{% block title %}SBND Slow Controls Rack Monitor Status{% endblock %}
 
 {% block body %}
 {{ super() }}
-<h2>SBND SlowControls Status</h2>
+<h2>SBND Slow Controls Rack Monitor Status</h2>
 <P>
 <TABLE>
-<TR><TH>Crate</TH><TH>RPS Status</TH><TH>Interlock</TH><TH>Temperature &deg;C</TH><TH>Fan Speed 0</TH><TH>Fan Speed 1</TH><TH>Fan Speed 2</TH></TR>
+<TR><TH>Crate</TH><TH>RPS Status</TH><TH>Interlock</TH><TH>Temperature &deg;C</TH><TH>Fan Speed 0</TH><TH>Fan Speed 1</TH><TH>Fan Speed 2</TH><TH>Last Read Time</TH></TR>
+
 <TR align="center"><TD>TPC RO 01</TD>
     <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='330') }}" id="sbnd_tpc_readout_rack0/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
     <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='283') }}" id="sbnd_tpc_readout_01/interlock" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
@@ -15,6 +16,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='294') }}" id="sbnd_tpc_readout_01/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='295') }}" id="sbnd_tpc_readout_01/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='296') }}" id="sbnd_tpc_readout_01/fan_speed2"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='364') }}" id="sbnd_tpc_readout_rack0/timestamp"></a></TD>
 </TR>
 
 <TR><TD>TPC RO 02</TD>
@@ -24,6 +26,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='297') }}" id="sbnd_tpc_readout_02/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='298') }}" id="sbnd_tpc_readout_02/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='299') }}" id="sbnd_tpc_readout_02/fan_speed2"></a></TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</td>
 </TR>
 
 <TR><TD>TPC RO NIM</TD>
@@ -33,6 +36,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='327') }}" id="sbnd_tpc_readout_nim/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='328') }}" id="sbnd_tpc_readout_nim/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='329') }}" id="sbnd_tpc_readout_nim/fan_speed2"></a></TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</td>
 </TR>
 
 <TR><TD>TPC RO 03</TD>
@@ -42,6 +46,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='300') }}" id="sbnd_tpc_readout_03/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='301') }}" id="sbnd_tpc_readout_03/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='302') }}" id="sbnd_tpc_readout_03/fan_speed2"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='365') }}" id="sbnd_tpc_readout_rack1/timestamp"></a></TD>
 </TR>
 
 <TR><TD>TPC RO 04</TD>
@@ -51,6 +56,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='303') }}" id="sbnd_tpc_readout_04/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='304') }}" id="sbnd_tpc_readout_04/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='305') }}" id="sbnd_tpc_readout_04/fan_speed2"></a></TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</td>
 </TR>
 
 <TR><TD>TPC RO 05</TD>
@@ -60,6 +66,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='306') }}" id="sbnd_tpc_readout_05/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='307') }}" id="sbnd_tpc_readout_05/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='308') }}" id="sbnd_tpc_readout_05/fan_speed2"></a></TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</td>
 </TR>
 
 <TR><TD>TPC RO 06</TD>
@@ -69,6 +76,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='309') }}" id="sbnd_tpc_readout_06/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='310') }}" id="sbnd_tpc_readout_06/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='311') }}" id="sbnd_tpc_readout_06/fan_speed2"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='365') }}" id="sbnd_tpc_readout_rack2/timestamp"></a></TD>
 </TR>
 
 <TR><TD>TPC RO 07</TD>
@@ -78,6 +86,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='312') }}" id="sbnd_tpc_readout_07/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='313') }}" id="sbnd_tpc_readout_07/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='314') }}" id="sbnd_tpc_readout_07/fan_speed2"></a></TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</td>
 </TR>
 
 <TR><TD>TPC RO 08</TD>
@@ -87,6 +96,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='315') }}" id="sbnd_tpc_readout_08/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='316') }}" id="sbnd_tpc_readout_08/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='317') }}" id="sbnd_tpc_readout_08/fan_speed2"></a></TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</td>
 </TR>
 
 <TR><TD>TPC RO 09</TD>
@@ -96,6 +106,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='318') }}" id="sbnd_tpc_readout_09/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='319') }}" id="sbnd_tpc_readout_09/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='320') }}" id="sbnd_tpc_readout_09/fan_speed2"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_tpc_readout_rack3/timestamp"></a></TD>
 </TR>
 
 <TR><TD>TPC RO 10</TD>
@@ -105,6 +116,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='321') }}" id="sbnd_tpc_readout_10/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='322') }}" id="sbnd_tpc_readout_10/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='323') }}" id="sbnd_tpc_readout_10/fan_speed2"></a></TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</td>
 </TR>
 
 <TR><TD>TPC RO 11</TD>
@@ -114,6 +126,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='324') }}" id="sbnd_tpc_readout_11/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='325') }}" id="sbnd_tpc_readout_11/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='326') }}" id="sbnd_tpc_readout_11/fan_speed2"></a></TD>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;</td>
 </TR>
 
 <TR><TD>PTB MTCA</TD>
@@ -123,6 +136,7 @@
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='335') }}" id="sbnd_ptb_mtca/fan_speed0"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='336') }}" id="sbnd_ptb_mtca/fan_speed1"></a></TD>
     <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='337') }}" id="sbnd_ptb_mtca/fan_speed2"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_ptb_rack/timestamp"></a></TD>
 </TR>
 
 
@@ -134,7 +148,7 @@
 {% block style %}
       table
       {
-        border:1px solid black;padding:5px;font-size: 140%
+        border:1px solid black;padding:5px;font-size: 100%
       }
       td
       {
@@ -154,11 +168,7 @@
 
 <!---->
 {% block script %}
-<!-- Grab depreciated glyphicons for bootstrap v4 
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
--->
 
-<link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet" type="text/css">
 <link href="{{ url_for('static', filename='css/lights.css') }}" rel="stylesheet" type="text/css">
 <script src="{{ url_for('static', filename='js/lights.js') }}"></script>
  
@@ -170,7 +180,8 @@ $(document).ready(function() {
   var item = document.getElementById("{{row[0]}}");
   var pvName = "{{row[0]}}";
 
-  if (item) {
+  if (item) 
+  {
     if ( pvName.endsWith("interlock") || pvName.endsWith("rps_status"))
     {
       var pvValue = "{{row[3]}}";
@@ -182,6 +193,13 @@ $(document).ready(function() {
       {
          item.className = "led-red";
       }
+    }
+    else if ( pvName.endsWith("timestamp") )
+    {
+      var pvValue = "{{row[3]}}";
+      iValue = parseInt(pvValue);
+      zeit = new Date(iValue*1000);
+      item.innerHTML = zeit.toString();
     }
     else
     {
