@@ -99,9 +99,7 @@ def waveform(rconnect, data):
     for (k, v) in request.args.iteritems():
         redis_key += ":%s:%s" % (k, v)
     data, offsets, period = redis_api.get_waveform(rconnect, redis_key)
-    print "Jsonifying"
     ret = jsonify(data=data, offsets=offsets, period=period)
-    print "Done!"
     return ret
 
 @app.route('/<rconnect>/waveform_binary/<data>')
