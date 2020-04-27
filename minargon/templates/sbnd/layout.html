@@ -95,14 +95,16 @@
           </button>-->
           <div class="navbar-collapse collapse" id="navbar">
             <ul class="navbar-nav mr-auto">
-              <li class='dropdown nav-item'>
+              {{ nav_link('wireplane_view', 'Wire Plane View', data='rms') }}
+              {{ nav_link('channel_snapshot', 'Channel Snapshot') }}
+              <!--<li class='dropdown nav-item'>
               <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>Raw Data<b class='caret'></b></a>
                 <ul class='dropdown-menu bg-maroon'>
                   {{ nav_link('noise_snapshot', 'Noise Snapshot') }}
                   {{ nav_link('channel_snapshot', 'Channel Snapshot') }}
                   {{ nav_link('fem_snapshot', 'FEM Snapshot') }}
                 </ul>
-              </li>
+              </li>-->
               <li class='dropdown nav-item'>
               <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>EPICS Status<b class='caret'></b></a>
                 <ul class='dropdown-menu bg-maroon'>
@@ -110,7 +112,6 @@
                   {{ nav_link('epics_last_value', 'TPC Readout Power', connection='sbnd_epics', group='tpc_readout_power') }}
                 </ul>
               </li>
-              {{ nav_link('wireplane_view', 'Wire Plane View') }}
               {{ nav_link('pvTree', 'SBND EPICS', connection='sbnd_epics') }}
               {{ nav_link('view_streams', 'Data Browser')}}
             </ul>
