@@ -48,7 +48,7 @@ def channel_snapshot():
     view_ind = {'channel': channel}
     view_ind_opts = {'channel': range(constants.N_CHANNELS)}
 
-    instance_name = "wireplane"
+    instance_name = "tpc_channel"
     config = online_metrics.get_group_config("online", instance_name, front_end_abort=True)
 
     template_args = {
