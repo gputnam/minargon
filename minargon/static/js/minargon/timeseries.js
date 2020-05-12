@@ -599,7 +599,7 @@ function make_horizons(controller, data) {
     horizon = horizon.extent(controller.range);
   }
   if (!(controller.format === undefined)) {
-    horizon = horizon.format(controller.format);
+    horizon = horizon.format(d3.format(controller.format));
   }
   var horizons = d3.select(controller.target).selectAll('.horizon')
       .data(data)

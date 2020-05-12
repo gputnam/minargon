@@ -33,7 +33,8 @@ export class GroupDataScatterController {
     this.listeners = [];
 
     this.metricParam();
-    this.makeScatter(target, title, xLabel)
+    this.xLabel = xLabel;
+    this.makeScatter();
   }
 
   // commuicate to the "config" wrapper -- whether or not the # of instances in this class should be restricted
@@ -164,7 +165,7 @@ export class GroupDataScatterController {
 
   // Internal function: get the layout for the Plotly Scatter plot
   // managed by this class
-  layoutScatter(xLabel) {
+  layoutScatter() {
     var n_data = this.nData();
     var metric_name;
     if (this.metric_config !== undefined && this.metric_config.name !== undefined) {
@@ -177,7 +178,7 @@ export class GroupDataScatterController {
     var ret = {
       title: titleize(title),
       xaxis: {
-        title: xLabel
+        title: this.xLabel
       },
       yaxis: {
         title: metric_name,
@@ -193,17 +194,14 @@ export class GroupDataScatterController {
   }
 
   // Makes a scatter plot to be shown with the data fetched by this class
-  // target: div-id of the div to contain this plot (excluding the '#')
-  // title: the title of the plot to be drawn
-  // xLabel: label of the x-axis on the fistogram to be shown 
-  makeScatter(target, title, xLabel) {
+  makeScatter() {
     var n_data = this.nData();
-    var layout = this.layoutScatter(title, xLabel);
+    var layout = this.layoutScatter();
     if (this.warning_range.length != 0) {
-      var scatter = new Chart.LineChart(n_data, target, layout, this.warning_range);
+      var scatter = new Chart.LineChart(n_data, this.target, layout, this.warning_range);
     }
     else {
-      var scatter = new Chart.LineChart(n_data, target, layout);
+      var scatter = new Chart.LineChart(n_data, this.target, layout);
     }
     this.listeners.push(scatter.updateData.bind(scatter));
     this.scatter = scatter;
@@ -281,19 +279,7 @@ export class GroupDataScatterController {
   // Internal function: upate the plots managed by this class to the
   // latest layout
   updatePlot() {
-    var metric_name;
-    if (this.metric_config !== undefined && this.metric_config.name !== undefined) {
-      metric_name = this.metric_config.name;
-    }
-    else {
-      metric_name = "";
-    }
-    var scatter_update = {
-      "yaxis.range": this.range,
-      "yaxis.title": metric_name,
-      "title": titleize(this.title + " " + metric_name)
-    };
-    this.scatter.reLayout(scatter_update);
+    this.scatter.reLayout(this.layoutScatter());
     if (this.warning_range.length != 0) {
       this.scatter.updateRange(this.warning_range);
     }
@@ -354,13 +340,14 @@ export class GroupDataHistoController {
     this.metric_config = metric_config;
     this.data_link = data_link;
     this.title = title;
+    this.yLabel = yLabel;
 
     this.buffer = null;
     this.range = [];
     this.listeners = [];
 
     this.metricParam();
-    this.makeHistogram(target, title, yLabel)
+    this.makeHistogram();
   }
 
   // commuicate to the "config" wrapper -- whether or not the # of instances in this class should be restricted
@@ -460,7 +447,7 @@ export class GroupDataHistoController {
 
   // Internal function: get the layout for the Plotly Histogram managed
   // by this class
-  layoutHistogram(yLabel) {
+  layoutHistogram() {
     var n_data = this.nData();
     var metric_name;
     if (this.metric_config !== undefined && this.metric_config.name !== undefined) {
@@ -478,9 +465,14 @@ export class GroupDataHistoController {
       },
       yaxis: {
         range: [0, n_data],
-        title: yLabel
+        title: this.yLabel
       }
     };
+
+    if (this.metric_config !== undefined && this.metric_config.format !== undefined) {
+      ret.xaxis.tickformat = this.metric_config.format;
+    }
+
     return ret;
   }
 
@@ -488,10 +480,10 @@ export class GroupDataHistoController {
   // class
   // target: div-id of the div to contain this plot (excluding the '#')
   // yLabel: label of the y-axis on the fistogram to be shown 
-  makeHistogram(target, yLabel) {
+  makeHistogram() {
     var n_data = this.nData();
-    var layout = this.layoutHistogram(yLabel);
-    var histogram =  new Chart.Histogram(n_data, target, layout);
+    var layout = this.layoutHistogram();
+    var histogram =  new Chart.Histogram(n_data, this.target, layout);
     this.listeners.push(histogram.updateData.bind(histogram));
     this.histogram = histogram;
   }
@@ -542,19 +534,7 @@ export class GroupDataHistoController {
   // Internal function: upate the plots managed by this class to the
   // latest layout
   updatePlot() {
-    var metric_name;
-    if (this.metric_config !== undefined && this.metric_config.name !== undefined) {
-      metric_name = this.metric_config.name;
-    }
-    else {
-      metric_name = "";
-    }
-    var histo_update = { 
-      "xaxis.range": this.range,
-      "xaxis.title": metric_name,
-      "title": titleize(this.title + " " + metric_name)
-    };
-    this.histogram.reLayout(histo_update);
+    this.histogram.reLayout(this.layoutHistogram());
   }
 
   // Functions to be called by a wrapping MetricConfigController
