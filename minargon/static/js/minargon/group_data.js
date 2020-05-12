@@ -184,6 +184,11 @@ export class GroupDataScatterController {
         range: this.range
       }
     };
+
+    if (this.metric_config !== undefined && this.metric_config.format !== undefined) {
+      ret.yaxis.tickformat = this.metric_config.format;
+    }
+
     return ret;
   }
 

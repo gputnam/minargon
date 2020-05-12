@@ -31,7 +31,7 @@ export class TimeSeriesScatter {
       if (this.is_drawn) {
         var layout = {};
         layout["name"] = this._title;
-        Pltoly.relayout(this.target, layout);
+        Plotly.relayout(this.target, layout);
       }
     }
 
