@@ -39,8 +39,8 @@
 import * as Config from "{{ url_for('static', filename='js/minargon/config.js') }}";
 import * as draw from "{{ url_for('static', filename='js/minargon/draw_waveform.js') }}";
 
-draw.draw_waveform('waveform', {PMT: {{channel}} });
-draw.draw_fft('fft', {PMT: {{channel}} });
+draw.draw_waveform('waveform', {PMT: {{channel}} }, "waveform", "PMT Waveform");
+draw.draw_fft('fft', {PMT: {{channel}} }, "fft", "PMT FFT");
 
 var config = {{config|tojson|safe}};
 
