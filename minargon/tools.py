@@ -83,7 +83,11 @@ def parseiso_or_int(inp_str):
     try:
         return int(inp_str)
     except ValueError:
-        return parseiso(inp_str)
+        try:
+            return parseiso(str(inp_str))
+        except:
+            return None
+    
 
 def stream_args(args):
     ret = {}
