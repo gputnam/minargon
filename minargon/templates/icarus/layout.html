@@ -95,14 +95,24 @@
           </button>-->
           <div class="navbar-collapse collapse" id="navbar">
             <ul class="navbar-nav mr-auto">
-             {{ nav_link('TPC', 'TPC') }}
-             {{ nav_link('NoiseCorr', 'TPC Noise Correlation') }}
-             {{ nav_link('PMT_snapshot', 'PMT Waveforms') }}
-             {{ nav_link('PMT', 'PMT') }}
-             {{ nav_link('pvTree', 'ICARUS EPICS', connection='epics') }}
+              <li class='dropdown nav-item'>
+              <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>TPC<b class='caret'></b></a>
+                <ul class='dropdown-menu bg-maroon'>
+	          {{ nav_link('TPC', 'Metrics') }}
+                  {{ nav_link('channel_snapshot', 'Waveforms') }}
+            	  {{ nav_link('NoiseCorr', 'Noise Correlation') }}
+                </ul>
+              </li>
+              <li class='dropdown nav-item'>
+              <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>PMT<b class='caret'></b></a>
+                <ul class='dropdown-menu bg-maroon'>
+                  {{ nav_link('PMT', 'Metrics') }}
+                  {{ nav_link('PMT_snapshot', 'Waveforms') }}
+                </ul>
+              </li>
              {{ nav_link('CRT_board', 'Side CRT') }} 
-             {{ nav_link('channel_snapshot', 'Waveform') }}
-             {{ nav_link('purity', 'Purity', group_name='TPC')}}
+             {{ nav_link('pvTree', 'ICARUS EPICS', connection='epics') }}
+             <!--{{ nav_link('purity', 'Purity', group_name='TPC')}}-->
              {{ nav_link('view_streams', 'Data Browser')}}
            </ul>
           </div><!--/.navbar-collapse -->
