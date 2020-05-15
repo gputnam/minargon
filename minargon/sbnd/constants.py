@@ -1,5 +1,5 @@
 # FOR VST
-N_CHANNELS = 480
+N_CHANNELS = 1024
 N_FEM_PER_CRATE = 10
 N_CRATES = 1
 # only one crate of readout electronics
