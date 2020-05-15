@@ -75,7 +75,7 @@ def channel_snapshot_dab():
         'config': config,
         'view_ind': view_ind,
         'view_ind_opts': view_ind_opts,
-        'extension': '_daq',
+        'extension': '_dab',
     }
     return render_template('sbnd/channel_snapshot.html', **template_args)
 

@@ -24,22 +24,22 @@
 </div>
     <div class="row">
     <div class="col-md-12" style="padding:0" id="waveform-holder">
-        <div id="waveform{{extension}}"></div>
+        <div id="waveform"></div>
     </div>
     </div>
     <div class="row">
     <div class="col-md-12" style="padding:0" id="FFT-holder">
-        <div id="fft{{extension}}"></div>
+        <div id="fft"></div>
     </div>
     </div>
     <div class="row">
     <div class="col-md-12" style="padding:0" id="avgFFT-holder">
-        <div id="avgwvf{{extension}}"></div>
+        <div id="avgwvf"></div>
     </div>
     </div>
     <div class="row">
     <div class="col-md-12" style="padding:0" id="avgFFT-holder">
-        <div id="avgfft{{extension}}"></div>
+        <div id="avgfft"></div>
     </div>
     </div>
 </div>
@@ -49,10 +49,10 @@
 import * as Config from "{{ url_for('static', filename='js/minargon/config.js') }}";
 import * as draw from "{{ url_for('static', filename='js/minargon/draw_waveform.js') }}";
 
-draw.draw_waveform('waveform{{extension}}', {wire: {{channel}} }, "waveform", "Waveform");
-draw.draw_waveform('avgwvf{{extension}}', {wire: {{channel}} }, "avgwvf", "Avg. Waveform");
-draw.draw_fft('fft{{extension}}', {wire: {{channel}} }, "fft", "FFT");
-draw.draw_fft('avgfft{{extension}}', {wire: {{channel}} }, "avgfft", "Avg. FFT");
+draw.draw_waveform('waveform', {wire: {{channel}} }, "waveform{{extension}}", "Waveform");
+draw.draw_waveform('avgwvf', {wire: {{channel}} }, "avgwvf{{extension}}", "Avg. Waveform");
+draw.draw_fft('fft', {wire: {{channel}} }, "fft{{extension}}", "FFT");
+draw.draw_fft('avgfft', {wire: {{channel}} }, "avgfft{{extension}}", "Avg. FFT");
 
 var config = {{config|tojson|safe}};
 
