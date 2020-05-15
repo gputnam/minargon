@@ -6,6 +6,17 @@
 {{ super() }}
 <div class="container">
 <div class="row">
+<table class="hcenter" style="width: 50%; text-align: center;">
+  <tr>
+    <th>Run: <span id="run-number"></span></th>
+    <th>Subrun: <span id="subrun-number"></span></th>
+    <th>Event: <span id="event-number"></span></th>
+  </tr>
+</table>
+</div>
+
+</div>
+<div class="row">
     <div class="col-lg-6 col-md-12 order-1" style="padding:0">
         <div id="histogram"></div>
     </div>
@@ -53,6 +64,7 @@
 {% block script %}
 <script defer type="module">
 import * as Config from "{{ url_for('static', filename='js/minargon/config.js') }}";
+import * as Poll from "{{ url_for('static', filename='js/minargon/poll.js') }}";
 
 // get the configuration
 // var config = new timeseries.TimeSeries({{config|tojson|safe}});
@@ -92,6 +104,11 @@ function wireLink(group, instance) {
   return "channel_snapshot?channel=" + instance;
 }
 
+// function to update href
+function wireLinkDAB(group, instance) {
+  return "channel_snapshot_dab?channel=" + instance;
+}
+
 function crateLink(group, instance) {
   return "crate_view?crate=" + instance;
 }
@@ -111,6 +128,17 @@ function pmtLink(group, instance) {
 function crtBoardLink(group, instance) {
   return "CRT_board_snapshot?board_no=" + instance;
 }
+
+// setup polling for event/run/subrun/time
+{% if eventmeta_key %}
+var poll = new Poll.Poll($SCRIPT_ROOT + "/online/hget/{{eventmeta_key}}/run,subrun,event,time");
+poll.add_callback(function(data) {
+    $("#run-number").html(data.run);
+    $("#subrun-number").html(data.subrun);
+    $("#event-number").html(data.event);
+});
+poll.run();
+{% endif %}
 
 
 </script>

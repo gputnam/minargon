@@ -72,7 +72,7 @@ def single_stream(stream_name):
 def pvTree(connection):
     return render_template('common/pvTree.html', data=postgres_api.pv_internal(connection, "pv_single_stream", front_end_abort=True))
 
-def timeseries_view(args, instance_name, view_ident="", link_function="undefined"):
+def timeseries_view(args, instance_name, view_ident="", link_function="undefined", eventmeta_key=None):
     # TODO: what to do with this?
     initial_datum = args.get('data', None)
     
@@ -90,7 +90,8 @@ def timeseries_view(args, instance_name, view_ident="", link_function="undefined
         'link_function': link_function,
         'view_ident': view_ident,
         'config': config,
-        'metric': initial_datum
+        'metric': initial_datum,
+        'eventmeta_key': eventmeta_key
     }
 
     return render_template('common/timeseries.html', **render_args)

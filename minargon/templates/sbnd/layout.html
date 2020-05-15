@@ -95,8 +95,21 @@
           </button>-->
           <div class="navbar-collapse collapse" id="navbar">
             <ul class="navbar-nav mr-auto">
-              {{ nav_link('wireplane_view', 'Wire Plane View', data='rms') }}
-              {{ nav_link('channel_snapshot', 'Channel Snapshot') }}
+              <li class='dropdown nav-item'>
+                <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>SBN-ND TPC<b class='caret'></b></a>
+                <ul class='dropdown-menu bg-maroon'>
+                  {{ nav_link('wireplane_view', 'Metrics', data='rms') }}
+                  {{ nav_link('channel_snapshot', 'Waveform') }}
+                </ul>
+              </li>
+              <li class='dropdown nav-item'>
+                <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>DAB TPC<b class='caret'></b></a>
+                <ul class='dropdown-menu bg-maroon'>
+                  {{ nav_link('wireplane_view_dab', 'Metrics', data='rms') }}
+                  {{ nav_link('channel_snapshot_dab', 'Waveform') }}
+                </ul>
+              </li>
+                   
               <!--<li class='dropdown nav-item'>
               <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>Raw Data<b class='caret'></b></a>
                 <ul class='dropdown-menu bg-maroon'>
@@ -110,6 +123,7 @@
                 <ul class='dropdown-menu bg-maroon'>
                   {{ nav_link('epics_last_value', 'SlowControls', connection='sbnd_epics', group='slowcontrols') }}
                   {{ nav_link('epics_last_value', 'TPC Readout Power', connection='sbnd_epics', group='tpc_readout_power') }}
+                  <A class='nav-link' HREF=/sbnd/dcs/>Archiver Status</A>
                 </ul>
               </li>
               {{ nav_link('pvTree', 'SBND EPICS', connection='sbnd_epics') }}

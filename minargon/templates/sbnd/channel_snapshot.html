@@ -49,10 +49,10 @@
 import * as Config from "{{ url_for('static', filename='js/minargon/config.js') }}";
 import * as draw from "{{ url_for('static', filename='js/minargon/draw_waveform.js') }}";
 
-draw.draw_waveform('waveform', {wire: {{channel}} }, "waveform", "Waveform");
-draw.draw_waveform('avgwvf', {wire: {{channel}} }, "avgwvf", "Avg. Waveform");
-draw.draw_fft('fft', {wire: {{channel}} }, "fft", "FFT");
-draw.draw_fft('avgfft', {wire: {{channel}} }, "avgfft", "Avg. FFT");
+draw.draw_waveform('waveform{{extension}}', {wire: {{channel}} }, "waveform", "Waveform");
+draw.draw_waveform('avgwvf{{extension}}', {wire: {{channel}} }, "avgwvf", "Avg. Waveform");
+draw.draw_fft('fft{{extension}}', {wire: {{channel}} }, "fft", "FFT");
+draw.draw_fft('avgfft{{extension}}', {wire: {{channel}} }, "avgfft", "Avg. FFT");
 
 var config = {{config|tojson|safe}};
 

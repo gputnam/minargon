@@ -56,15 +56,40 @@ def channel_snapshot():
         'config': config,
         'view_ind': view_ind,
         'view_ind_opts': view_ind_opts,
+        'extension': ''
+    }
+    return render_template('sbnd/channel_snapshot.html', **template_args)
+
+@app.route('/channel_snapshot_dab')
+def channel_snapshot_dab():
+    channel = request.args.get('channel', 0, type=int)
+
+    view_ind = {'channel': channel}
+    view_ind_opts = {'channel': range(constants.N_CHANNELS)}
+
+    instance_name = "tpc_channel_dab"
+    config = online_metrics.get_group_config("online", instance_name, front_end_abort=True)
+
+    template_args = {
+        'channel': channel,
+        'config': config,
+        'view_ind': view_ind,
+        'view_ind_opts': view_ind_opts,
+        'extension': '_daq',
     }
     return render_template('sbnd/channel_snapshot.html', **template_args)
 
 # view of a number of wires on a wireplane
 @app.route('/wireplane_view')
 def wireplane_view():
-    plane = request.args.get('plane', 'combined')
     instance_name = "tpc_channel" 
-    return timeseries_view(request.args, instance_name, "wire", "wireLink")
+    return timeseries_view(request.args, instance_name, "wire", "wireLink", "eventmeta")
+
+# view of a number of wires on a wireplane
+@app.route('/wireplane_view_dab')
+def wireplane_view_dab():
+    instance_name = "tpc_channel_dab" 
+    return timeseries_view(request.args, instance_name, "wire", "wireLinkDAB", "eventmeta_dab")
 
 @app.route('/purity')
 def purity():
