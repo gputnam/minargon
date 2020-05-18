@@ -32,17 +32,18 @@ export class GroupConfigController {
     else {
       this.metric_config = undefined;
     }
-    this.instances = instances;
+
+    if (instances === undefined) {
+      this.instances = this.config.instances;
+    }
+    else {
+      this.instances = instances;
+    }
     this.stream_index = stream_index;
 
     // set the number of instances to skip each time
     if (max_n_instances !== undefined) {
-      if (this.instances === undefined) {
-        var number_instances = this.config.instances.length;
-      }
-      else {
-       var number_instances = this.instances.length;
-      }
+      var number_instances = this.instances.length;
       this.instance_skip = Math.ceil(number_instances / max_n_instances);
     }
     else {
@@ -72,11 +73,11 @@ export class GroupConfigController {
       metric_list = this.config.metric_list;
     }
     if (instance_list === undefined) {
-      instance_list = [...Array(this.config.instances.length).keys()];
+      instance_list = this.instances;
     }
     var instances = [];
     for (var i = 0; i < instance_list.length; i+= instance_skip) {
-      instances.push(this.config.instances[instance_list[i]]);
+      instances.push(instance_list[i]);
     }
     return new Data.D3DataLink(new DataLink.MetricStreamLink($SCRIPT_ROOT + "/" + this.config.stream_links[stream_index], this.config.streams[stream_index], 
         this.config.group, instances, metric_list, false));
@@ -88,11 +89,11 @@ export class GroupConfigController {
       metric_list = this.config.metric_list;
     }
     if (instance_list === undefined) {
-      instance_list = [...Array(this.config.instances.length).keys()];
+      instance_list = [...Array(this.instances.length).keys()];
     }
     var instances = [];
     for (var i = 0; i < instance_list.length; i+= instance_skip) {
-      instances.push(this.config.instances[instance_list[i]]);
+      instances.push(this.instances[i]);
     }
     
     var use_metric_name_as_backup = instances.length == 1;
@@ -115,7 +116,7 @@ export class GroupConfigController {
     if (this.config.stream_links.length == 0) return callback(0);
  
     var link = new DataLink.MetricStreamLink($SCRIPT_ROOT + '/' + this.config.stream_links[stream_index], this.config.streams[stream_index],
-        this.config.group, this.config.instances, this.config.metric_list, false);
+        this.config.group, this.instances, this.config.metric_list, false);
 
     return d3.json(link.step_link(), function(data) { callback(data.step); });
   }
@@ -156,7 +157,7 @@ export class GroupConfigController {
         // This is defined only for cubism controllers. Cubism controllers
         // do have instance_skip set, so we get the correct index
         // by including it 
-        return this.href(this.config.group, this.config.instances[index * this.instance_skip]);
+        return this.href(this.config.group, this.instances[index * this.instance_skip]);
     }
     return undefined;
   }
@@ -283,7 +284,8 @@ export class GroupConfigController {
   // add a group data controller
   addGroupDataScatterController(target, title) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances, 1);
-    var controller = new GroupDataControllers.GroupDataScatterController(target, data_link, this.processMetricConfig(), title, this.config.group);
+    var instances = this.instances; 
+    var controller = new GroupDataControllers.GroupDataScatterController(target, data_link, this.processMetricConfig(), title, this.config.group, instances);
     this.controllers.push(controller);
     return controller;
   }

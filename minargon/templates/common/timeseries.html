@@ -69,7 +69,11 @@ import * as Poll from "{{ url_for('static', filename='js/minargon/poll.js') }}";
 // var config = new timeseries.TimeSeries({{config|tojson|safe}});
 var config = {{config|tojson|safe}};
 
-var config_controller = new Config.GroupConfigController(config, {{link_function}}, ["{{metric}}"], undefined, 0, 25)
+{% if channels and channels != "undefined" %}
+  {% set channels = channels|tojson %}
+{% endif %}
+
+var config_controller = new Config.GroupConfigController(config, {{link_function}}, ["{{metric}}"], {{channels}}, 0, 25)
     .metricController("#form-metric")
     .streamController("#form-stream"); 
 

@@ -115,6 +115,7 @@ export class TimeSeriesScatter {
         this.timestamps[i].length = 0;
         for (var j = 0; j < buffer.size; j++) {
           var dat = buffer.get(j);
+
           // avoid any big skips in time if configured to
           if (this.crop_old_data && this.crop_range > 0) {
             if (j > 0 && Math.abs(this.timestamps[i][j] - this.timestamps[i][j-1]) > this.crop_range) {
@@ -276,11 +277,22 @@ export class LineChart {
     // layout: the layout of the plotly histogram (as defined in plotly)
     // range: (optional) the warning Hi/Lo bands to be shown on the
     // 	      plotly plot
-    constructor(n_data, target, layout, range) {
+    constructor(n_data, target, layout, range, xdata) {
         this.data = new Array(n_data);
         this.n_data = n_data;
         this.target = target;
+        if (xdata === undefined) {
+            this.xdata = [];
+            for (var i = 0; i < this.n_data; i++) {
+                this.xdata.push(i);
+            }
+        }
+        else {
+            this.xdata = xdata
+        }
+
         this.draw(layout);
+
         if (!(range === undefined)) {
           this.updateRange(range);
         }
@@ -320,7 +332,7 @@ export class LineChart {
     range_trace() {
         if (this.min === undefined) {
             this.min = {
-                x: [0, this.n_data-1],
+                x: [this.xdata[0], this.xdata[this.xdata.length-1]],
                 y: [this.range[0], this.range[0]],
 	        type: "scatter", 
                 name: "Warning Low",
@@ -333,7 +345,7 @@ export class LineChart {
         }
         if (this.max === undefined) {
             this.max = {
-                x: [0, this.n_data-1],
+                x: [this.xdata[0], this.xdata[this.xdata.length-1]],
                 y: [this.range[1], this.range[1]],
 	        type: "scatter", 
                 name: "Warning High",
@@ -348,12 +360,8 @@ export class LineChart {
 
     // Internal function: get the traces for the scatter plot
     trace() {
-        var x = [];
-        for (var i = 0; i < this.n_data; i++) {
-            x.push(i);
-        }
         var ret = [{
-            x: x,
+            x: this.xdata,
             y: this.data,
             type: "scatter",
             name: "Data",
