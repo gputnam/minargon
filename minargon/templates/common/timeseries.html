@@ -5,6 +5,7 @@
 {% block body %}
 {{ super() }}
 <div class="container">
+{% if eventmeta_key %}
 <div class="row">
 <table class="hcenter" style="width: 50%; text-align: center;">
   <tr>
@@ -14,7 +15,7 @@
   </tr>
 </table>
 </div>
-
+{% endif %}
 <div class="row">
     <div class="col-lg-6 col-md-12 order-1" style="padding:0">
         <div id="histogram"></div>
