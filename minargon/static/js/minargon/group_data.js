@@ -141,8 +141,8 @@ export class GroupDataScatterController {
     // run with the most recent data
     var start = new Date();
     // go just a little back in time to get the first data
-    start.setSeconds(start.getSeconds() - 2 * this.step / 1000); // ms -> s
-    this.buffer.start(start);
+    // start.setSeconds(start.getSeconds() - 2 * this.step / 1000); // ms -> s
+    this.buffer.start();
   }
 
   // Call this function to tell the class to starting getting and
@@ -176,6 +176,10 @@ export class GroupDataScatterController {
       metric_name = "";
     }
     var title = this.title + " " + metric_name;
+    // add in the latest time
+    if (this.last_data_time !== undefined) {
+      title += " At " + this.last_data_time.format("MM-DD-YYYY HH:mm:ss");
+    }
     var ret = {
       title: titleize(title),
       xaxis: {
@@ -205,8 +209,20 @@ export class GroupDataScatterController {
       var scatter = new Chart.LineChart(n_data, this.target, layout, undefined, this.instances);
     }
     this.listeners.push(scatter.updateData.bind(scatter));
+    this.listeners.push(this.updateTitleTime.bind(this));
     this.scatter = scatter;
   }
+
+  updateTitleTime(data) {
+    if (data.length > 0 && data[0].size > 0) {
+      this.last_data_time = moment.unix(Math.round(data[0].get_last()[0] / 1000));
+    }
+    else {
+      this.last_data_time = undefined;
+    }
+    this.scatter.reLayout(this.layoutScatter());
+  }
+
 
   // Internal function: set the configuration of the plots to be
   // displayed from the default configuration of the specified metric
@@ -422,8 +438,8 @@ export class GroupDataHistoController {
     // run with the most recent data
     var start = new Date();
     // go just a little back in time to get the first data
-    start.setSeconds(start.getSeconds() - 2 * this.step / 1000); // ms -> s
-    this.buffer.start(start);
+    // start.setSeconds(start.getSeconds() - 2 * this.step / 1000); // ms -> s
+    this.buffer.start();
   }
 
   // Call this function to tell the class to starting getting and
@@ -458,6 +474,10 @@ export class GroupDataHistoController {
       metric_name = "";
     }
     var title = this.title + " " + metric_name;
+    // add in the latest time
+    if (this.last_data_time !== undefined) {
+      title += " At " + this.last_data_time.format("MM-DD-YYYY HH:mm:ss");
+    }
     var ret = {
       title: titleize(title),
       xaxis: {
@@ -486,7 +506,18 @@ export class GroupDataHistoController {
     var layout = this.layoutHistogram();
     var histogram =  new Chart.Histogram(n_data, this.target, layout);
     this.listeners.push(histogram.updateData.bind(histogram));
+    this.listeners.push(this.updateTitleTime.bind(this));
     this.histogram = histogram;
+  }
+
+  updateTitleTime(data) {
+    if (data.length > 0 && data[0].size > 0) {
+      this.last_data_time = moment.unix(Math.round(data[0].get_last()[0] / 1000));
+    }
+    else {
+      this.last_data_time = undefined;
+    }
+    this.histogram.reLayout(this.layoutHistogram());
   }
 
   // Internal function: set the configuration of the plots to be
