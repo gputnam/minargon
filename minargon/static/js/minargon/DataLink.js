@@ -16,8 +16,8 @@ export class EpicsStreamLink {
     return this.root + "/" + this.database + "/ps_step/" + this.ID;
   }
 
-  data_link(start, stop) {
-    return this.root + "/" + this.database + "/ps_series/" + this.ID + '?' + $.param(timeArgs(start, stop));
+  data_link(start, stop, n_data) {
+    return this.root + "/" + this.database + "/ps_series/" + this.ID + '?' + $.param(timeArgs(start, stop, n_data));
   }
 
   config_link() {
@@ -50,12 +50,12 @@ export class SingleStreamLink {
     return this.root + '/infer_step_size/' + this.stream;
   }
  
-  data_link(start, stop) {
-    return this.root + '/stream/' + this.stream + '?' + $.param(timeArgs(start, stop));
+  data_link(start, stop, n_data) {
+    return this.root + '/stream/' + this.stream + '?' + $.param(timeArgs(start, stop, n_data));
   }
 
   event_source_link(start) {
-    return this.root + '/stream_subscribe/' + this.stream + '?' + $.param(timeArgs(start, null));
+    return this.root + '/stream_subscribe/' + this.stream + '?' + $.param(timeArgs(start));
   }
 
   accessors() {
@@ -102,7 +102,7 @@ export class MetricStreamLink {
     return link;
   }
   
-  data_link_internal(base, start, stop) {
+  data_link_internal(base, start, stop, n_data) {
     if (this.sequence) {
       var instances = this.field_start + '/' + this.field_end; 
     }
@@ -136,15 +136,15 @@ export class MetricStreamLink {
     }
 
     var ret = this.root + base + this.stream + '/' + metrics + '/' + this.group + '/' + instances;
-    var args = timeArgs(start, stop);
+    var args = timeArgs(start, stop, n_data);
     if (!(args === null)) {
       ret = ret + '?' + $.param(args);
     }
     return ret;
   }
 
-  data_link(start, stop) {
-    return this.data_link_internal('/stream_group/', start, stop);
+  data_link(start, stop, n_data) {
+    return this.data_link_internal('/stream_group/', start, stop, n_data);
   }
 
   event_source_link(start) {
@@ -185,17 +185,20 @@ function flatten(arr) {
 }
 
 // start/stop can be a date or an integer
-function timeArgs(start, stop) {
-  // if start is undefined, just return null
-  if (start === undefined) return {};
+function timeArgs(start, stop, n_data) {
   var ret = {
     now: new Date().toISOString(),
   };
+
+  if (n_data !== undefined) {
+    ret.n_data = n_data;
+  }
+
   if (start instanceof Date) {
     // alert(start);
     ret.start = start.toISOString();
   }
-  else {
+  else if (start !== undefined) {
     ret.start = start;
   }
   // stop doesn't have to be set

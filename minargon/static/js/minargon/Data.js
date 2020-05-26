@@ -15,6 +15,7 @@ export class D3DataBuffer {
     this.poll = poll;
     this.accessors = poll.accessors();
     this.buffers = [];
+    this.n_data = n_data;
     for (var i = 0; i < this.accessors.length; i++) {
       this.buffers.push( new CircularBuffer(n_data) );
     }
@@ -32,7 +33,7 @@ export class D3DataBuffer {
       this.buffers[i].reset();
     }
     this.reset_buffers = false;
-    this.poll.start(start);
+    this.poll.start(start, this.n_data);
   }
 
   // stop: stop the Poll/Source
@@ -193,21 +194,21 @@ export class D3DataPoll {
         });
     }
     
-    start(start) {
+    start(start, n_data) {
       this.running = true;
-      this.run(start);
+      this.run(start, n_data);
     }
 
     // input:
     // start: the start index into each time series for the first call to the D3DataLink/Chain
     // behavior: starts up the D3DataPoll -- repetitively polls the backend for data and on each 
     //           update calls the list of listener functions
-    run(start) {
+    run(start, n_data) {
         if (!(this.running == true)) {
             return;
         }
         var self = this;
-        this.data.get_data_promise(start)
+        this.data.get_data_promise(start, undefined, n_data)
             .then(function(value) {
                 for (var i = 0; i < self.listeners.length; i++) {
                     var func = self.listeners[i];
@@ -217,8 +218,8 @@ export class D3DataPoll {
                 // run again 
                 // determine the start
                 var next_start = start;
-                if (value.min_end_time != 0 && value.min_end_time != undefined) next_start = value.min_end_time;
-                setTimeout(function() { self.run(next_start); }, self.timeout);
+                if (next_start !== undefined && value.min_end_time != 0 && value.min_end_time != undefined) next_start = value.min_end_time;
+                setTimeout(function() { self.run(next_start, n_data); }, self.timeout);
             })
             .catch(function(error) {
               throw_database_error(error, "poll_run");
@@ -290,10 +291,10 @@ export class D3DataChain {
   // For everything below: Same interface as D3DataLink
   // However, the data returned (either through a promise or in a callback)
   // will be formatted as a list of the data returned by each provided D3DataLink
-  get_data(d3_callback, start, stop) {
+  get_data(d3_callback, start, stop, n_data) {
     var self = this;
     return Promise.all(this.data_links.map(function(iter_data_link) {
-         return iter_data_link.get_data_promise(start, stop);
+         return iter_data_link.get_data_promise(start, stop, n_data);
       }))
       .then(function(values) {
         var flatten = {};
@@ -309,10 +310,10 @@ export class D3DataChain {
       });
   }
 
-  get_data_promise(start, stop) {
+  get_data_promise(start, stop, n_data) {
       var self = this;
       return new Promise(function(resolve, reject) {
-        self.get_data(resolve, start, stop);
+        self.get_data(resolve, start, stop, n_data);
       });
   }
   name() {
@@ -367,9 +368,9 @@ export class D3DataLink {
   // d3_callback: callback function to be called with the data provided by the flask backend
   // start: start index into the stream
   // stop: (optional) stop index into the stream -- set to current time by default
-  get_data(d3_callback, start, stop) {
+  get_data(d3_callback, start, stop, n_data) {
      var self = this;
-     return d3.json(self.link_builder.data_link(start, stop), d3_callback);
+     return d3.json(self.link_builder.data_link(start, stop, n_data), d3_callback);
   }
 
   // input:
@@ -377,10 +378,10 @@ export class D3DataLink {
   // stop: (optional) stop index into the stream -- set to current time by default
   //
   // returns: a javascript Promise which will return the data when it is ready
-  get_data_promise(start, stop) {
+  get_data_promise(start, stop, n_data) {
     var self = this;
     return new Promise(function(resolve, reject) {
-      d3.json(self.link_builder.data_link(start, stop), function(err, data) {
+      d3.json(self.link_builder.data_link(start, stop, n_data), function(err, data) {
         if (!data) {
           return reject(err);
         }
