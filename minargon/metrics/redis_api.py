@@ -140,10 +140,10 @@ def get_streams(rdb, stream_list, n_data=None, start=None, stop=None):
     ret = {}
     pipeline = rdb.pipeline()
     for stream in stream_list:
-        pipeline.xrange(stream, min=start, max=stop, count=n_data)
+        pipeline.xrevrange(stream, min=start, max=stop, count=n_data)
     for stream, data in zip(stream_list, pipeline.execute()):
         ret[stream] = []
-        for d in data:
+        for d in reversed(data):
             time =  d[0].split("-")[0]
             val = extract_datum(d[1])
             ret[stream].append( (time, val) )
