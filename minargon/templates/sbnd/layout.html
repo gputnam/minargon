@@ -71,7 +71,7 @@
     <body>
         {% block body %}
         {% macro nav_link(endpoint, name) -%}
-            {% if request.endpoint == endpoint %}
+            {% if request.path == url_for(endpoint, **kwargs).split("?")[0] %}
                 <li class="nav-item active"><a class="nav-link" href="{{ url_for(endpoint, **kwargs) }}">{{ name }}</a></li>
             {% else %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for(endpoint, **kwargs) }}">{{ name }}</a></li>
@@ -123,7 +123,7 @@
                 <ul class='dropdown-menu bg-maroon'>
                   {{ nav_link('epics_last_value', 'SlowControls', connection='sbnd_epics', group='slowcontrols') }}
                   {{ nav_link('epics_last_value', 'TPC Readout Power', connection='sbnd_epics', group='tpc_readout_power') }}
-                  <A class='nav-link' HREF=/sbnd/dcs/>Archiver Status</A>
+                  <li class="nav-item"><A class='nav-link' HREF=/sbnd/dcs/>Archiver Status</A></li>
                 </ul>
               </li>
               <li class='dropdown nav-item'>
