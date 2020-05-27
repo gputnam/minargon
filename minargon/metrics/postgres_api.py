@@ -231,7 +231,12 @@ def pv_meta_internal(connection, ID):
 	cursor = connection.cursor(cursor_factory=RealDictCursor) 
 
 	# Only implemented for Icarus epics right now
-	query="""SELECT low_disp_rng, high_disp_rng, low_warn_lmt, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, unit, SPLIT_PART(DCS_PRD.CHANNEL.NAME,'/',1) AS title, SPLIT_PART(DCS_PRD.CHANNEL.NAME,'/',2) AS y_title
+	if (database == "sbnteststand"):
+		query="""SELECT low_disp_rng, high_disp_rng, low_warn_lmt, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, unit, SPLIT_PART(DCS_ARCHIVER.CHANNEL.NAME,'/',1) AS title, SPLIT_PART(DCS_ARCHIVER.CHANNEL.NAME,'/',2) AS y_title
+	FROM DCS_ARCHIVER.num_metadata, DCS_ARCHIVER.CHANNEL
+	WHERE DCS_ARCHIVER.CHANNEL.CHANNEL_ID=%s AND DCS_ARCHIVER.num_metadata.CHANNEL_ID=%s """ % (ID, ID)
+	else:
+		query="""SELECT low_disp_rng, high_disp_rng, low_warn_lmt, high_warn_lmt, low_alarm_lmt, high_alarm_lmt, unit, SPLIT_PART(DCS_PRD.CHANNEL.NAME,'/',1) AS title, SPLIT_PART(DCS_PRD.CHANNEL.NAME,'/',2) AS y_title
 	FROM DCS_PRD.num_metadata, DCS_PRD.CHANNEL
 	WHERE DCS_PRD.CHANNEL.CHANNEL_ID=%s AND DCS_PRD.num_metadata.CHANNEL_ID=%s """ % (ID, ID)
 
@@ -530,10 +535,14 @@ def pv_internal(connection, link_name=None, ret_id=None):
 @postgres_route
 def get_gps(connection):
     cursor = connection[0].cursor();
-    # since strings cannot coalesce with floating point or integer types, we must first convert those into numeric and then strings to be able to coalesce.
-    # ex: (float::numeric)::text
-    # get the unit from another table (num_metadata) by using a left join
-    query = """select c1.name, c1.last_smpl_time, coalesce((c1.last_num_val::numeric)::text,(c1.last_float_val::numeric)::text, C1.last_str_val), m1.unit from dcs_prd.channel c1 left join dcs_prd.num_metadata m1 on c1.channel_id = m1.channel_id where c1.channel_id in (3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,20,21,42,43) order by c1.channel_id;"""
+    database = connection[1]["name"]
+    if (database == "sbnteststand"):
+        query = """select c1.name, c1.last_smpl_time, coalesce((c1.last_num_val::numeric)::text,(c1.last_float_val::numeric)::text, C1.last_str_val), m1.unit from dcs_archiver.channel c1 left join dcs_archiver.num_metadata m1 on c1.channel_id = m1.channel_id where c1.channel_id in (3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,20,21,42,43) order by c1.channel_id;"""
+    else:
+        # since strings cannot coalesce with floating point or integer types, we must first convert those into numeric and then strings to be able to coalesce.
+        # ex: (float::numeric)::text
+        # get the unit from another table (num_metadata) by using a left join
+        query = """select c1.name, c1.last_smpl_time, coalesce((c1.last_num_val::numeric)::text,(c1.last_float_val::numeric)::text, C1.last_str_val), m1.unit from dcs_prd.channel c1 left join dcs_prd.num_metadata m1 on c1.channel_id = m1.channel_id where c1.channel_id in (3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,20,21,42,43) order by c1.channel_id;"""
    # where name like '%GPS%' order by c1.channel_id;"""
 
     #
@@ -574,40 +583,62 @@ def get_gps(connection):
 	
 @postgres_route
 def get_epics_last_value(connection,group):
-  cursor = connection[0].cursor();
+    cursor = connection[0].cursor();
 
-  query = """select c.name, c.descr, c.last_smpl_time, 
-   coalesce((c.last_num_val::numeric)::text,(trunc(c.last_float_val::numeric,3))::text, c.last_str_val),channel_id
-   from dcs_prd.channel c,dcs_prd.chan_grp g
-   where c.grp_id=g.grp_id and g.name='%s' order by c.name""" % group
+    database = connection[1]["name"]
+    if (database == "sbnteststand"):
+        query = """select c.name, c.descr, c.last_smpl_time, 
+    coalesce((c.last_num_val::numeric)::text,(trunc(c.last_float_val::numeric,3))::text, c.last_str_val),channel_id
+    from dcs_archiver.channel c,dcs_archiver.chan_grp g
+    where c.grp_id=g.grp_id and g.name='%s' order by c.name""" % group
+    else:
+        query = """select c.name, c.descr, c.last_smpl_time, 
+    coalesce((c.last_num_val::numeric)::text,(trunc(c.last_float_val::numeric,3))::text, c.last_str_val),channel_id
+    from dcs_prd.channel c,dcs_prd.chan_grp g
+    where c.grp_id=g.grp_id and g.name='%s' order by c.name""" % group
+    
+    cursor.execute(query);
+    dbrows = cursor.fetchall();
+    cursor.close();
+    formatted = []
+    for row in dbrows:  
+        try:
+            time = row[2].strftime("%Y-%m-%d %H:%M")
+        except:
+            time = row[2]
+        formatted.append((row[0],row[1],time,row[3],row[4]))
 
-  cursor.execute(query);
-  dbrows = cursor.fetchall();
-  cursor.close();
-  formatted = []
-  for row in dbrows:  
-    time = row[2].strftime("%Y-%m-%d %H:%M")
-    formatted.append((row[0],row[1],time,row[3],row[4]))
-
-  return formatted
+    return formatted
 
 @postgres_route
 def get_epics_last_value_pv(connection,pv):
-  cursor = connection[0].cursor();
+    cursor = connection[0].cursor();
 
-  query = """select c.name, c.descr, c.last_smpl_time, 
+    database = connection[1]["name"]
+    if (database == "sbnteststand"):
+        query = """select c.name, c.descr, c.last_smpl_time, 
+   coalesce((c.last_num_val::numeric)::text,(trunc(c.last_float_val::numeric,3))::text, c.last_str_val),c.channel_id,
+   c.datatype,c.grp_id,g.name,g.descr,g.eng_id,m.prec,m.unit,m.low_disp_rng,m.high_disp_rng,
+   m.low_warn_lmt,m.high_warn_lmt,m.low_alarm_lmt,m.high_alarm_lmt
+   from dcs_archiver.chan_grp g,dcs_archiver.channel c left join dcs_archiver.num_metadata m on c.channel_id=m.channel_id 
+   where c.channel_id=%s and c.grp_id=g.grp_id""" % pv
+    else:
+        query = """select c.name, c.descr, c.last_smpl_time, 
    coalesce((c.last_num_val::numeric)::text,(trunc(c.last_float_val::numeric,3))::text, c.last_str_val),c.channel_id,
    c.datatype,c.grp_id,g.name,g.descr,g.eng_id,m.prec,m.unit,m.low_disp_rng,m.high_disp_rng,
    m.low_warn_lmt,m.high_warn_lmt,m.low_alarm_lmt,m.high_alarm_lmt
    from dcs_prd.chan_grp g,dcs_prd.channel c left join dcs_prd.num_metadata m on c.channel_id=m.channel_id 
    where c.channel_id=%s and c.grp_id=g.grp_id""" % pv
 
-  cursor.execute(query);
-  dbrows = cursor.fetchall();
-  cursor.close();
-  formatted = []
-  for row in dbrows:  
-    time = row[2].strftime("%Y-%m-%d %H:%M")
-    formatted.append((row[0],row[1],time,row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13],row[14],row[15],row[16],row[17]))
+    cursor.execute(query);
+    dbrows = cursor.fetchall();
+    cursor.close();
+    formatted = []
+    for row in dbrows:  
+        try:
+            time = row[2].strftime("%Y-%m-%d %H:%M")
+        except:
+            time = row[2]
+        formatted.append((row[0],row[1],time,row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13],row[14],row[15],row[16],row[17]))
 
-  return formatted
+    return formatted
