@@ -126,7 +126,13 @@
                   <A class='nav-link' HREF=/sbnd/dcs/>Archiver Status</A>
                 </ul>
               </li>
-              {{ nav_link('pvTree', 'SBND EPICS', connection='sbnd_epics') }}
+              <li class='dropdown nav-item'>
+              <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>EPICS Browser<b class='caret'></b></a>
+                <ul class='dropdown-menu bg-maroon'>
+                  {{ nav_link('pvTree', 'SBND Online', connection='sbnd_epics') }}
+                  {{ nav_link('pvTree', 'SBND Test Stand', connection='sbn_epics') }}
+                </ul>
+              </li>
               {{ nav_link('view_streams', 'Data Browser')}}
             </ul>
           </div><!--/.navbar-collapse -->
