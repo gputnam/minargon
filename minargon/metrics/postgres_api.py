@@ -423,8 +423,8 @@ def ps_series(connection, ID):
 
 	return jsonify(values=ret)
 
-def get_configs(connection, IDs):
-    return pv_list(connection, IDs=tuple(IDs))
+def get_configs(connection, IDs, **kwargs):
+    return pv_list(connection, IDs=tuple(IDs), **kwargs)
 #________________________________________________________________________________________________
 @postgres_route
 def pv_internal(connection, link_name=None, ret_id=None):
