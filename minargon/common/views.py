@@ -105,7 +105,7 @@ def pv_single_stream(database, ID):
     # tree = postgres_api.test_pv_internal(database)
 
     # check the currently visited item
-    checked = postgres_api.get_configs(database, [ID])
+    checked = postgres_api.get_configs(database, [ID], front_end_abort=True)
 
     tree = build_data_browser_tree()
    
@@ -146,7 +146,7 @@ def pv_single_stream(database, ID):
         end_time = end
         end_timestamp_int = None
 
-    dbrows = postgres_api.get_epics_last_value_pv(database,ID)
+    dbrows = postgres_api.get_epics_last_value_pv(database,ID, front_end_abort=True)
 
     render_args = {
       "ID": ID,
@@ -321,10 +321,10 @@ def view_streams():
     checked = []
     # get the currently checked items
     for database, IDs in postgres_stream_info.items():
-        configs = postgres_api.get_configs(database, IDs)
+        configs = postgres_api.get_configs(database, IDs, front_end_abort=True)
         checked += configs
     for database, keys in redis_stream_info.items():
-        checked += online_metrics.get_configs(database, keys)
+        checked += online_metrics.get_configs(database, keys, front_end_abort=True)
 
     # build the data tree
     tree = build_data_browser_tree()
