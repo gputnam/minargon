@@ -100,9 +100,25 @@ export class TimeSeriesScatter {
         traces.push(this.data_traces[i].trace());
       }
       var layout = this.build_layout();
-      this.is_drawn = true;
 
-      Plotly.newPlot(this.target, traces, layout);
+      if (!this.is_drawn) {
+        Plotly.newPlot(this.target, traces, layout);
+      }
+      else {
+        // BUG IN PLOTLY.JS:
+        //
+        // If a plot with multiple y-axes is re-drawn with new data, plotly
+        // will not always clean up the old data in the plot. So if there 
+        // are multiple y axes, we have to re-make the plot from scratch.
+        if (this._y_axes.length <= 1) {
+          Plotly.react(this.target, traces, layout);
+        }
+        else {
+          Plotly.newPlot(this.target, traces, layout);
+        }
+      }
+
+      this.is_drawn = true;
     }
 
     // update the data and redraw the plot
@@ -133,7 +149,8 @@ export class TimeSeriesScatter {
     }
 
     redraw() {
-      Plotly.redraw(this.target);
+      // Plotly.redraw(this.target);
+      this.draw();
     }
 
     add_warning_line(name, range, y_axis_index) {
