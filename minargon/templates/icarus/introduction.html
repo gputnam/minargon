@@ -11,7 +11,14 @@ Online monitoring website for the ICARUS Detector.
 
 <br>
 
-Online monitoring operation is: <span id="OM-status"> </span>
+TPC Online monitoring operation is: <span id="TPC-OM"> </span>
+<br>
+
+PMT Online monitoring operation is: <span id="PMT-OM"> </span>
+
+<br>
+
+DAQConsumer operation is: <span id="OM-status"> </span>
 
 <br>
 
@@ -23,6 +30,7 @@ Archiver operation is: <span id="AR-status"> </span>
 <script defer type="module">
 import * as Data from "{{ url_for('static', filename='js/minargon/Data.js') }}";
 import * as DataLink from "{{ url_for('static', filename='js/minargon/DataLink.js') }}";
+import * as Poll from "{{ url_for('static', filename='js/minargon/poll.js') }}";
 import {throw_database_error} from "{{ url_for('static', filename='js/minargon/error.js') }}";
 
 // monitor DAQConsumer
@@ -63,11 +71,41 @@ function update_is_recent(data_link, spanid, time_is_ok) {
 
 }
 
-var data_link_om = new Data.D3DataLink(new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", "DAQConsumer")); 
-update_is_recent(data_link_om, "#OM-status", 10 * 1000 /* ms*/);
 
 var data_link_ar = new Data.D3DataLink(new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", "archiver_heartbeat"));
 update_is_recent(data_link_ar, "#AR-status", 120 * 1000 /* ms */);
+
+var data_link_om = new Data.D3DataLink(new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", "DAQConsumer")); 
+update_is_recent(data_link_om, "#OM-status", 10 * 1000 /* ms*/);
+
+
+var poll_tpc = new Poll.Poll($SCRIPT_ROOT + "/online/hget/eventmetaTPC/run,subrun,event,time");
+poll_tpc.add_callback(function(data) {
+    var spanid = "#TPC-OM";
+    if (is_recent(data.time, 10 * 1000 /* 10 s*/)) {
+      $(spanid).text("ON");
+      $(spanid).css({"color": "green"});
+    }
+    else {
+      $(spanid).text("OFF");
+      $(spanid).css({"color": "red"});
+    } 
+});
+poll_tpc.run();
+
+var poll_pmt = new Poll.Poll($SCRIPT_ROOT + "/online/hget/eventmetaPMT/run,subrun,event,time");
+poll_pmt.add_callback(function(data) {
+    var spanid = "#PMT-OM";
+    if (is_recent(data.time, 10 * 1000 /* 10 s*/)) {
+      $(spanid).text("ON");
+      $(spanid).css({"color": "green"});
+    }
+    else {
+      $(spanid).text("OFF");
+      $(spanid).css({"color": "red"});
+    } 
+});
+poll_pmt.run();
 </script> 
 {%endblock%}
 
