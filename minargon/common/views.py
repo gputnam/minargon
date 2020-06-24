@@ -37,6 +37,11 @@ def latest_gps_info(connection):
     return render_template('common/gps_info.html',rows=dbrows)
 
 
+@app.route('/<connection>/icarus_cryo')
+def icarus_cryo(connection):
+    dbrows = postgres_api.get_icarus_cryo(connection, front_end_abort=True)     
+    return render_template('icarus/cryo.html', rows=dbrows, connection=connection)
+
 @app.route('/<connection>/epics_last_value/<group>')
 def epics_last_value(connection,group):
     dbrows = postgres_api.get_epics_last_value(connection,group)     
