@@ -56,6 +56,9 @@ from .tools import ListConverter, StreamConverter
 app.url_map.converters['list'] = ListConverter
 app.url_map.converters['stream'] = StreamConverter
 
+from .hardwaredb import HWSelectorConverter
+app.url_map.converters["hw_selector"] = HWSelectorConverter
+
 # routes
 if app.config["FRONT_END"] == "sbnd":
     import minargon.sbnd.views

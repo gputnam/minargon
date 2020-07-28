@@ -343,7 +343,7 @@ export class CubismController {
     this.range = [];
 
     // max data
-    this.max_data = 10000;
+    this.max_data = 1000;
   }
 
   // commuicate to the "config" wrapper -- whether or not the # of instances in this class should be restricted

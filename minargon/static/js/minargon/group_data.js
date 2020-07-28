@@ -3,6 +3,7 @@ import * as Data from "./Data.js";
 import * as DataLink from "./DataLink.js";
 import * as Chart from "./charts.js";
 import {throw_custom_error} from "./error.js";
+import {titleize} from "./titleize.js";
 
 // This class provides a scatter plot of all of the streams provided by
 // the input data_link parameter.  
@@ -598,24 +599,5 @@ export class GroupDataHistoController {
   updateTitles() {}
 
 
-}
-
-// Internal function: make a string into a title by capitalizing things
-function titleize(str) {
-    return str.replace(/_/g, ' ')
-              .replace(/\w\S*/g, function(txt){
-                 return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-               })
-              .replace(/\w\S*/g, function(txt){
-                   return txt.replace(/^Tpc$/g, "TPC")
-                   .replace(/^Crt$/g, "CRT")
-                   .replace(/^Pmt$/g, "PMT")
-                   .replace(/^Chan$/g, "CHAN")
-                   .replace(/^Asic$/g, "ASIC")
-                   .replace(/^Femb$/g, "FEMB")
-                   .replace(/^Rms$/g, "RMS")
-                   .replace(/^Dnoise$/g, "DNoise");
- 
-               });
 }
 

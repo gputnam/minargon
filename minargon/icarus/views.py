@@ -7,22 +7,21 @@ from minargon.tools import parseiso
 from minargon.metrics import online_metrics
 from minargon.common.views import timeseries_view
 
-from minargon.hardwaredb import channel_mapping_tpc_icarus
+from minargon import hardwaredb
 
 @app.route('/test/<int:chan>')
 def test(chan):
-    channels =  channel_mapping_tpc_icarus.tpc_channel_list("readout_board_id", str(chan))
+    channels =  hardwaredb.icarus_tpc.tpc_channel_list("readout_board_id", str(chan))
     return str(channels)
 
-@app.route('/TPC_group/<qualifier>/<equals>')
-def TPC_group(qualifier, equals):
-    # get the channels 
-    channels = channel_mapping_tpc_icarus.tpc_channel_list(qualifier, equals)
-    # return the timeseries view
+@app.route('/TPC')
+@app.route('/TPC/<hw_selector:hw_select>')
+def TPC(hw_select=None):
     args = dict(**request.args)
     args["data"] = "rms"
     args["stream"] = "fast"
-    return timeseries_view(args, "tpc_channel", "", "wireLink", channels=channels)
+
+    return timeseries_view(args, "tpc_channel", "", "wireLink", hw_select=hw_select)
 
 @app.route('/TPC_group_select')
 def TPC_group_select():
@@ -35,40 +34,41 @@ def TPC_group_select():
         "nodes" : []
     }
 
-    for col in channel_mapping_tpc_icarus.tpc_columns():
-        child_nodes = []
-        for opt in channel_mapping_tpc_icarus.tpc_available_values(col):
-           node = {
-                "text" : [opt],
-                "selectable" : "true",
-                "displayCheckbox": "false",
-                "href":  app.config["WEB_ROOT"] + "/" + "TPC_group/" + col + "/" + opt,
-           }
-           child_nodes.append(node)
+    for table, cols in hardwaredb.icarus_tpc.available_selectors().items():
+        col_nodes = []
+        for col, values in cols.items():
+            child_nodes = []
+            for opt in values:
+                node = {
+                    "text" : [opt.value],
+                    "selectable" : "true",
+                    "displayCheckbox": "false",
+                    "href":  url_for("TPC", hw_select=opt)
+                }
+                child_nodes.append(node)
 
-        node = {
-            "text" : [col],
+            col_node = {
+                "text" : [col],
+                "selectable" : "false",
+                "displayCheckbox": False,
+                "nodes" : child_nodes 
+            }
+            col_nodes.append(col_node)
+
+        table_node = {
+            "text": [table],
             "selectable" : "false",
             "displayCheckbox": False,
-            "nodes" : child_nodes 
+            "nodes" : col_nodes 
         }
-        pydict["nodes"].append(node)
+
+        pydict["nodes"].append(table_node)
 
     return render_template('icarus/tpc_grouping_select.html', data=pydict)
-    
-    return str(channel_mapping_tpc_icarus.tpc_available_values(channel_mapping_tpc_icarus.tpc_columns()[0]))
-
 
 @app.route('/NoiseCorr')
 def NoiseCorr():
     return render_template("icarus/noise_snapshot.html")
-
-@app.route('/TPC')
-def TPC():
-    args = dict(**request.args)
-    args["data"] = "rms"
-    args["stream"] = "fast"
-    return timeseries_view(args, "tpc_channel", "", "wireLink")
 
 @app.route('/PMT')
 def PMT():

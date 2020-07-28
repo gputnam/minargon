@@ -77,7 +77,7 @@ export class SingleStreamLink {
 // metrics: a list of metrics
 // sequence: you should set this to false unless you know what you are doing
 export class MetricStreamLink {
-  constructor(root, stream, group, instances, metrics, sequence) {
+  constructor(root, stream, group, instances, metrics, sequence, hw_select) {
     this.root = root;
     this.stream = stream;
     this.group = group;
@@ -91,6 +91,8 @@ export class MetricStreamLink {
       this.sequence = false;
       this.instances = instances;
     }
+
+    this.hw_select = hw_select;
   }
  
   step_link() {
@@ -103,7 +105,11 @@ export class MetricStreamLink {
   }
   
   data_link_internal(base, start, stop, n_data) {
-    if (this.sequence) {
+    // first check if the channels are given by a hardware selector -- just use that
+    if (this.hw_select) {
+      var instances = "hw_select/" + this.hw_select;
+    }
+    else if (this.sequence) {
       var instances = this.field_start + '/' + this.field_end; 
     }
     else if (this.instances.length == 1) {

@@ -8,6 +8,8 @@ from minargon.metrics import online_metrics
 import os.path
 from datetime import date, datetime
 
+from minargon import hardwaredb
+
 """
 	Routes intented to be seen by the user	
 """
@@ -72,7 +74,8 @@ def single_stream(stream_name):
 def pvTree(connection):
     return render_template('common/pvTree.html', data=postgres_api.pv_internal(connection, "pv_single_stream", front_end_abort=True))
 
-def timeseries_view(args, instance_name, view_ident="", link_function="undefined", eventmeta_key=None, channels="undefined"):
+@hardwaredb.hardwaredb_route
+def timeseries_view(args, instance_name, view_ident="", link_function="undefined", eventmeta_key=None, hw_select=None):
     # TODO: what to do with this?
     initial_datum = args.get('data', None)
     
@@ -85,14 +88,39 @@ def timeseries_view(args, instance_name, view_ident="", link_function="undefined
         else:
             intial_datum = "rms"
 
+    # process the channels
+    # if the hw_select is present, get it
+    if hw_select is not None:
+        channels = hardwaredb.select(hw_select)
+        # lookup if there is a channel mapping
+        channel_map = hardwaredb.channel_map(hw_select, channels)
+        if channel_map is None:
+            channel_map = "undefined"
+    else:
+        channels = "undefined"
+        channel_map = "undefined"
+
+    # setup the title
+    title = instance_name
+    if hw_select is not None:
+        title = ("%s %s -- " % (hw_select.column, hw_select.value)) + title
+
+    # setup hw_select
+    if hw_select is None:
+        hw_select = "undefined"
+    else:
+        hw_select = hw_select.to_url()
+
     render_args = {
-        'title': instance_name,
+        'title': title,
         'link_function': link_function,
         'view_ident': view_ident,
         'config': config,
         'metric': initial_datum,
         'eventmeta_key': eventmeta_key,
-        'channels': channels
+        'channels': channels,
+        'hw_select': hw_select,
+        'channel_map': channel_map,
     }
 
     return render_template('common/timeseries.html', **render_args)

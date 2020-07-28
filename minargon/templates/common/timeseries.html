@@ -75,7 +75,11 @@ var config = {{config|tojson|safe}};
   {% set channels = channels|tojson %}
 {% endif %}
 
-var config_controller = new Config.GroupConfigController(config, {{link_function}}, ["{{metric}}"], {{channels}}, 0, 25)
+{% if channel_map and channel_map != "undefined" %}
+  {% set channel_map = channel_map|tojson %}
+{% endif %}
+
+var config_controller = new Config.GroupConfigController(config, {{link_function}}, ["{{metric}}"], {{channels}}, 0, 25, "{{hw_select}}", {{channel_map}})
     .metricController("#form-metric")
     .streamController("#form-stream"); 
 
@@ -144,7 +148,6 @@ poll.add_callback(function(data) {
 });
 poll.run();
 {% endif %}
-
 
 </script>
 {% endblock %}

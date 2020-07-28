@@ -12,6 +12,7 @@ from pytz import timezone
 import redis_api
 import postgres_api
 from psycopg2.extras import RealDictCursor
+from minargon import hardwaredb
 
 # error class for connecting to redis
 class RedisConnectionError:
@@ -215,13 +216,17 @@ def stream_group_subscribe(rconnect, stream_type, metric_names, group_name, inst
 
 @app.route('/<connect>/stream_group/<stream_type>/<list:metric_names>/<group_name>/<int:instance_start>/<int:instance_end>')
 @app.route('/<connect>/stream_group/<stream_type>/<list:metric_names>/<group_name>/<list:instance_list>')
-def stream_group(connect, stream_type, metric_names, group_name, instance_start=None, instance_end=None, instance_list=None):
+@app.route('/<connect>/stream_group/<stream_type>/<list:metric_names>/<group_name>/hw_select/<hw_selector:hw_select>')
+@hardwaredb.hardwaredb_route
+def stream_group(connect, stream_type, metric_names, group_name, instance_start=None, instance_end=None, instance_list=None, hw_select=None):
     args = stream_args(request.args)
 
     if instance_list is not None:
         instances = instance_list
-    else: 
+    elif instance_start is not None and instance_end is not None: 
         instances = [str(x) for x in range(instance_start, instance_end)]
+    elif hw_select is not None:
+        instances = [str(x) for x in hardwaredb.select(hw_select)]
 
     if stream_type == "archived":
         return stream_group_archived(connect, stream_type, metric_names, group_name, instances, args)

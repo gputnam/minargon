@@ -3,6 +3,7 @@ import * as TimeSeriesControllers from "./timeseries.js";
 import * as GroupDataControllers from "./group_data.js";
 import * as Data from "./Data.js";
 import {throw_custom_error} from "./error.js";
+import {titleize} from "./titleize.js";
 
 // Class for handling configuration of groups of metrics and for
 // changing the names of metric/stream/etc.
@@ -21,7 +22,7 @@ export class GroupConfigController {
   //        return a URL string that the user will navigate to. If
   //        nothing is passed, then nothing will happen when the user
   //        clicks on a strip chart
-  constructor(config, href, metrics, instances, stream_index, max_n_instances) {
+  constructor(config, href, metrics, instances, stream_index, max_n_instances, hw_select, channel_map) {
     this.config = config;
     this.href = href;
 
@@ -54,6 +55,41 @@ export class GroupConfigController {
 
     // holder of 
     this.server_delay = 5000; // guess, for now
+
+    this.hw_select = hw_select;
+
+    // if the channel map is not defined, set it to the instances
+    if (!channel_map) {
+      this.channel_map = this.instances;
+    }
+    else {
+      this.channel_map = channel_map;
+    }
+
+    var self = this;
+    // sort the instances by the channel map
+    this.channel_map.map(function (v, i) {
+      return {
+          value1  : v,
+          value2  : self.instances[i]
+      };
+    }).sort(function (a, b) {
+      return ((a.value1 < b.value1) ? -1 : ((a.value1 == b.value1) ? 0 : 1));
+    }).forEach(function (v, i) {
+        self.channel_map[i] = v.value1;
+        self.instances[i] = v.value2;
+    });
+  }
+
+  HWSelectName() {
+    var name = "";
+    if (this.hw_select) {
+      var select = this.hw_select.split(":"); 
+      var col = select[1];
+      var val = select[2];
+      name = titleize(col) + " " + val;    
+    }
+    return name;
   }
 
   // Get the "DataLink" object to be used to query data for a list of
@@ -80,27 +116,15 @@ export class GroupConfigController {
       instances.push(instance_list[i]);
     }
     return new Data.D3DataLink(new DataLink.MetricStreamLink($SCRIPT_ROOT + "/" + this.config.stream_links[stream_index], this.config.streams[stream_index], 
-        this.config.group, instances, metric_list, false));
+        this.config.group, instances, metric_list, false, this.hw_select));
   }
 
-
-  data_titles(metric_list, instance_list, instance_skip) {
-    if (metric_list === undefined) {
-      metric_list = this.config.metric_list;
-    }
-    if (instance_list === undefined) {
-      instance_list = [...Array(this.instances.length).keys()];
-    }
-    var instances = [];
-    for (var i = 0; i < instance_list.length; i+= instance_skip) {
-      instances.push(this.instances[i]);
-    }
-    
-    var use_metric_name_as_backup = instances.length == 1;
+  data_titles(channel_skip) {
+    var use_metric_name_as_backup = this.channel_map.length == 1;
     var ret = [];
-    for (var i = 0; i < metric_list.length; i++) {
-      for (var j = 0; j < instances.length; j++) {
-        ret.push(this.getTitle(metric_list[i], instances[j], use_metric_name_as_backup));
+    for (var i = 0; i < this.config.metric_list.length; i++) {
+      for (var j = 0; j < this.channel_map.length; j += channel_skip) {
+        ret.push(this.getTitle(this.config.metric_list[i], this.instances[j], this.channel_map[j], use_metric_name_as_backup));
       }
     }
     return ret;
@@ -178,13 +202,22 @@ export class GroupConfigController {
     return this;
   }
 
-  getTitle(metric_name, instance, use_metric_as_backup) {
+  getTitle(metric_name, instance, channel, use_metric_as_backup) {
+    // build the channel name
+    var channel_name;
+    if (instance == channel) {
+      channel_name = instance;
+    }
+    else {
+      channel_name = "local: " + String(channel) + " global: " + String(instance);
+    }
+
     var config = this.config.metric_config[metric_name];
     var title;
     if (config !== undefined) {
       title = this.config.metric_config[metric_name].title;
       if (title !== undefined) {
-        title = title.replace("%(instance)s", instance).replace("%(group)s", this.config.group);    
+        title = title.replace("%(instance)s", channel_name).replace("%(group)s", this.config.group);    
       }
     }
     if (title === undefined) {
@@ -193,7 +226,7 @@ export class GroupConfigController {
        title = metric_name;
      }
      else {
-       title = instance;
+       title = channel_name;
      }
     }
     return title;
@@ -222,8 +255,8 @@ export class GroupConfigController {
     var data_link_restricted = this.data_link(this.stream_index, this.metrics, this.instances, this.instance_skip);
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances, 1);
 
-    var data_titles_restricted = this.data_titles(this.metrics, this.instances, this.instance_skip);
-    var data_titles = this.data_titles(this.metrics, this.instances, 1);
+    var data_titles_restricted = this.data_titles(this.instance_skip);
+    var data_titles = this.data_titles(1);
 
     var metric_config = this.processMetricConfig();
      
@@ -263,7 +296,7 @@ export class GroupConfigController {
   // add a cubism controller 
   addCubismController(target, height) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances, this.instance_skip);
-    var data_titles = this.data_titles(this.metrics, this.instances, this.instance_skip);
+    var data_titles = this.data_titles(this.instance_skip);
     var controller = new TimeSeriesControllers.CubismController(target, data_link, data_titles, this.processMetricConfig(), height);
     if (this.href !== undefined ) {
       controller.setLinkFunction(this.getLink.bind(this));
@@ -275,7 +308,8 @@ export class GroupConfigController {
   // add a plotly controller
   addPlotlyController(target) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances, this.instance_skip);
-    var data_titles = this.data_titles(this.metrics, this.instances, this.instance_skip);
+    var data_titles = this.data_titles(this.instance_skip);
+    console.log(data_titles);
     var controller = new TimeSeriesControllers.PlotlyController(target, data_link, data_titles, this.processMetricConfig());
     this.controllers.push(controller);
     return controller;
@@ -284,8 +318,7 @@ export class GroupConfigController {
   // add a group data controller
   addGroupDataScatterController(target, title) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances, 1);
-    var instances = this.instances; 
-    var controller = new GroupDataControllers.GroupDataScatterController(target, data_link, this.processMetricConfig(), title, this.config.group, instances);
+    var controller = new GroupDataControllers.GroupDataScatterController(target, data_link, this.processMetricConfig(), title, this.config.group, this.channel_map);
     this.controllers.push(controller);
     return controller;
   }
@@ -293,7 +326,6 @@ export class GroupConfigController {
   // add a group data controller
   addGroupDataHistoController(target, title) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances, 1);
-    var data_titles = this.data_titles(this.metrics, this.instances, 1);
     var controller = new GroupDataControllers.GroupDataHistoController(target, data_link, this.processMetricConfig(), title, "# " + this.config.group);
     this.controllers.push(controller);
     return controller;
