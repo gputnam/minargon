@@ -62,15 +62,15 @@ app.url_map.converters["hw_selector_list"] = HWSelectorListConverter
 
 # routes
 if app.config["FRONT_END"] == "sbnd":
-    import minargon.sbnd.views
+    import minargon.views.sbnd.views
 elif app.config["FRONT_END"] == "icarus":
-    import minargon.icarus.views
+    import minargon.views.icarus.views
 # common views
-import minargon.common.views
+import minargon.views.common.views
 # context processor
-import minargon.common.inject
+import minargon.views.common.inject
 # custim error handling
-import minargon.common.error
+import minargon.views.common.error
 
 import minargon.metrics.online_metrics
 import minargon.metrics.postgres_api

@@ -5,7 +5,7 @@ from minargon.metrics import postgres_api
 
 from minargon.tools import parseiso
 from minargon.metrics import online_metrics
-from minargon.common.views import timeseries_view
+from minargon.views.common.views import timeseries_view
 
 from minargon import hardwaredb
 
@@ -63,7 +63,7 @@ def TPC_group_select():
         "nodes" : []
     }
 
-    for table, cols in hardwaredb.icarus_tpc.available_selectors().items():
+    for table, cols in hardwaredb.icarus.tpc.available_selectors().items():
         col_nodes = []
         for col, values in cols.items():
             child_nodes = []

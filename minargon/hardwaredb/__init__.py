@@ -64,7 +64,7 @@ def channel_map(hw_select, channels):
     return None
 
 if app.config["FRONT_END"] == "icarus":
-    import icarus_tpc
-    hw_selectors = icarus_tpc.SELECTORS
+    import icarus.tpc
+    hw_selectors = icarus.tpc.SELECTORS
 
-    hw_mappings = icarus_tpc.MAPPINGS
+    hw_mappings = icarus.tpc.MAPPINGS

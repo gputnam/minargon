@@ -9,7 +9,7 @@ import random
 import constants
 import sys
 from minargon.metrics import postgres_api
-from minargon.common.views import timeseries_view
+from minargon.views.common.views import timeseries_view
 import subprocess
 import re
 

@@ -1,4 +1,4 @@
-from DataLoader import DataQuery
+from minargon.hardwaredb.DataLoader import DataQuery
 from minargon.hardwaredb import HWSelector
 
 queryUrl = "https://dbdata0vm.fnal.gov:9443/QE/hw/app/SQ/query" 
