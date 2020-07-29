@@ -5,6 +5,19 @@
 {% block body %}
 {{ super() }}
 <div class="container">
+
+{% if eventmeta_key %}
+<div class="row">
+<table class="hcenter" style="width: 50%; text-align: center;">
+  <tr>
+    <th>Run: <span id="run-number"></span></th>
+    <th>Subrun: <span id="subrun-number"></span></th>
+    <th>Event: <span id="event-number"></span></th>
+  </tr>
+</table>
+</div>
+{% endif %}
+
 {% for flange in flanges %}
 <div class="row">
 <h3>
@@ -74,6 +87,16 @@ var histo = config_controller.addGroupDataHistoController("histogram-{{flange}}"
 config_controller.runAll();
 
 {% endfor %}
+
+{% if eventmeta_key %}
+var poll = new Poll.Poll($SCRIPT_ROOT + "/online/hget/{{eventmeta_key}}/run,subrun,event,time");
+poll.add_callback(function(data) {
+    $("#run-number").html(data.run);
+    $("#subrun-number").html(data.subrun);
+    $("#event-number").html(data.event);
+});
+poll.run();
+{% endif %}
 
 </script>
 {% endblock %}

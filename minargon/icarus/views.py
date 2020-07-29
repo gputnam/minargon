@@ -39,7 +39,7 @@ def Flange_Overview():
       "metric": "rms",
       "titles": titles,
       "hw_selects": [h for h in hw_selects],
-      "eventmeta_key": None, # TODO: Set
+      "eventmeta_key": "eventmeta", # TODO: Set
     }
 
     return render_template('icarus/flange_overview.html', **render_args)
@@ -51,7 +51,7 @@ def TPC(hw_select=None):
     args["data"] = "rms"
     args["stream"] = "fast"
 
-    return timeseries_view(args, "tpc_channel", "", "wireLink", hw_select=hw_select)
+    return timeseries_view(args, "tpc_channel", "", "wireLink", eventmeta_key="eventmeta", hw_select=hw_select)
 
 @app.route('/TPC_group_select')
 def TPC_group_select():
