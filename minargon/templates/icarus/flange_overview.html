@@ -91,12 +91,16 @@ var histo = config_controller.addGroupDataHistoController("histogram-{{flange}}"
 
 {% endfor %}
 
+function hwFlangeLink(hw_select) {
+  return "TPC/" + hw_select;
+}
+
 var hw_list = [
 {% for hw_select in hw_selects %}{% if loop.index0 > 0 %}, {% endif %}"{{hw_select.to_url()}}"{% endfor %}
 ];
 
 // setup the averaged flange series
-var hw_controller = new Config.HWGroupConfigController(config, undefined, "{{metric}}", 0, hw_list)
+var hw_controller = new Config.HWGroupConfigController(config, hwFlangeLink, "{{metric}}", 0, hw_list)
     .metricController("#form-metric")
     .streamController("#form-stream");
 

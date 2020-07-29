@@ -97,6 +97,20 @@ export class HWGroupConfigController {
     });
   }
 
+  // Internal function: hooks up the defined href to cubism for when the
+  // user clicks on a strip chart 
+  getLink(index) {
+    if (!(this.href === undefined)) {
+        // Look up the field at the correct index 
+        //
+        // This is defined only for cubism controllers. Cubism controllers
+        // do have instance_skip set, so we get the correct index
+        // by including it 
+        return this.href(this.hw_selects[index]);
+    }
+    return undefined;
+  }
+
   // add a cubism controller 
   addCubismController(target, height) {
     var data_link = new Data.D3DataLink(this.data_link());
