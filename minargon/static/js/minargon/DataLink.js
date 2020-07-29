@@ -67,6 +67,37 @@ export class SingleStreamLink {
   }
 }
 
+export class HWGroupMetricLink {
+  constructor(root, stream, group, metric, hw_selects) {
+    this.root = root;
+    this.stream = stream;
+    this.group = group;
+    this.metric = metric;
+    this.hw_selects = hw_selects;
+  }
+
+  data_link(start, stop, n_data) {
+    var hw_selects = this.hw_selects.join(",");
+    return this.root + "/stream_group_hw_avg/" + this.stream + "/" + this.metric + "/" + this.group + "/" + hw_selects + "?" + $.param(timeArgs(start, stop, n_data));
+  }
+
+  step_link() {
+    return this.root + "/stream_group_hw_step/" + this.stream + "/" + this.metric + "/" + this.group + "/" + this.hw_selects[0];
+  }
+
+  accessors() {
+    var ret = [];
+    for (var i = 0; i < this.hw_selects.length; i++) {
+      ret.push([this.metric, this.hw_selects[i]]);
+    }
+    return ret;
+  };
+
+  name() {
+    return this.group;
+  }
+}
+
 // DataLink which connects configured timeseries with the backend API for online metrics
 
 // Arguments to constructor:

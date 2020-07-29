@@ -5,6 +5,111 @@ import * as Data from "./Data.js";
 import {throw_custom_error} from "./error.js";
 import {titleize} from "./titleize.js";
 
+export class HWGroupConfigController {
+  constructor(config, href, metric, stream_index, hw_selects) {
+    this.config = config;
+    this.href = href;
+    this.hw_selects = hw_selects;
+    this.metric = metric;
+    this.stream_index = stream_index;
+    this.metric_config = this.config.metric_config[this.metric];
+    this.controllers = [];
+  }
+
+  data_link() {
+    return new DataLink.HWGroupMetricLink($SCRIPT_ROOT + "/" + this.config.stream_links[this.stream_index], 
+                                      this.config.streams[this.stream_index],
+                                      this.config.group,
+                                      this.metric,
+                                      this.hw_selects);
+  }
+
+  data_titles() {
+    var titles = [];
+    for (var i = 0; i < this.hw_selects.length; i++) {
+      titles.push(this.config.group + " " + this.metric + " " + this.hw_selects[i]);
+    }
+
+    return titles;
+  }
+
+  metricController(id) {
+    var self = this;
+    $(id).change(function() { self.updateMetric(this.value); });
+    return this;
+  }
+
+  updateMetric(metric) {
+    this.metric = metric;
+    this.metric_config = this.config.metric_config[metric];
+
+    var data_link = new Data.D3DataLink(this.data_link());
+    var data_titles = this.data_titles();
+     
+    for (var i = 0; i < this.controllers.length; i++) {
+      this.controllers[i].updateData(data_link, true);
+      this.controllers[i].updateTitles(data_titles);
+      this.controllers[i].updateMetricConfig(this.metric_config);
+    }
+  }
+
+  // Connect the time-series stream name to a HTML form field 
+  // id: the jQuery specified of the HTML form field
+  streamController(id) {
+    var self = this;
+    $(id).change(function() {self.updateStream(this.value);});
+    return this;
+  }
+  
+  // Internal function: change the stream name of the time-series
+  // plotted in cubism 
+  updateStream(input) {
+    this.stream_index = input;
+    var self = this;
+    this.infer_step(input, function(step) {
+      var data_link = self.data_link(self.stream_index, self.metrics, self.instances, 1);
+      for (var i = 0; i < self.controllers.length; i++) {
+        self.controllers[i].updateStep(step);
+        self.controllers[i].updateData(data_link, true);
+      }
+    });
+  }
+
+  infer_step(stream_index, callback) {
+    if (this.config.stream_links.length == 0) return callback(0);
+    var link = this.data_link();
+    return d3.json(link.step_link(), function(data) { callback(data.step); });
+  }
+
+  runAll() {
+    if (this.config.streams.length == 0 || this.config.metric_list == 0) {
+      throw_custom_error("No data available for requested group");
+      return;
+    }
+
+    var self = this;
+    var data_link = new Data.D3DataLink(this.data_link());
+    this.infer_step(0, function(step) {
+      for (var i = 0; i < self.controllers.length; i++) {
+        self.controllers[i].setStep(step);
+        self.controllers[i].updateData(data_link);
+      }
+    });
+  }
+
+  // add a cubism controller 
+  addCubismController(target, height) {
+    var data_link = new Data.D3DataLink(this.data_link());
+    var data_titles = this.data_titles();
+    var controller = new TimeSeriesControllers.CubismController(target, data_link, data_titles, this.metric_config, height);
+    if (this.href !== undefined ) {
+      controller.setLinkFunction(this.getLink.bind(this));
+    }
+    this.controllers.push(controller);
+    return controller;
+  }
+}
+
 // Class for handling configuration of groups of metrics and for
 // changing the names of metric/stream/etc.
 export class GroupConfigController {
@@ -274,6 +379,7 @@ export class GroupConfigController {
       this.controllers[i].updateMetricConfig(metric_config);
     }
   } 
+
 
   // Internal function: change the stream name of the time-series
   // plotted in cubism 

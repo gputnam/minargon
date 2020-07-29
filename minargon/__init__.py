@@ -56,8 +56,9 @@ from .tools import ListConverter, StreamConverter
 app.url_map.converters['list'] = ListConverter
 app.url_map.converters['stream'] = StreamConverter
 
-from .hardwaredb import HWSelectorConverter
+from .hardwaredb import HWSelectorConverter, HWSelectorListConverter
 app.url_map.converters["hw_selector"] = HWSelectorConverter
+app.url_map.converters["hw_selector_list"] = HWSelectorListConverter
 
 # routes
 if app.config["FRONT_END"] == "sbnd":

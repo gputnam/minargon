@@ -29,7 +29,6 @@ def Flange_Overview():
 
     # setup the plot titles
     titles = ["flange_pos_at_chimney %s -- tpc_channel" % f for f in flanges]
-    print(channel_map)
      
     render_args = {
       "config": config,

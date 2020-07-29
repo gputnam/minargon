@@ -229,9 +229,49 @@ def stream_group(connect, stream_type, metric_names, group_name, instance_start=
         instances = [str(x) for x in hardwaredb.select(hw_select)]
 
     if stream_type == "archived":
-        return stream_group_archived(connect, stream_type, metric_names, group_name, instances, args)
+        values = stream_group_archived(connect, stream_type, metric_names, group_name, instances, args)
+        return jsonify(values=values)
     else:
-        return stream_group_online(connect, stream_type, metric_names, group_name, instances, args)
+        values, min_end_time = stream_group_online(connect, stream_type, metric_names, group_name, instances, args)
+        return jsonify(values=values, min_end_time=min_end_time)
+
+@app.route('/<connect>/stream_group_hw_step/<stream_type>/<metric_name>/<group_name>/<hw_selector:hw_select>')
+@hardwaredb.hardwaredb_route
+def stream_group_hw_step(connect, stream_type, metric_name, group_name, hw_select):
+    args = stream_args(request.args)
+    # get an instance
+    instance = hardwaredb.select(hw_select)[0]
+    # build a key
+    key = "%s:%s:%s:%s" % (group_name, instance, metric_name, stream_type)
+    # get the step
+    return infer_step_size_online(connect, key)
+
+
+def average_streams(streams):
+    return streams[0]
+
+@app.route('/<connect>/stream_group_hw_avg/<stream_type>/<metric_name>/<group_name>/<hw_selector_list:hw_selects>')
+@hardwaredb.hardwaredb_route
+def stream_group_hw_avg(connect, stream_type, metric_name, group_name, hw_selects):
+    args = stream_args(request.args)
+
+    # build the instances
+    channels = [[str(x) for x in hardwaredb.select(hw_select)] for hw_select in hw_selects]
+    instances = set()
+    for c in channels:
+        instances = instances.union(set(c))
+    instances = list(instances)
+ 
+    values, min_end_time = stream_group_online(connect, stream_type, [metric_name], group_name, instances, args)
+
+    ret = {}
+    ret[metric_name] = {}
+    # average over each HW grouping
+    for hw_channels, hw_select in zip(channels, hw_selects):
+         this_values = [values[metric_name][c] for c in hw_channels] 
+         ret[metric_name][hw_select.to_url()] = average_streams(this_values)
+
+    return jsonify(values=ret, min_end_time=min_end_time)
 
 @postgres_api.postgres_route
 def infer_step_size_archived(connection, stream_type, metric_names, group_name, instance):
@@ -358,7 +398,7 @@ def stream_group_archived(connection, stream_type, metric_names, group_name, ins
     #for line in data:
     #    ret[metric][instance].appen
 
-    return jsonify(values=ret)
+    return ret
 
 @redis_route
 def stream_group_online(rconnect, stream_type, metric_names, group_name, instances, args):
@@ -377,7 +417,7 @@ def stream_group_online(rconnect, stream_type, metric_names, group_name, instanc
 
     values = front_end_key_api(data)
 
-    return jsonify(values=values, min_end_time=min_end_time)
+    return values, min_end_time
 
 @app.route('/<connect>/infer_step_size/<stream_type>/<list:metric_names>/<group_name>/<instance_name>')
 @app.route('/<connect>/infer_step_size/<stream_name>')

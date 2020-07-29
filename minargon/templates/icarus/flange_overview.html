@@ -35,7 +35,11 @@
 {% endfor %}
 
 <div class="row">
-<div class="col-lg-4 col-md-8 col-sm-12 vcenter order-lg-1 order-md-2 hcenter">
+         <div class="col-lg-12 col-md-12" style="padding:0" id="timeseries"></div>
+</div>
+
+<div class="row">
+<div class="col-lg-4 col-md-8 col-sm-12 vcenter hcenter">
         <div class="card">
             <div class="card-header">Display Options</div>
             <div class="card-body">
@@ -46,9 +50,8 @@
                     {{ stream_options.warning_option("form-warning-range-lo", "form-warning-range-hi") }}
                 </form>
             </div>  
-       	   </div>    
-          </div>
-         </div>
+         </div>    
+</div>
 
 {%endblock%}
 {% block script %}
@@ -84,9 +87,26 @@ var histo = config_controller.addGroupDataHistoController("histogram-{{flange}}"
   .set();
 
 // start the controllers
-config_controller.runAll();
+// config_controller.runAll();
 
 {% endfor %}
+
+var hw_list = [
+{% for hw_select in hw_selects %}{% if loop.index0 > 0 %}, {% endif %}"{{hw_select.to_url()}}"{% endfor %}
+];
+
+// setup the averaged flange series
+var hw_controller = new Config.HWGroupConfigController(config, undefined, "{{metric}}", 0, hw_list)
+    .metricController("#form-metric")
+    .streamController("#form-stream");
+
+var cubism = hw_controller.addCubismController("#timeseries", 25)
+  .heightController("#form-height")
+  .rangeController("#form-range-lo", "#form-range-hi")
+  .set();
+
+hw_controller.runAll();
+
 
 {% if eventmeta_key %}
 var poll = new Poll.Poll($SCRIPT_ROOT + "/online/hget/{{eventmeta_key}}/run,subrun,event,time");
