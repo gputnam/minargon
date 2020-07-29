@@ -29,7 +29,6 @@ export class CorrelationScatter {
       this._title = title;
       this._xname = xname;
       this._yname = yname;
-      console.log("Constructed!");
     }
 
     textformat(x, y, time_x, time_y) {
@@ -49,7 +48,6 @@ export class CorrelationScatter {
     }
 
     draw() {
-      console.log("Drawing!");
       var layout = this.build_layout();
       this.is_drawn = true;
 

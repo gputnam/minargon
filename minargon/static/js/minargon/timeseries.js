@@ -173,7 +173,6 @@ export class PlotlyController {
   // ---------------------------------------------------------------------------
   // Tell the buffer to get data for a specific time range
   getData(start, stop) {
-    console.log("we are getting data")
     this.buffer.stop();
     this.buffer.getData(start, stop);
   }

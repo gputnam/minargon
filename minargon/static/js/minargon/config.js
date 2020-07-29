@@ -309,7 +309,6 @@ export class GroupConfigController {
   addPlotlyController(target) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances, this.instance_skip);
     var data_titles = this.data_titles(this.instance_skip);
-    console.log(data_titles);
     var controller = new TimeSeriesControllers.PlotlyController(target, data_link, data_titles, this.processMetricConfig());
     this.controllers.push(controller);
     return controller;
