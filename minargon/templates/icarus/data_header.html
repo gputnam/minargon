@@ -5,12 +5,16 @@
             <li class="list-inline-item">
                 <div  style="display: inline-block; white-space: nowrap;">
                 <label class="control-form-label col-form-label" style="display: inline-block;">{{ident}}</label>
-		<select id="{{ident}}" class="form-control" style="display: inline-block; width: 50%;" 
-                  onchange="window.location.href = window.location.href.split('?')[0] + '?{{ident}}=' + String(this.value)">  
-		{% for val in view_ind_opts[ident] %}
-		<option {% if val==this_val %}selected="true" {%endif%}value="{{val}}">{{val}}</option>
-		{% endfor %}
-		</select>
+                <script>
+                  function {{ident}}_ondown(e) {
+                    var keyCode = e.keyCode || e.which;
+                    if (keyCode == '13') {
+                      window.location.href = window.location.href.split('?')[0] + '?{{ident}}=' + String($("#{{ident}}-select").val());
+                    }
+                  }
+                </script>
+		<input type="number" id="{{ident}}-select" class="form-control" style="display: inline-block; width: 50%;" value="{{this_val}}"
+                  onkeydown="{{ident}}_ondown(event)">
                 </div>
             </li>
         {% endfor %}
