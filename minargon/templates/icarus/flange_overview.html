@@ -1,0 +1,79 @@
+{% import "stream_options_macro.html" | common as stream_options %}
+
+{% extends "layout.html" | front_ended %}
+{% block title %}Flange Overview{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+{% for flange in flanges %}
+<div class="row">
+<h3>
+<a href={{url_for("TPC", hw_select=hw_selects[loop.index0])}}>Flange {{flange}}</a>
+</h3>
+</div>
+<div class="row">
+    <div class="col-lg-6 col-md-12 order-1" style="padding:0">
+        <div id="histogram-{{flange}}"></div>
+    </div>
+    <div class="col-lg-6 col-md-12 order-2" style="padding:0">
+        <div id="scatter-{{flange}}"></div>
+    </div>
+</div>
+{% endfor %}
+
+<div class="row">
+<div class="col-lg-4 col-md-8 col-sm-12 vcenter order-lg-1 order-md-2 hcenter">
+        <div class="card">
+            <div class="card-header">Display Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
+                    {{ stream_options.metric_option(config["metric_config"], metric, "form-metric") }}
+                    {{ stream_options.stream_option(config.streams, config.streams[0], "form-stream") }}
+                    {{ stream_options.threshold_option("form-range-lo", "form-range-hi") }}
+                    {{ stream_options.warning_option("form-warning-range-lo", "form-warning-range-hi") }}
+                </form>
+            </div>  
+       	   </div>    
+          </div>
+         </div>
+
+{%endblock%}
+{% block script %}
+<script defer type="module">
+import * as Config from "{{ url_for('static', filename='js/minargon/config.js') }}";
+import * as Poll from "{{ url_for('static', filename='js/minargon/poll.js') }}";
+
+// get the configuration
+// var config = new timeseries.TimeSeries({{config|tojson|safe}});
+var config = {{config|tojson|safe}};
+
+// setup each flange poll
+{% for flange in flanges %}
+
+  {% set channels = channels[loop.index0]|tojson %}
+  {% set channel_map = channel_maps[loop.index0]|tojson %}
+  {% set hw_select = hw_selects[loop.index0].to_url() %}
+  {% set title = titles[loop.index0] %}
+
+var config_controller = new Config.GroupConfigController(config, undefined, ["{{metric}}"], {{channels}}, 0, 25, "{{hw_select}}", {{channel_map}})
+    .metricController("#form-metric")
+    .streamController("#form-stream"); 
+
+// add the scatter plot
+var scatter = config_controller.addGroupDataScatterController("scatter-{{flange}}", "{{title}}")
+  .rangeController("#form-range-lo", "#form-range-hi", false)
+  .warningrangeController("#form-warning-range-lo", "#form-warning-range-hi")
+  .set();
+
+// and histogram
+var histo = config_controller.addGroupDataHistoController("histogram-{{flange}}", "{{title}}")
+  .rangeController("#form-range-lo", "#form-range-hi", false)
+  .set();
+
+// start the controllers
+config_controller.runAll();
+
+{% endfor %}
+
+</script>
+{% endblock %}

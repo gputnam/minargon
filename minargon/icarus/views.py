@@ -14,6 +14,36 @@ def test(chan):
     channels =  hardwaredb.icarus_tpc.tpc_channel_list("readout_board_id", str(chan))
     return str(channels)
 
+@app.route('/Flange_Overview')
+def Flange_Overview():
+    flanges = ["EW04", "EW05", "EW06", "EW07", "EW08"]
+    instance_name = "tpc_channel"
+
+    config = online_metrics.get_group_config("online", instance_name, front_end_abort=True)
+
+    # turn the flange positions to hw_selects
+    hw_selects = [hardwaredb.HWSelector("flanges", "flange_pos_at_chimney", f) for f in flanges]
+
+    channels = [hardwaredb.select(hw_select) for hw_select in hw_selects]
+    channel_map = [hardwaredb.channel_map(hw_select, c) for hw_select,c in zip(hw_selects, channels)]
+
+    # setup the plot titles
+    titles = ["flange_pos_at_chimney %s -- tpc_channel" % f for f in flanges]
+    print(channel_map)
+     
+    render_args = {
+      "config": config,
+      "channels": channels,
+      "channel_maps": channel_map,
+      "flanges": flanges,
+      "metric": "rms",
+      "titles": titles,
+      "hw_selects": [h for h in hw_selects],
+      "eventmeta_key": None, # TODO: Set
+    }
+
+    return render_template('icarus/flange_overview.html', **render_args)
+
 @app.route('/TPC')
 @app.route('/TPC/<hw_selector:hw_select>')
 def TPC(hw_select=None):
