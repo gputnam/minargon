@@ -78,7 +78,11 @@ var config = {{config|tojson|safe}};
   {% set channel_map = channel_map|tojson %}
 {% endif %}
 
-var config_controller = new Config.GroupConfigController(config, {{link_function}}, ["{{metric}}"], {{channels}}, 0, 25, "{{hw_select}}", {{channel_map}})
+{% if hw_select and hw_select != "undefined" %}
+  {% set hw_select = hw_select|tojson %}
+{% endif %}
+
+var config_controller = new Config.GroupConfigController(config, {{link_function}}, ["{{metric}}"], {{channels}}, 0, 25, {{hw_select}}, {{channel_map}})
     .metricController("#form-metric")
     .streamController("#form-stream"); 
 

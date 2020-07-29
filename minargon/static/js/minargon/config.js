@@ -181,7 +181,7 @@ export class GroupConfigController {
           value2  : self.instances[i]
       };
     }).sort(function (a, b) {
-      return ((a.value1 < b.value1) ? -1 : ((a.value1 == b.value1) ? 0 : 1));
+      return ((Number(a.value1) < Number(b.value1)) ? -1 : ((a.value1 == b.value1) ? 0 : 1));
     }).forEach(function (v, i) {
         self.channel_map[i] = v.value1;
         self.instances[i] = v.value2;
