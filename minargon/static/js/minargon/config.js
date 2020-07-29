@@ -61,9 +61,11 @@ export class GroupConfigController {
     // if the channel map is not defined, set it to the instances
     if (!channel_map) {
       this.channel_map = this.instances;
+      this.channel_is_mapped = false;
     }
     else {
       this.channel_map = channel_map;
+      this.channel_is_mapped = true;
     }
 
     var self = this;
@@ -317,12 +319,21 @@ export class GroupConfigController {
   // add a group data controller
   addGroupDataScatterController(target, title) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances, 1);
+
     // build the list of global channel names
-    var global_channel_names = [];
-    for (var i = 0; i < this.channel_map.length; i++) {
-      global_channel_names.push("Global Channel: " + String(this.instances[i]));
+    if (this.channel_is_mapped) {
+      var global_channel_names = [];
+      for (var i = 0; i < this.channel_map.length; i++) {
+        global_channel_names.push("Global Channel: " + String(this.instances[i]));
+      }
+      var xLabel = "Local Channel"
     }
-    var controller = new GroupDataControllers.GroupDataScatterController(target, data_link, this.processMetricConfig(), title, this.config.group, this.channel_map, global_channel_names);
+    else {
+      var global_channel_names = null;
+      var xLabel = this.config.group;
+    }
+
+    var controller = new GroupDataControllers.GroupDataScatterController(target, data_link, this.processMetricConfig(), title, xLabel, this.channel_map, global_channel_names);
     this.controllers.push(controller);
     return controller;
   }
