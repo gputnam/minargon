@@ -294,7 +294,7 @@ export class LineChart {
     // layout: the layout of the plotly histogram (as defined in plotly)
     // range: (optional) the warning Hi/Lo bands to be shown on the
     // 	      plotly plot
-    constructor(n_data, target, layout, range, xdata) {
+    constructor(n_data, target, layout, range, xdata, text) {
         this.data = new Array(n_data);
         this.n_data = n_data;
         this.target = target;
@@ -307,6 +307,8 @@ export class LineChart {
         else {
             this.xdata = xdata
         }
+
+        this.text = text;
 
         this.draw(layout);
 
@@ -381,7 +383,7 @@ export class LineChart {
             x: this.xdata,
             y: this.data,
             type: "scatter",
-            name: "Data",
+            text: this.text,
         }];
 
         if (!(this.max === undefined)) ret.append(this.max);

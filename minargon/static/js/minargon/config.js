@@ -318,7 +318,12 @@ export class GroupConfigController {
   // add a group data controller
   addGroupDataScatterController(target, title) {
     var data_link = this.data_link(this.stream_index, this.metrics, this.instances, 1);
-    var controller = new GroupDataControllers.GroupDataScatterController(target, data_link, this.processMetricConfig(), title, this.config.group, this.channel_map);
+    // build the list of global channel names
+    var global_channel_names = [];
+    for (var i = 0; i < this.channel_map.length; i++) {
+      global_channel_names.push("Global Channel: " + String(this.instances[i]));
+    }
+    var controller = new GroupDataControllers.GroupDataScatterController(target, data_link, this.processMetricConfig(), title, this.config.group, this.channel_map, global_channel_names);
     this.controllers.push(controller);
     return controller;
   }

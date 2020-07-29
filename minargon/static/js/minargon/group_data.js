@@ -22,7 +22,7 @@ export class GroupDataScatterController {
   //                be a JSON dictionary as described in the config.js file
   // title: title of the scatter plot
   // xLabel: label of the x axis of the scatter plot
-  constructor(target, data_link, metric_config, title, xLabel, instances) {
+  constructor(target, data_link, metric_config, title, xLabel, instances, text) {
     this.target = target;
     this.metric_config = metric_config;
     this.data_link = data_link;
@@ -36,6 +36,7 @@ export class GroupDataScatterController {
     this.metricParam();
     this.xLabel = xLabel;
     this.instances = instances;
+    this.text = text;
     this.makeScatter();
   }
 
@@ -204,10 +205,10 @@ export class GroupDataScatterController {
     var n_data = this.nData();
     var layout = this.layoutScatter();
     if (this.warning_range.length != 0) {
-      var scatter = new Chart.LineChart(n_data, this.target, layout, this.warning_range, this.instances);
+      var scatter = new Chart.LineChart(n_data, this.target, layout, this.warning_range, this.instances, this.text);
     }
     else {
-      var scatter = new Chart.LineChart(n_data, this.target, layout, undefined, this.instances);
+      var scatter = new Chart.LineChart(n_data, this.target, layout, undefined, this.instances, this.text);
     }
     this.listeners.push(scatter.updateData.bind(scatter));
     this.listeners.push(this.updateTitleTime.bind(this));
