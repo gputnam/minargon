@@ -130,6 +130,51 @@ def get_last_streams(rdb, stream_list,count=1):
     return ret
 
 # get number of data points from list of streams
+def avg_streams(rdb, stream_list, n_data=None, start=None, stop=None):
+    if start is None:
+        start = u'-'
+    else:
+        start += 1
+    if stop is None:
+        stop = u'+'
+
+    LUASCRIPT = """
+    local streamData = {}
+    for i = 1, #KEYS do
+        streamData[i] = redis.call("XREVRANGE", KEYS[i], ARGV[1], ARGV[2], "COUNT", ARGV[3]) 
+    end
+    return streamData[1]
+    """
+
+    LUASCRIPT_NOCOUNT = """
+    local streamData = {}
+    for i = 1, #KEYS do
+        streamData[i] = redis.call("XREVRANGE", KEYS[i], ARGV[1], ARGV[2]) 
+    end
+    return streamData[1]
+    """
+
+    if n_data is None:
+        avg = rdb.register_script(LUASCRIPT_NOCOUNT)
+    else:
+        avg = rdb.register_script(LUASCRIPT)
+
+    ret = {}
+    pipeline = rdb.pipeline()
+    for streams in stream_list:
+        avg(keys=streams, args=(stop, start, n_data), client=pipeline)
+
+    for streams, data in zip(stream_list, pipeline.execute()):
+        stream = streams[0]
+        ret[stream] = []
+        for d in reversed(data):
+            time =  d[0].split("-")[0]
+            val = extract_datum(dict([tuple(d[1])]))
+            ret[stream].append( (time, val) )
+
+    return ret
+
+# get number of data points from list of streams
 def get_streams(rdb, stream_list, n_data=None, start=None, stop=None):
     if start is None:
         start = u'-'
