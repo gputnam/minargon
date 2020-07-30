@@ -257,19 +257,14 @@ def stream_group_hw_avg(connect, stream_type, metric_name, group_name, hw_select
 
     # build the instances
     channels = [[str(x) for x in hardwaredb.select(hw_select)] for hw_select in hw_selects]
-    instances = set()
-    for c in channels:
-        instances = instances.union(set(c))
-    instances = list(instances)
  
-    values, min_end_time = stream_group_online(connect, stream_type, [metric_name], group_name, instances, args)
+    values, min_end_time = stream_group_online_avg(connect, stream_type, metric_name, group_name, channels, args)
 
     ret = {}
     ret[metric_name] = {}
     # average over each HW grouping
     for hw_channels, hw_select in zip(channels, hw_selects):
-         this_values = [values[metric_name][c] for c in hw_channels] 
-         ret[metric_name][hw_select.to_url()] = average_streams(this_values)
+         ret[metric_name][hw_select.to_url()] = values[metric_name][hw_channels[0]]
 
     return jsonify(values=ret, min_end_time=min_end_time)
 
@@ -399,6 +394,27 @@ def stream_group_archived(connection, stream_type, metric_names, group_name, ins
     #    ret[metric][instance].appen
 
     return ret
+
+@redis_route
+def stream_group_online_avg(rconnect, stream_type, metric, group_name, instance_lists, args):
+    args = stream_args(request.args)
+
+    stream_names = []
+    for instances in instance_lists:
+        this_stream_list = []
+        for inst in instances:
+            this_stream_name = "%s:%s:%s:%s" % (group_name, inst, metric, stream_type)
+            this_stream_list.append( this_stream_name )
+        stream_names.append(this_stream_list)
+
+    data = redis_api.avg_streams(rconnect, stream_names, **args)
+
+    # get the least most updated stream for the front end
+    min_end_time = get_min_end_time(data)
+
+    values = front_end_key_api(data)
+
+    return values, min_end_time
 
 @redis_route
 def stream_group_online(rconnect, stream_type, metric_names, group_name, instances, args):
