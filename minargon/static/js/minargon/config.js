@@ -236,8 +236,17 @@ export class GroupConfigController {
     for (var i = 0; i < instance_list.length; i+= instance_skip) {
       instances.push(instance_list[i]);
     }
-    return new Data.D3DataLink(new DataLink.MetricStreamLink($SCRIPT_ROOT + "/" + this.config.stream_links[stream_index], this.config.streams[stream_index], 
-        this.config.group, instances, metric_list, false, this.hw_select));
+
+    // use the hw select link if we use each instance and have a hw_select provided
+    if (this.hw_select && instance_skip == 1) {
+      return new Data.D3DataLink(new DataLink.HwMetricStreamLink($SCRIPT_ROOT + "/" + this.config.stream_links[stream_index], this.config.streams[stream_index], 
+          this.config.group, instances, metric_list, this.hw_select));
+
+    }
+    else {
+      return new Data.D3DataLink(new DataLink.MetricStreamLink($SCRIPT_ROOT + "/" + this.config.stream_links[stream_index], this.config.streams[stream_index], 
+          this.config.group, instances, metric_list, false));
+    }
   }
 
   data_titles(channel_skip) {

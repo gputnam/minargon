@@ -98,6 +98,66 @@ export class HWGroupMetricLink {
   }
 }
 
+export class HwMetricStreamLink {
+  constructor(root, stream, group, instances, metrics, hw_select) {
+    this.root = root;
+    this.stream = stream;
+    this.group = group;
+    this.metrics = metrics;
+    this.hw_select = hw_select;
+    this.instances = instances;
+  }
+
+  step_link() {
+    var metric_list = "";
+    for (var i = 0; i < this.metrics.length; i++) {
+      metric_list = metric_list + this.metrics[i] + ",";
+    }
+    var link = this.root + '/infer_step_size/' + this.stream + '/' + metric_list + '/' + this.group + '/' + this.instances[0];
+    return link;
+  }
+
+  data_link_internal(base, start, stop, n_data) {
+    var metrics = "";
+    for (var i = 0; i < this.metrics.length; i++) {
+      metrics = metrics + this.metrics[i] + ',';
+    }
+
+    var ret = this.root + base + this.stream + '/' + metrics + '/' + this.group + '/hw_select/' + this.hw_select;
+    var args = timeArgs(start, stop, n_data);
+    if (!(args === null)) {
+      ret = ret + '?' + $.param(args);
+    }
+    return ret;
+  }
+
+  data_link(start, stop, n_data) {
+    return this.data_link_internal('/stream_group/', start, stop, n_data);
+  }
+
+  event_source_link(start) {
+    return this.data_link_internal('/stream_group_subscribe/', start, null);
+  }
+
+  accessors() {
+    var ret = [];
+    // iterate first over each metric
+    for (var i = 0; i < this.metrics.length; i++) {
+      // iterate over the instances
+      for (var j = 0; j < this.instances.length; j++) {
+        ret.push( [this.metrics[i], this.instances[j]] );
+      }
+    }
+    return ret;
+
+  }
+
+  name() {
+    return this.hw_select;
+  }
+
+}
+
 // DataLink which connects configured timeseries with the backend API for online metrics
 
 // Arguments to constructor:
@@ -108,7 +168,7 @@ export class HWGroupMetricLink {
 // metrics: a list of metrics
 // sequence: you should set this to false unless you know what you are doing
 export class MetricStreamLink {
-  constructor(root, stream, group, instances, metrics, sequence, hw_select) {
+  constructor(root, stream, group, instances, metrics, sequence) {
     this.root = root;
     this.stream = stream;
     this.group = group;
@@ -123,7 +183,6 @@ export class MetricStreamLink {
       this.instances = instances;
     }
 
-    this.hw_select = hw_select;
   }
  
   step_link() {
@@ -136,11 +195,7 @@ export class MetricStreamLink {
   }
   
   data_link_internal(base, start, stop, n_data) {
-    // first check if the channels are given by a hardware selector -- just use that
-    if (this.hw_select) {
-      var instances = "hw_select/" + this.hw_select;
-    }
-    else if (this.sequence) {
+    if (this.sequence) {
       var instances = this.field_start + '/' + this.field_end; 
     }
     else if (this.instances.length == 1) {
