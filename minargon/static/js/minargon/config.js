@@ -21,7 +21,8 @@ export class HWGroupConfigController {
                                       this.config.streams[this.stream_index],
                                       this.config.group,
                                       this.metric,
-                                      this.hw_selects);
+                                      this.hw_selects,
+                                      10 /* Set downsample to 10 for now -- TODO: evaluate this */);
   }
 
   data_titles() {
@@ -67,7 +68,7 @@ export class HWGroupConfigController {
     this.stream_index = input;
     var self = this;
     this.infer_step(input, function(step) {
-      var data_link = self.data_link(self.stream_index, self.metrics, self.instances, 1);
+      var data_link = new Data.D3DataLink(self.data_link());
       for (var i = 0; i < self.controllers.length; i++) {
         self.controllers[i].updateStep(step);
         self.controllers[i].updateData(data_link, true);
@@ -78,7 +79,12 @@ export class HWGroupConfigController {
   infer_step(stream_index, callback) {
     if (this.config.stream_links.length == 0) return callback(0);
     var link = this.data_link();
-    return d3.json(link.step_link(), function(data) { callback(data.step); });
+    return d3.json(link.step_link(), function(data) { 
+        var step = 1000;
+        if (data && data.step) step = data.step;
+   
+        callback(step); 
+    });
   }
 
   runAll() {
@@ -272,7 +278,12 @@ export class GroupConfigController {
     var link = new DataLink.MetricStreamLink($SCRIPT_ROOT + '/' + this.config.stream_links[stream_index], this.config.streams[stream_index],
         this.config.group, this.instances, this.config.metric_list, false);
 
-    return d3.json(link.step_link(), function(data) { callback(data.step); });
+    return d3.json(link.step_link(), function(data) { 
+        var step = 1000;
+        if (data && data.step) step = data.step;
+   
+        callback(step); 
+    });
   }
 
 

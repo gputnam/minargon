@@ -75,3 +75,12 @@ import minargon.views.common.error
 import minargon.metrics.online_metrics
 import minargon.metrics.postgres_api
 import minargon.online
+
+# load lua scripts for redis
+app.config["LUA_ASSETS"] = {}
+thisdir = os.path.dirname(os.path.abspath(__file__))
+redis_asset_dir = os.path.join(thisdir, "metrics/" , "redis-lua/")
+for fname in os.listdir(redis_asset_dir):
+    if fname.endswith(".lua"):
+        with open(os.path.join(redis_asset_dir, fname)) as f:
+            app.config["LUA_ASSETS"][fname[:-4]] = f.read()

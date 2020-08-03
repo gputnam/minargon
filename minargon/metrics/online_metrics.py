@@ -250,13 +250,30 @@ def stream_group_hw_step(connect, stream_type, metric_name, group_name, hw_selec
 def average_streams(streams):
     return streams[0]
 
-@app.route('/<connect>/stream_group_hw_avg/<stream_type>/<metric_name>/<group_name>/<hw_selector_list:hw_selects>')
-@hardwaredb.hardwaredb_route
-def stream_group_hw_avg(connect, stream_type, metric_name, group_name, hw_selects):
+@app.route('/<rconnect>/stream_avg/<list:streams>')
+@redis_route
+def stream_avg(rconnect, streams):
     args = stream_args(request.args)
 
+    data = redis_api.avg_streams(rconnect, [streams], **args)
+
+    # get the least most updated stream for the front end
+    min_end_time = get_min_end_time(data)
+
+    return jsonify(values=data, min_end_time=min_end_time)
+
+@app.route('/<connect>/stream_group_hw_avg/<stream_type>/<metric_name>/<group_name>/<hw_selector_list:hw_selects>')
+@app.route('/<connect>/stream_group_hw_avg/<stream_type>/<metric_name>/<group_name>/<hw_selector_list:hw_selects>/<int:downsample>')
+@hardwaredb.hardwaredb_route
+def stream_group_hw_avg(connect, stream_type, metric_name, group_name, hw_selects, downsample=1):
+    args = stream_args(request.args)
+
+    # downsample must be positive
+    if downsample < 1:
+        downsample = 1
+
     # build the instances
-    channels = [[str(x) for x in hardwaredb.select(hw_select)] for hw_select in hw_selects]
+    channels = [[str(x) for i,x in enumerate(hardwaredb.select(hw_select)) if i % downsample == 0] for hw_select in hw_selects]
  
     values, min_end_time = stream_group_online_avg(connect, stream_type, metric_name, group_name, channels, args)
 

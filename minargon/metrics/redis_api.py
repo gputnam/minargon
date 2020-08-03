@@ -1,3 +1,4 @@
+from minargon import app
 from redis import Redis
 from flask import jsonify
 import struct
@@ -137,27 +138,13 @@ def avg_streams(rdb, stream_list, n_data=None, start=None, stop=None):
         start += 1
     if stop is None:
         stop = u'+'
-
-    LUASCRIPT = """
-    local streamData = {}
-    for i = 1, #KEYS do
-        streamData[i] = redis.call("XREVRANGE", KEYS[i], ARGV[1], ARGV[2], "COUNT", ARGV[3]) 
-    end
-    return streamData[1]
-    """
-
-    LUASCRIPT_NOCOUNT = """
-    local streamData = {}
-    for i = 1, #KEYS do
-        streamData[i] = redis.call("XREVRANGE", KEYS[i], ARGV[1], ARGV[2]) 
-    end
-    return streamData[1]
-    """
-
     if n_data is None:
-        avg = rdb.register_script(LUASCRIPT_NOCOUNT)
-    else:
-        avg = rdb.register_script(LUASCRIPT)
+        n_data = -1
+
+    lua_avg = app.config["LUA_ASSETS"]["avg"]
+    lua_struct = app.config["LUA_ASSETS"]["struct"]
+
+    avg = rdb.register_script(lua_struct + lua_avg)
 
     ret = {}
     pipeline = rdb.pipeline()
@@ -167,9 +154,10 @@ def avg_streams(rdb, stream_list, n_data=None, start=None, stop=None):
     for streams, data in zip(stream_list, pipeline.execute()):
         stream = streams[0]
         ret[stream] = []
+        # data is already processed by the avg function
         for d in reversed(data):
-            time =  d[0].split("-")[0]
-            val = extract_datum(dict([tuple(d[1])]))
+            time =  d[0]
+            val = d[1]
             ret[stream].append( (time, val) )
 
     return ret
