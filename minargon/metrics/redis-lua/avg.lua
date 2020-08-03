@@ -36,8 +36,29 @@ function funcs.struct_map(cname)
   return nil
 end
 
+function funcs.dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. funcs.dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
 
 function funcs.get_time(streamID)
+    if type(streamID) ~= "string" then
+      if type(streamID["ok"]) == "string" then
+          streamID = streamID["ok"]
+      else
+          error("Expected string, got: " .. funcs.dump(streamID), 2)
+      end 
+    end
+
     local time, _ = string.match(streamID, "(.*)%-(.*)")
     return tonumber(time)
 end
