@@ -16,7 +16,7 @@ def test(chan):
 
 @app.route('/Flange_Overview')
 def Flange_Overview():
-    flanges = ["EW04", "EW05", "EW06", "EW07", "EW08"]
+    flanges = ["WE05", "WE06", "WE07", "WE09", "WE18", "WE19"]
     instance_name = "tpc_channel"
 
     config = online_metrics.get_group_config("online", instance_name, front_end_abort=True)
@@ -38,7 +38,7 @@ def Flange_Overview():
       "metric": "rms",
       "titles": titles,
       "hw_selects": [h for h in hw_selects],
-      "eventmeta_key": "eventmeta", # TODO: Set
+      "eventmeta_key": "eventmetaTPC",
     }
 
     return render_template('icarus/flange_overview.html', **render_args)
@@ -50,7 +50,7 @@ def TPC(hw_select=None):
     args["data"] = "rms"
     args["stream"] = "fast"
 
-    return timeseries_view(args, "tpc_channel", "", "wireLink", eventmeta_key="eventmeta", hw_select=hw_select)
+    return timeseries_view(args, "tpc_channel", "", "wireLink", eventmeta_key="eventmetaTPC", hw_select=hw_select)
 
 @app.route('/TPC_group_select')
 def TPC_group_select():
