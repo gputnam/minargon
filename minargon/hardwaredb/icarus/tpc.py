@@ -1,5 +1,5 @@
 from minargon.hardwaredb.DataLoader import DataQuery
-from minargon.hardwaredb import HWSelector
+from minargon.hardwaredb import HWSelector, hardwaredb_route
 
 queryUrl = "https://dbdata0vm.fnal.gov:9443/QE/hw/app/SQ/query" 
 db_name = "icarus_hardware_dev"
@@ -21,6 +21,7 @@ def to_display(s):
 def flatten(l):
     return [item for sublist in l for item in sublist]
 
+@hardwaredb_route
 def available_values(table, column):
     dataQuery = DataQuery(queryUrl)
     # make unique and ignore duplicates
@@ -32,6 +33,7 @@ def available_values(table, column):
         sorted_data = data
     return [HWSelector(table, column, d) for d in sorted_data]
 
+@hardwaredb_route
 def daq_channel_list(column, condition):
     dataQuery = DataQuery(queryUrl)
     channels = dataQuery.query(db_name, daq_table, "channel_id", 
@@ -39,6 +41,7 @@ def daq_channel_list(column, condition):
     channels = sorted([int(c) for c in channels if c], key=int)
     return channels
 
+@hardwaredb_route
 def flange_channel_list(column, condition):
     dataQuery = DataQuery(queryUrl)
     flange_ids = dataQuery.query(db_name, flange_table, "flange_id", 
@@ -54,6 +57,7 @@ def flange_channel_list(column, condition):
 
     return daq_channels
 
+@hardwaredb_route
 def slot_local_channel_map(column, condition):
     dataQuery = DataQuery(queryUrl)
     flange_ids = dataQuery.query(db_name, flange_table, "flange_id", 

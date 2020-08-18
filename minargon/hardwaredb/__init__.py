@@ -31,7 +31,7 @@ class HWSelectorListConverter(BaseConverter):
 class HardwareDBConnectionError:
     def __init__(self, err):
         self.err = err
-        self.msg = "Error accessing hardware DB."
+        self.msg = "Error accessing hardware DB: %s" % str(err.reason)
         self.name = "Hardware DB"
         self.front_end_abort = True
 
@@ -47,7 +47,7 @@ def hardwaredb_route(func):
     def wrapper(*args, **kwargs):
             try:
                 return func( *args, **kwargs)
-            except urllib2.HTTPError as err:
+            except (urllib2.HTTPError, urllib2.URLError) as err:
                 return abort(503, HardwareDBConnectionError(err))
     return wrapper
 
