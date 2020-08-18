@@ -20,7 +20,7 @@ export class CircularBuffer{
 
   // get the last element in the circular buffer -- fails if size == 0
   get_last() {
-    return this.get((this.first + this.size - 1) % this.capacity);
+    return this.get(this.size-1);
   }
 
   // push a new value to the end of the circular buffer

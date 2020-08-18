@@ -100,17 +100,6 @@ export class TimeSeriesScatter {
         traces.push(this.data_traces[i].trace());
       }
 
-      // Add any "warning-line" traces
-
-      // get the time range over which to draw the warning line line
-      var time_range = this.time_range();
-      for (var i = 0; i < this.warning_lines.length; i++) {
-        // make the trace
-        var this_traces = this.warning_lines[i].trace(time_range);
-        traces.push(this_traces[0]);
-        traces.push(this_traces[1]);
-      }
-
       var layout = this.build_layout();
 
       Plotly.newPlot(this.target, traces, layout);
@@ -141,21 +130,19 @@ export class TimeSeriesScatter {
           this.data[i][j] = dat[1];
          }
       }
-      this.redraw();
       this.update_warning_lines();
+      this.redraw();
     }
 
     redraw() {
-      // BUG IN PLOTLY.JS:
-      //
-      // Plotly is not always very good at cleaning up the old
-      // data in updating to a new plot. There is no way to do a partial redraw
-      // -- you need to re-do the whole thing.
-      this.draw();
+      // Plotly.redraw(this.target);
     }
 
     add_warning_line(name, range, y_axis_index) {
       this.warning_lines.push(new WarningRange(name, range, this._y_axes[y_axis_index]));
+      // get the time range over which to draw the warning line line
+      var time_range = this.time_range();
+      Plotly.addTraces(this.target, this.warning_lines[this.warning_lines.length-1].trace(time_range));
     }
 
     delete_warning_lines() {
@@ -179,7 +166,6 @@ export class TimeSeriesScatter {
       for (var i = 0; i < this.warning_lines.length; i++) {
         this.warning_lines[i].trace(time_range);
       }
-      Plotly.redraw(this.target);
     }
 
     build_layout() {

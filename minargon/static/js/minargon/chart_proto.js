@@ -11,8 +11,6 @@ export class WarningRange {
   trace(time_range) {
     var min_time = time_range[0];
     var max_time = time_range[1];
-    // if the traces are new, return them to be drawn
-    var do_ret = (this.min === undefined || this.max === undefined);
     if (this.min === undefined) {
       this.min = {
 	x: [min_time, max_time],
@@ -45,7 +43,7 @@ export class WarningRange {
       this.max.x[0] = min_time;
       this.max.x[1] = max_time;
     }
-    if (do_ret) return [this.min, this.max];
+    return [this.min, this.max];
   }
 }
 
