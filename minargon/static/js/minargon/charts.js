@@ -99,24 +99,21 @@ export class TimeSeriesScatter {
       for (var i = 0; i < this.n_data; i++) {
         traces.push(this.data_traces[i].trace());
       }
+
+      // Add any "warning-line" traces
+
+      // get the time range over which to draw the warning line line
+      var time_range = this.time_range();
+      for (var i = 0; i < this.warning_lines.length; i++) {
+        // make the trace
+        var this_traces = this.warning_lines[i].trace(time_range);
+        traces.push(this_traces[0]);
+        traces.push(this_traces[1]);
+      }
+
       var layout = this.build_layout();
 
-      if (!this.is_drawn) {
-        Plotly.newPlot(this.target, traces, layout);
-      }
-      else {
-        // BUG IN PLOTLY.JS:
-        //
-        // If a plot with multiple y-axes is re-drawn with new data, plotly
-        // will not always clean up the old data in the plot. So if there 
-        // are multiple y axes, we have to re-make the plot from scratch.
-        if (this._y_axes.length <= 1) {
-          Plotly.react(this.target, traces, layout);
-        }
-        else {
-          Plotly.newPlot(this.target, traces, layout);
-        }
-      }
+      Plotly.newPlot(this.target, traces, layout);
 
       this.is_drawn = true;
     }
@@ -149,18 +146,16 @@ export class TimeSeriesScatter {
     }
 
     redraw() {
-      // Plotly.redraw(this.target);
+      // BUG IN PLOTLY.JS:
+      //
+      // Plotly is not always very good at cleaning up the old
+      // data in updating to a new plot. There is no way to do a partial redraw
+      // -- you need to re-do the whole thing.
       this.draw();
     }
 
     add_warning_line(name, range, y_axis_index) {
       this.warning_lines.push(new WarningRange(name, range, this._y_axes[y_axis_index]));
-      // get the time range over which to draw this line
-      var time_range = this.time_range();
-      // make the trace
-      var traces = this.warning_lines[this.warning_lines.length-1].trace(time_range);
-      // draw them 
-      Plotly.addTraces(this.target, traces);
     }
 
     delete_warning_lines() {
