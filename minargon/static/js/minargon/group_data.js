@@ -217,7 +217,7 @@ export class GroupDataScatterController {
 
   updateTitleTime(data) {
     if (data.length > 0 && data[0].size > 0) {
-      this.last_data_time = moment.unix(Math.round(data[0].get_last()[0] / 1000));
+      this.last_data_time = moment.unix(Math.round(data[0].get_last()[0] / 1000)).tz("America/Chicago");
     }
     else {
       this.last_data_time = undefined;
@@ -513,7 +513,7 @@ export class GroupDataHistoController {
 
   updateTitleTime(data) {
     if (data.length > 0 && data[0].size > 0) {
-      this.last_data_time = moment.unix(Math.round(data[0].get_last()[0] / 1000));
+      this.last_data_time = moment.unix(Math.round(data[0].get_last()[0] / 1000)).tz("America/Chicago");
     }
     else {
       this.last_data_time = undefined;

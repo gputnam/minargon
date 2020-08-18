@@ -641,10 +641,15 @@ function create_cubism_context(target, step) {
     .each(function(d) {
      var axis = context.axis()
 	.ticks(12)
-	.orient(d);
-	//.focusFormat(focus_format);
-	d3.select(this).call(axis);
-      });
+	.orient(d)
+        .focusFormat(function(date) { 
+          return moment(date).tz("America/Chicago").format('HH:mm:ss') + " CST/GMT-6"; 
+        })
+        .tickFormat(function(date) {
+          return context.scale.tickFormat()(new Date(date.toLocaleString("en-US", {timeZone: "America/Chicago"})));
+        });
+     d3.select(this).call(axis);
+  });
 
   // delete old rule
   $(target + ' .rule').remove();

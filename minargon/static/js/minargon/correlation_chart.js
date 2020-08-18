@@ -76,7 +76,7 @@ export class CorrelationScatter {
         var dat = buffer_x.get(j);
         timestamps_x[j] = Math.round(dat[0] / 1000);
         times_x[j] =  moment.unix(Math.round(dat[0] / 1000))
-            .format("YYYY-MM-DD HH:mm:ss");
+            .tz("America/Chicago").format("YYYY-MM-DD HH:mm:ss");
         data_x[j] = dat[1];
 
         if (j > 0) {
@@ -93,7 +93,7 @@ export class CorrelationScatter {
         var dat = buffer_y.get(j);
         timestamps_y[j] = Math.round(dat[0] / 1000);
         times_y[j] =  moment.unix(Math.round(dat[0] / 1000))
-            .format("YYYY-MM-DD HH:mm:ss");
+            .tz("America/Chicago").format("YYYY-MM-DD HH:mm:ss");
         data_y[j] = dat[1];
 
         if (j > 0) {
