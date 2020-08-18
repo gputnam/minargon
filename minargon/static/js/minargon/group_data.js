@@ -180,7 +180,7 @@ export class GroupDataScatterController {
     var title = this.title + " " + metric_name;
     // add in the latest time
     if (this.last_data_time !== undefined) {
-      title += "<br> At " + this.last_data_time.format("MM-DD-YYYY HH:mm:ss");
+      title += "<br> At " + this.last_data_time.format("MM-DD-YYYY HH:mm:ss") + " (CST/GMT-6)";
     }
     var ret = {
       title: titleize(title),
@@ -478,7 +478,7 @@ export class GroupDataHistoController {
     var title = this.title + " " + metric_name;
     // add in the latest time
     if (this.last_data_time !== undefined) {
-      title += "<br> At " + this.last_data_time.format("MM-DD-YYYY HH:mm:ss");
+      title += "<br> At " + this.last_data_time.format("MM-DD-YYYY HH:mm:ss") + " (CST/GMT-6)";
     }
     var ret = {
       title: titleize(title),

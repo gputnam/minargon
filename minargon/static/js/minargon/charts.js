@@ -61,7 +61,7 @@ export class TimeSeriesScatter {
         var layout_update = {
           xaxis: {
             range: this._x_range,
-            title: "Time",
+            title: "Time (CST/GMT-6)",
             domain: [0, this.x_domain_hi]
           }
         };
@@ -174,7 +174,7 @@ export class TimeSeriesScatter {
       layout["name"] = this.plot_title;
       layout["xaxis"] = {
         range: this._x_range,
-        title: "Time"
+        title: "Time (CST/GMT-6)"
       };
       for (var i = 0; i < this._y_axes.length; i++) {
         layout[this._y_axes[i].layout_name()] = this._y_axes[i].build();
