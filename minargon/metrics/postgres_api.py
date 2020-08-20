@@ -144,6 +144,11 @@ def postgres_querymaker(IDs, start_t, stop_t, n_data, config, **table_args):
 	except TypeError:
 		raise PostgresURLException("Incorrect args to access table for database %s" % config["name"])
 		
+        # build the ndata string
+        if isinstance(n_data, int):
+            ndata_str = "LIMIT %i" % n_data
+        else:
+            ndata_str = ""
         # information needed by the query
         query_builder = {
 		"TIME": config["time_name"],
@@ -152,12 +157,12 @@ def postgres_querymaker(IDs, start_t, stop_t, n_data, config, **table_args):
 		"START": str(start_t / 1000.),
 		"STOP": str(stop_t / 1000.),
                 "IDs": ",".join(IDs),
-		"NDATA": n_data,
+		"NDATA_STR": ndata_str,
 	}
 
 	# Database query to execute, times converted to unix [ms]
 	query = "SELECT extract(epoch FROM {TIME})*1000 AS SAMPLE_TIME, CHANNEL_ID AS ID {VALUE_STRING} FROM {TABLE} WHERE CHANNEL_ID in ({IDs})"\
-                " AND {TIME} BETWEEN to_timestamp({START}) AND to_timestamp({STOP}) ORDER BY {TIME} DESC LIMIT {NDATA}".format(**query_builder)
+                " AND {TIME} BETWEEN to_timestamp({START}) AND to_timestamp({STOP}) ORDER BY {TIME} DESC {NDATA_STR}".format(**query_builder)
 	return query
 	
 def postgres_query(IDs, start_t, stop_t, n_data, connection, config, **table_args):
