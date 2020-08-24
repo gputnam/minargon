@@ -160,6 +160,12 @@ def stream(rconnect, name):
 
     return jsonify(values=data,min_end_time=min_end_time)
 
+@app.route('/<rconnect>/alarms')
+@redis_route
+def alarms(rconnect):
+    values = list(reversed(sorted(redis_api.fetch_alarms(rconnect).items(), key=lambda d: d[1]["time"])))
+    return jsonify(values=values)
+
 # get data and subscribe to a stream
 @app.route('/<rconnect>/stream_subscribe/<name>')
 @redis_route

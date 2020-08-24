@@ -62,6 +62,10 @@ def epics_last_value_pv(connection,pv):
     except jinja2.exceptions.TemplateNotFound:
         abort(404)
 
+@app.route('/<connection>/view_alarms')
+def view_alarms(connection):
+    return render_template('common/view_alarms.html', connection=connection)
+
 @app.route('/online_group/<group_name>')
 def online_group(group_name):
     return timeseries_view(request.args, group_name)
