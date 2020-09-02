@@ -1,0 +1,35 @@
+{% extends "layout.html" | front_ended %}
+{% block title %}{{title}}{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <div id="plotly-plot"></div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+{% block script %}
+<script defer type="module">
+import * as Poll from "{{ url_for('static', filename='js/minargon/poll.js') }}";
+var poll = new Poll.Poll($SCRIPT_ROOT + "/{{plotname}}");
+
+poll.add_callback(function(data) {
+  if (!data.plot) return;
+
+  var plotly_data = JSON.parse(data.plot);
+
+  console.log(plotly_data.layout);
+  Plotly.newPlot('plotly-plot', plotly_data.data, plotly_data.layout);
+
+  // update the step if the backend tells us to
+  if (data.step) {
+    this.timeout = step;
+  }
+
+});
+poll.run();
+
+</script>
+{% endblock %}

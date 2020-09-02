@@ -1,9 +1,9 @@
 from minargon import app
 import redis
-from flask import send_file
+from flask import send_file, jsonify
 import io
 from minargon.metrics.online_metrics import redis_route
-from minargon.metric.redis_api import get_streams
+from minargon.metrics.redis_api import get_streams
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -18,19 +18,52 @@ def binary(rconnect):
     last = get_streams(rconnect, ["PMT:0:rms:30s"], n_data=1)
     print last
 
-def pmt_heatmap():
-    #Create fake data. Replace with real data ASAP
-    #Rows refer to cluster and columns refer to Position address
-    r1_data = np.random.randint(1800, size=(8,10))
-    l1_data = np.random.randint(1800, size=(7,10))
-    r2_data = np.random.randint(1800, size=(8,10))
-    l2_data = np.random.randint(1800, size=(4,10))
+@app.route('/<rconnect>/pmt_heatmap')
+@redis_route
+def pmt_heatmap(rconnect):
+    # config for the data to look at
+    # TODO: this provably should be controllable by the website
+    metric = "rms"
+    stream = "30s"
 
-    r1_on = np.size(r1_data,0)
-    l1_on = np.size(l1_data,0)
-    r2_on = np.size(r2_data,0)
-    l2_on = np.size(l2_data,0)
+    # Eddie built a number of numpy arrays of size 8x10
+    # representing the PMT layout
 
+    # We need to connect the layout of these arrays to the
+    # PMT channel numbering scheme, likely through the 
+    # hardware database. For now, just assume (incorrectly)
+    # that the channel numbers match the array layout.
+
+    # set data to NAN as default
+    r1_data = np.zeros((9,10))
+    r1_data[:] = np.nan
+    l1_data = np.zeros((9,10))
+    l1_data[:] = np.nan
+    r2_data = np.zeros((9,10))
+    r2_data[:] = np.nan
+    l2_data = np.zeros((9,10))
+    l2_data[:] = np.nan
+
+    # get the most recent data
+    N_PMT = 360
+    streams = ["PMT:%i:%s:%s" % (i, metric, stream) for i in range(N_PMT)]
+    data = get_streams(rconnect, streams, n_data=1)
+
+    # FIXME: for now, implement the fake channel mapping
+    for i, s in enumerate(streams):
+        if i < 90: # first 90 data points go to R1
+          if data[s]:
+              r1_data[i%9][i/9] = data[s][0][1]
+        elif i < 160: # next 90 data points go to L1
+          if data[s]:
+              l1_data[i%9][i/9] = data[s][0][1]
+        elif i < 240: # next 90 data points go to R2
+          if data[s]:
+              r2_data[i%9][i/9] = data[s][0][1]
+        else: # last 90 data points go to L2
+          if data[s]:
+              l2_data[i%9][i/9] = data[s][0][1]
+    
     #Populate empty matricies for each heat map
     #First a set of matricies are created for where there are no PMTS
     r1_none = np.empty((5,45))
@@ -84,73 +117,77 @@ def pmt_heatmap():
         l2_labels.append([])
         if (x%2 != 0):
             for y in count:
-                if (y < r1_on):
+                if not np.isnan(r1_data[y, i]):
                     r1[x - 1, j + 1] = r1_data[y, i]
-                    r1[x - 1, j + 3] = r1_data[y, i + 1]
                     r1_labels[x - 1].append(None)
-                    r1_labels[x - 1].append("Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>ADC Count: " + str(r1_data[y, i]))
-                    r1_labels[x - 1].append(None)
-                    r1_labels[x - 1].append("Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>ADC Count: " + str(r1_data[y, i + 1]))
-                    r1_labels[x - 1].append(None)
+                    r1_labels[x - 1].append("Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>" + metric + ": " + str(r1_data[y, i]))
                 else:
                     r1_noData[x - 1, j + 1] = 1
+                    r1_labels[x - 1].append(None)
+                    r1_labels[x - 1].append("Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>" + metric + ": PMT OFF")
+                if not np.isnan(r1_data[y, i+1]):
+                    r1[x - 1, j + 3] = r1_data[y, i + 1]
+                    r1_labels[x - 1].append(None)
+                    r1_labels[x - 1].append("Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>" + metric + ": " + str(r1_data[y, i + 1]))
+                else:
                     r1_noData[x - 1, j + 3] = 1
                     r1_labels[x - 1].append(None)
-                    r1_labels[x - 1].append("Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>ADC Count: PMT OFF")
-                    r1_labels[x - 1].append(None)
-                    r1_labels[x - 1].append("Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>ADC Count: PMT OFF")
-                    r1_labels[x - 1].append(None)
+                    r1_labels[x - 1].append("Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>" + metric + ": PMT OFF")
+                r1_labels[x - 1].append(None)
 
-                if (y < l1_on):
+                if not np.isnan(l1_data[y, i]):
                     l1[x - 1, j + 1] = l1_data[y, i]
-                    l1[x - 1, j + 3] = l1_data[y, i + 1]
                     l1_labels[x - 1].append(None)
-                    l1_labels[x - 1].append("Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>ADC Count: " + str(l1_data[y, i]))
-                    l1_labels[x - 1].append( None)
-                    l1_labels[x - 1].append("Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>ADC Count: " + str(l1_data[y, i + 1]))
-                    l1_labels[x - 1].append(None)
+                    l1_labels[x - 1].append("Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>" + metric + ": " + str(l1_data[y, i]))
                 else:
                     l1_noData[x - 1, j + 1] = 1
-                    l1_noData[x - 1, j + 3] = 1
                     l1_labels[x - 1].append(None)
-                    l1_labels[x - 1].append("Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>ADC Count: PMT OFF")
+                    l1_labels[x - 1].append("Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>" + metric + ": PMT OFF")
+                if not np.isnan(l1_data[y, i + 1]):
+                    l1[x - 1, j + 3] = l1_data[y, i + 1]
                     l1_labels[x - 1].append( None)
-                    l1_labels[x - 1].append("Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>ADC Count: PMT OFF")
-                    l1_labels[x - 1].append(None)
+                    l1_labels[x - 1].append("Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>" + metric + ": " + str(l1_data[y, i + 1]))
+                else:
+                    l1_noData[x - 1, j + 3] = 1
+                    l1_labels[x - 1].append( None)
+                    l1_labels[x - 1].append("Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>" + metric + ": PMT OFF")
+                l1_labels[x - 1].append(None)
 
-                if (y < r2_on):
+                if not np.isnan(r2_data[y, i]):
                     r2[x - 1, j + 1] = r2_data[y, i]
-                    r2[x - 1, j + 3] = r2_data[y, i + 1]
                     r2_labels[x - 1].append(None)
-                    r2_labels[x - 1].append("Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>ADC Count: " + str(r2_data[y, i]))
-                    r2_labels[x - 1].append( None)
-                    r2_labels[x - 1].append("Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>ADC Count: " + str(r2_data[y, i + 1]))
-                    r2_labels[x - 1].append(None)
+                    r2_labels[x - 1].append("Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>" + metric + ": " + str(r2_data[y, i]))
                 else:
                     r2_noData[x - 1, j + 1] = 1
-                    r2_noData[x - 1, j + 3] = 1
                     r2_labels[x - 1].append(None)
-                    r2_labels[x - 1].append("Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>ADC Count: PMT OFF")
+                    r2_labels[x - 1].append("Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>" + metric + ": PMT OFF")
+                if not np.isnan(r2_data[y, i + 1]):
+                    r2[x - 1, j + 3] = r2_data[y, i + 1]
                     r2_labels[x - 1].append( None)
-                    r2_labels[x - 1].append("Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>ADC Count: PMT OFF")
-                    r2_labels[x - 1].append(None)
+                    r2_labels[x - 1].append("Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>" + metric + ": " + str(r2_data[y, i + 1]))
+                else:
+                    r2_noData[x - 1, j + 3] = 1
+                    r2_labels[x - 1].append( None)
+                    r2_labels[x - 1].append("Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>" + metric + ": PMT OFF")
+                r2_labels[x - 1].append(None)
 
-                if (y < l2_on):
+                if not np.isnan(l2_data[y, i]):
                     l2[x - 1, j + 1] = l2_data[y, i]
-                    l2[x - 1, j + 3] = l2_data[y, i + 1]
                     l2_labels[x - 1].append(None)
-                    l2_labels[x - 1].append("Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>ADC Count: " + str(l2_data[y, i]))
-                    l2_labels[x - 1].append( None)
-                    l2_labels[x - 1].append("Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>ADC Count: " + str(l2_data[y, i + 1]))
-                    l2_labels[x - 1].append(None)
+                    l2_labels[x - 1].append("Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>" + metric + ": " + str(l2_data[y, i]))
                 else:
                     l2_noData[x - 1, j + 1] = 1
-                    l2_noData[x - 1, j + 3] = 1
                     l2_labels[x - 1].append(None)
-                    l2_labels[x - 1].append("Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>ADC Count: PMT OFF")
+                    l2_labels[x - 1].append("Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x + k + 3) + "<br>" + metric + ": PMT OFF")
+                if not np.isnan(l2_data[y, i + 1]):
+                    l2[x - 1, j + 3] = l2_data[y, i + 1]
                     l2_labels[x - 1].append( None)
-                    l2_labels[x - 1].append("Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>ADC Count: PMT OFF")
-                    l2_labels[x - 1].append(None)
+                    l2_labels[x - 1].append("Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>" + metric + ": " + str(l2_data[y, i + 1]))
+                else:
+                    l2_noData[x - 1, j + 3] = 1
+                    l2_labels[x - 1].append( None)
+                    l2_labels[x - 1].append("Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x + k) + "<br>" + metric + ": PMT OFF")
+                l2_labels[x - 1].append(None)
 
                 r1_none[x - 1, j] = 1
                 r1_none[x - 1, j + 2] = 1
@@ -172,76 +209,69 @@ def pmt_heatmap():
             k = k - 1
         else:
             for y in count:
-                if (y < r1_on):
+                if not np.isnan(r1_data[y, i]):
                     r1[x - 1, j] = r1_data[y, i]
-                    r1[x - 1, j + 4] = r1_data[y, i + 1]
-                    r1_labels[x - 1].append("Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>ADC Count: " + str(r1_data[y, i]))
-                    r1_labels[x - 1].append(None)
-                    r1_labels[x - 1].append(None)
-                    r1_labels[x - 1].append(None)
-                    r1_labels[x - 1].append( "Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>ADC Count: " + str(r1_data[y, i + 1]))
+                    r1_labels[x - 1].append("Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>" + metric + ": " + str(r1_data[y, i]))
                 else:
                     r1_noData[x - 1, j] = 1
+                    r1_labels[x - 1].append("Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>" + metric + ": PMT OFF")
+                r1_labels[x - 1].append(None)
+                r1_labels[x - 1].append(None)
+                r1_labels[x - 1].append(None)
+                if not np.isnan(r1_data[y, i + 1]):
+                    r1[x - 1, j + 4] = r1_data[y, i + 1]
+                    r1_labels[x - 1].append( "Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>" + metric + ": " + str(r1_data[y, i + 1]))
+                else:
                     r1_noData[x - 1, j + 4] = 1
-                    r1_labels[x - 1].append("Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>ADC Count: PMT OFF")
-                    r1_labels[x - 1].append(None)
-                    r1_labels[x - 1].append(None)
-                    r1_labels[x - 1].append(None)
-                    r1_labels[x - 1].append( "Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>ADC Count: PMT OFF")
+                    r1_labels[x - 1].append( "Sector: 1R-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>" + metric + ": PMT OFF")
 
-                if (y < l1_on):
+                if not np.isnan(l1_data[y, i]):
                     l1[x - 1, j] = l1_data[y, i]
-                    l1[x - 1, j + 4] = l1_data[y, i + 1]
-                    l1_labels[x - 1].append("Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>ADC Count: " + str(l1_data[y, i]))
-                    l1_labels[x - 1].append(None)
-                    l1_labels[x - 1].append(None)
-                    l1_labels[x - 1].append(None)
-                    l1_labels[x - 1].append( "Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>ADC Count: " + str(l1_data[y, i + 1]))
+                    l1_labels[x - 1].append("Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>" + metric + ": " + str(l1_data[y, i]))
                 else:
                     l1_noData[x - 1, j] = 1
+                    l1_labels[x - 1].append("Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>" + metric + ": PMT OFF")
+                l1_labels[x - 1].append(None)
+                l1_labels[x - 1].append(None)
+                l1_labels[x - 1].append(None)
+                if not np.isnan(l1_data[y, i + 1]):
+                    l1[x - 1, j + 4] = l1_data[y, i + 1]
+                    l1_labels[x - 1].append( "Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>" + metric + ": " + str(l1_data[y, i + 1]))
+                else:
                     l1_noData[x - 1, j + 4] = 1
-                    l1_labels[x - 1].append("Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>ADC Count: PMT OFF")
-                    l1_labels[x - 1].append(None)
-                    l1_labels[x - 1].append(None)
-                    l1_labels[x - 1].append(None)
-                    l1_labels[x - 1].append( "Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>ADC Count: PMT OFF")
+                    l1_labels[x - 1].append( "Sector: 1L-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>" + metric + ": PMT OFF")
 
-
-                if (y < r2_on):
+                if not np.isnan(r2_data[y, i]):
                     r2[x - 1, j] = r2_data[y, i]
-                    r2[x - 1, j + 4] = r2_data[y, i + 1]
-                    r2_labels[x - 1].append("Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>ADC Count: " + str(r2_data[y, i]))
-                    r2_labels[x - 1].append(None)
-                    r2_labels[x - 1].append(None)
-                    r2_labels[x - 1].append(None)
-                    r2_labels[x - 1].append( "Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>ADC Count: " + str(r2_data[y, i + 1]))
+                    r2_labels[x - 1].append("Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>" + metric + ": " + str(r2_data[y, i]))
                 else:
                     r2_noData[x - 1, j] = 1
+                    r2_labels[x - 1].append("Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>" + metric + ": PMT OFF")
+                r2_labels[x - 1].append(None)
+                r2_labels[x - 1].append(None)
+                r2_labels[x - 1].append(None)
+                if not np.isnan(r2_data[y, i + 1]):
+                    r2[x - 1, j + 4] = r2_data[y, i + 1]
+                    r2_labels[x - 1].append( "Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>" + metric + ": " + str(r2_data[y, i + 1]))
+                else:
                     r2_noData[x - 1, j + 4] = 1
-                    r2_labels[x - 1].append("Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>ADC Count: PMT OFF")
-                    r2_labels[x - 1].append(None)
-                    r2_labels[x - 1].append(None)
-                    r2_labels[x - 1].append(None)
-                    r2_labels[x - 1].append( "Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>ADC Count: PMT OFF")
+                    r2_labels[x - 1].append( "Sector: 2R-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>" + metric + ": PMT OFF")
 
-                if (y < l2_on):
+                if not np.isnan(l2_data[y, i]):
                     l2[x - 1, j] = l2_data[y, i]
-                    l2[x - 1, j + 4] = l2_data[y, i + 1]
-                    l2_labels[x - 1].append("Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>ADC Count: " + str(l2_data[y, i]))
-                    l2_labels[x - 1].append(None)
-                    l2_labels[x - 1].append(None)
-                    l2_labels[x - 1].append(None)
-                    l2_labels[x - 1].append( "Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>ADC Count: " + str(l2_data[y, i + 1]))
+                    l2_labels[x - 1].append("Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>" + metric + ": " + str(l2_data[y, i]))
                 else:
                     l2_noData[x - 1, j] = 1
+                    l2_labels[x - 1].append("Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>" + metric + ": PMT OFF")
+                l2_labels[x - 1].append(None)
+                l2_labels[x - 1].append(None)
+                l2_labels[x - 1].append(None)
+                if not np.isnan(l2_data[y, i + 1]):
+                    l2[x - 1, j + 4] = l2_data[y, i + 1]
+                    l2_labels[x - 1].append( "Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>" + metric + ": " + str(l2_data[y, i + 1]))
+                else:
                     l2_noData[x - 1, j + 4] = 1
-                    l2_labels[x - 1].append("Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x - l + 8) + "<br>ADC Count: PMT OFF")
-                    l2_labels[x - 1].append(None)
-                    l2_labels[x - 1].append(None)
-                    l2_labels[x - 1].append(None)
-                    l2_labels[x - 1].append( "Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>ADC Count: PMT OFF")
-
-
+                    l2_labels[x - 1].append( "Sector: 2L-" + str(y + 1) + "<br>Position: " + str(x - l) + "<br>" + metric + ": PMT OFF")
 
                 r1_none[x - 1, j + 1] = 1
                 r1_none[x - 1, j + 2] = 1
@@ -264,11 +294,15 @@ def pmt_heatmap():
     fig = make_subplots(4, 1)
     fig.add_trace(go.Heatmap(
         z=l1_none,
+        hovertext=l1_labels,
+        hoverinfo="text",
         colorscale = [[0, 'rgb(255,255,255)'], [1, 'rgb(255,255,255)']],
         showscale=False
             ),1, 1)
     fig.add_trace(go.Heatmap(
         z=l1_noData,
+        hovertext=l1_labels,
+        hoverinfo="text",
         colorscale = [[0, 'rgb(0,0,0)'], [1, 'rgb(0,0,0)']],
         showscale=False
             ),1, 1)
@@ -281,11 +315,15 @@ def pmt_heatmap():
 
     fig.add_trace(go.Heatmap(
         z=r1_none,
+        hovertext=r1_labels,
+        hoverinfo="text",
         colorscale = [[0, 'rgb(255,255,255)'], [1, 'rgb(255,255,255)']],
         showscale=False
         ),2, 1)
     fig.add_trace(go.Heatmap(
         z=r1_noData,
+        hovertext=r1_labels,
+        hoverinfo="text",
         colorscale = [[0, 'rgb(0,0,0)'], [1, 'rgb(0,0,0)']],
         showscale=False
             ),2, 1)
@@ -298,11 +336,15 @@ def pmt_heatmap():
 
     fig.add_trace(go.Heatmap(
         z=l2_none,
+        hovertext=l2_labels,
+        hoverinfo="text",
         colorscale = [[0, 'rgb(255,255,255)'], [1, 'rgb(255,255,255)']],
         showscale=False
             ),3, 1)
     fig.add_trace(go.Heatmap(
         z=l2_noData,
+        hovertext=l2_labels,
+        hoverinfo="text",
         colorscale = [[0, 'rgb(0,0,0)'], [1, 'rgb(0,0,0)']],
         showscale=False
             ),3, 1)
@@ -315,11 +357,15 @@ def pmt_heatmap():
 
     fig.add_trace(go.Heatmap(
         z=r2_none,
+        hovertext=r2_labels,
+        hoverinfo="text",
         colorscale = [[0, 'rgb(255,255,255)'], [1, 'rgb(255,255,255)']],
         showscale=False
             ),4, 1)
     fig.add_trace(go.Heatmap(
         z=r2_noData,
+        hovertext=r2_labels,
+        hoverinfo="text",
         colorscale = [[0, 'rgb(0,0,0)'], [1, 'rgb(0,0,0)']],
         showscale=False
             ),4, 1)
@@ -371,10 +417,5 @@ def pmt_heatmap():
         coloraxis={'colorscale':[[0, "rgb(0,0,255)"],
         [0.5, "rgb(0,255,0)"],
         [1.0, "rgb(255,0,0)"]]})
-    fig.show(config={
-        'displayModeBar': False})
-    sio = StringIO()
-    fig.write_image(sio)
-    sio.seek(0)
-    return send_file(sio,mimetype="image/png")
+    return jsonify(plot=fig.to_json())
 

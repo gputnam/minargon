@@ -27,6 +27,11 @@ def hellooo():
 def index():
     return redirect(url_for('introduction'))
 
+@app.route('/view_plot')
+def view_plot():
+    plotname = request.args.get("plot", "")
+    return render_template("common/view_plot.html", plotname=plotname)
+
 @app.route('/introduction')
 def introduction():
     template = os.path.join(app.config["FRONT_END"], 'introduction.html')
@@ -37,7 +42,6 @@ def latest_gps_info(connection):
     dbrows = postgres_api.get_gps(connection, front_end_abort=True)     
 
     return render_template('common/gps_info.html',rows=dbrows)
-
 
 @app.route('/<connection>/icarus_cryo')
 def icarus_cryo(connection):
