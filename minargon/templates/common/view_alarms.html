@@ -25,14 +25,16 @@
 
 <div class="container">
 <div class="row">
-<h2>Recent Alarms</h2>
+<h2>Alarms Since <span id="recent-alarms"></span></h2>
 </div>
 <div class="row">
 <table id="alarm-table" class="hcenter">
   <tr>
     <th>Message</th>
-    <th>Count Since Yesterday</th>
+    <th>Count</th>
+    <th>Count Since (CST/GMT-6)</th>
     <th>Last Alarm Description</th>
+    <th>Last Alarm Log File</th>
     <th>Last Alarm Time (CST/GMT-6)</th>
     <th>Last Alarm Run</th>
     <th>Last Alarm Subrun</th>
@@ -45,17 +47,53 @@
 {% block script %}
 <script defer type="module">
 import * as Poll from "{{ url_for('static', filename='js/minargon/poll.js') }}";
+import {playMelody} from "{{ url_for('static', filename='js/minargon/sound.js') }}";
 
 var header = $("#alarm-table").find("tbody").html(); 
 
 // setup polling for event/run/subrun/time
 var poll = new Poll.Poll($SCRIPT_ROOT + "/{{connection}}/alarms");
+
+var alarmset = {};
+
+function checkAlarm(alarm) {
+  var found_match = false;
+  for (var key in alarmset) {
+    if (key == alarm[0]) {
+      if (alarm[1]["time"] == alarmset[key]) {
+        found_match = true;
+      }
+      break;
+    }
+  }
+  if (!found_match) {
+    playMelody(); 
+    alarmset[alarm[0]] = alarm[1]["time"];
+  }
+  return !found_match;
+}
+
 poll.add_callback(function(data) {
+  // go to the furthest last 12hr block FNAL time
+  var alarm_start = moment().tz("America/Chicago");
+    alarm_start.set({minutes: 0, seconds: 0});
+  if (alarm_start.get('hours') < 12) {
+    alarm_start.set({hours: 12});
+    alarm_start = alarm_start.subtract("days", 1);
+  }
+  else {
+    alarm_start.set({hours: 0});
+  }
+  $("#recent-alarms").html(alarm_start.format("MM/DD hh:mm A") + " CST/GMT-6");
+
   var alarms = data.values;
   $("#alarm-table").find("tbody").html(header);
+  var playedSound = false;
   for (var i = 0; i < alarms.length; i++) {
     var alarm = alarms[i][0];
     var description = alarms[i][1]["description"];
+    var since = new Date(parseInt(alarms[i][1]["start"])).toLocaleString("en-US", {timeZone: "America/Chicago"});
+    var logfile = alarms[i][1]["logfile"];
     var count = alarms[i][1]["count"];
     var timestr = new Date(parseInt(alarms[i][1]["time"])).toLocaleString("en-US", {timeZone: "America/Chicago"});
     var evt = alarms[i][1]["event"];
@@ -65,13 +103,22 @@ poll.add_callback(function(data) {
     <tr>
       <th>${alarm}</th>
       <th>${count}</th>
+      <th>${since}</th>
       <th>${description}</th>
+      <th>${logfile}</th>
       <th>${timestr}</th>
       <th>${run}</th>
       <th>${subrun}</th>
       <th>${evt}</th>
     </tr>
     `); 
+    
+    // don't replay
+    if (!playedSound) {
+      if (checkAlarm(alarms[i])) {
+        playedSound = true;
+      }
+    }
   }
 });
 poll.run();

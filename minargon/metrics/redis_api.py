@@ -118,7 +118,7 @@ def get_key(rdb, key):
 
 def fetch_alarms(rdb):
     # first load all the alarm keys
-    keys = rdb.smembers("ALARMS")
+    keys = set(rdb.smembers("ALARMS_MIDNIGHT")) | set(rdb.smembers("ALARMS_MIDDAY"))
     # load the members
     pipeline = rdb.pipeline()
     for key in keys:
@@ -127,6 +127,12 @@ def fetch_alarms(rdb):
     for key, alarm in zip(keys, pipeline.execute()):
         ret[key] = alarm
     return ret
+
+def get_expire(rdb, *keys):
+    pipeline = rdb.pipeline()
+    for k in keys:
+        pipeline.ttl(k)
+    return list(pipeline.execute())
 
 # get most recent data point from a set of streams
 def get_last_streams(rdb, stream_list,count=1):
