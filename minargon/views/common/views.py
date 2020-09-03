@@ -29,7 +29,7 @@ def index():
 
 @app.route('/view_plot')
 def view_plot():
-    plotname = request.args.get("plot", "")
+    plotname = request.args.get("url", "")
     return render_template("common/view_plot.html", plotname=plotname)
 
 @app.route('/introduction')
