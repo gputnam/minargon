@@ -400,7 +400,7 @@ def pmt_heatmap(rconnect):
     fig.update_yaxes(showticklabels=False, row=4, col=1)
 
     fig.update_layout(title={
-        'text': "PMT ADC Count",
+        'text': "PMT %s" % metric,
         'y':0.95,
         'x':0.5,
         'xanchor': 'center',
