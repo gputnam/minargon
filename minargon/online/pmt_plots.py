@@ -9,15 +9,6 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
 
-
-@app.route('/<rconnect>/print_last')
-#@app.route('/<pmt_heatmap>')
-@redis_route
-def binary(rconnect):
-    # get the last value from the "example" stream and print it
-    last = get_streams(rconnect, ["PMT:0:rms:30s"], n_data=1)
-    print last
-
 @app.route('/<rconnect>/pmt_heatmap')
 @redis_route
 def pmt_heatmap(rconnect):
