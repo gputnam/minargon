@@ -8,7 +8,7 @@ from minargon.metrics import online_metrics
 import os.path
 from datetime import date, datetime
 
-from minargon import hardwaredb
+from minargon.hardwaredb import hardwaredb_route
 
 """
 	Routes intented to be seen by the user	
@@ -62,6 +62,10 @@ def epics_last_value_pv(connection,pv):
     except jinja2.exceptions.TemplateNotFound:
         abort(404)
 
+@app.route('/<connection>/view_alarms')
+def view_alarms(connection):
+    return render_template('common/view_alarms.html', connection=connection)
+
 @app.route('/online_group/<group_name>')
 def online_group(group_name):
     return timeseries_view(request.args, group_name)
@@ -79,7 +83,7 @@ def single_stream(stream_name):
 def pvTree(connection):
     return render_template('common/pvTree.html', data=postgres_api.pv_internal(connection, "pv_single_stream", front_end_abort=True))
 
-@hardwaredb.hardwaredb_route
+@hardwaredb_route
 def timeseries_view(args, instance_name, view_ident="", link_function="undefined", eventmeta_key=None, hw_select=None):
     # TODO: what to do with this?
     initial_datum = args.get('data', None)

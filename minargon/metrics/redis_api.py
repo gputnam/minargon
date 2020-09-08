@@ -116,6 +116,18 @@ def get_key(rdb, key):
         redis_data = 0 
     return redis_data
 
+def fetch_alarms(rdb):
+    # first load all the alarm keys
+    keys = rdb.smembers("ALARMS")
+    # load the members
+    pipeline = rdb.pipeline()
+    for key in keys:
+        pipeline.hgetall(key)
+    ret = {}
+    for key, alarm in zip(keys, pipeline.execute()):
+        ret[key] = alarm
+    return ret
+
 # get most recent data point from a set of streams
 def get_last_streams(rdb, stream_list,count=1):
     ret = {}

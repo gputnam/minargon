@@ -1,0 +1,80 @@
+{% extends "layout.html" | front_ended %}
+{% block title %}{{title}}{% endblock %}
+{% block body %}
+{{ super() }}
+    <style>
+      table
+      {
+        border:1px solid black;padding:5px;font-size: 110%
+      }
+      td
+      { 
+        text-align:right;
+        border:1px solid grey;padding:5px;
+      }
+      th
+      {
+        text-align:center;
+        border:1px solid grey;padding:5px;
+      }
+      body
+      {
+        margin: 28px;
+      }
+    </style>
+
+<div class="container">
+<div class="row">
+<h2>Recent Alarms</h2>
+</div>
+<div class="row">
+<table id="alarm-table" class="hcenter">
+  <tr>
+    <th>Message</th>
+    <th>Count Since Yesterday</th>
+    <th>Last Alarm Description</th>
+    <th>Last Alarm Time (CST/GMT-6)</th>
+    <th>Last Alarm Run</th>
+    <th>Last Alarm Subrun</th>
+    <th>Last Alarm Event</th>
+  </tr>
+</table>
+</div>
+</div>
+{%endblock%}
+{% block script %}
+<script defer type="module">
+import * as Poll from "{{ url_for('static', filename='js/minargon/poll.js') }}";
+
+var header = $("#alarm-table").find("tbody").html(); 
+
+// setup polling for event/run/subrun/time
+var poll = new Poll.Poll($SCRIPT_ROOT + "/{{connection}}/alarms");
+poll.add_callback(function(data) {
+  var alarms = data.values;
+  $("#alarm-table").find("tbody").html(header);
+  for (var i = 0; i < alarms.length; i++) {
+    var alarm = alarms[i][0];
+    var description = alarms[i][1]["description"];
+    var count = alarms[i][1]["count"];
+    var timestr = new Date(parseInt(alarms[i][1]["time"])).toLocaleString("en-US", {timeZone: "America/Chicago"});
+    var evt = alarms[i][1]["event"];
+    var subrun = alarms[i][1]["subrun"];
+    var run = alarms[i][1]["run"];
+    $("#alarm-table").find("tbody").append(`
+    <tr>
+      <th>${alarm}</th>
+      <th>${count}</th>
+      <th>${description}</th>
+      <th>${timestr}</th>
+      <th>${run}</th>
+      <th>${subrun}</th>
+      <th>${evt}</th>
+    </tr>
+    `); 
+  }
+});
+poll.run();
+
+</script>
+{% endblock %}
