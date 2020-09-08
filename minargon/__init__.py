@@ -59,6 +59,8 @@ app.url_map.converters['stream'] = StreamConverter
 from .hardwaredb import HWSelectorConverter, HWSelectorListConverter
 app.url_map.converters["hw_selector"] = HWSelectorConverter
 app.url_map.converters["hw_selector_list"] = HWSelectorListConverter
+# load in the hardwaredb
+import hardwaredb
 
 # routes
 if app.config["FRONT_END"] == "sbnd":

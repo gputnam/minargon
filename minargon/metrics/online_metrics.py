@@ -12,7 +12,7 @@ from pytz import timezone
 import redis_api
 import postgres_api
 from psycopg2.extras import RealDictCursor
-from minargon import hardwaredb
+from minargon.hardwaredb import hardwaredb_route, select
 
 # error class for connecting to redis
 class RedisConnectionError:
@@ -223,7 +223,7 @@ def stream_group_subscribe(rconnect, stream_type, metric_names, group_name, inst
 @app.route('/<connect>/stream_group/<stream_type>/<list:metric_names>/<group_name>/<int:instance_start>/<int:instance_end>')
 @app.route('/<connect>/stream_group/<stream_type>/<list:metric_names>/<group_name>/<list:instance_list>')
 @app.route('/<connect>/stream_group/<stream_type>/<list:metric_names>/<group_name>/hw_select/<hw_selector:hw_select>')
-@hardwaredb.hardwaredb_route
+@hardwaredb_route
 def stream_group(connect, stream_type, metric_names, group_name, instance_start=None, instance_end=None, instance_list=None, hw_select=None):
     args = stream_args(request.args)
 
@@ -242,11 +242,11 @@ def stream_group(connect, stream_type, metric_names, group_name, instance_start=
         return jsonify(values=values, min_end_time=min_end_time)
 
 @app.route('/<connect>/stream_group_hw_step/<stream_type>/<metric_name>/<group_name>/<hw_selector:hw_select>')
-@hardwaredb.hardwaredb_route
+@hardwaredb_route
 def stream_group_hw_step(connect, stream_type, metric_name, group_name, hw_select):
     args = stream_args(request.args)
     # get an instance
-    instance = hardwaredb.select(hw_select)[0]
+    instance = select(hw_select)[0]
     # build a key
     key = "%s:%s:%s:%s" % (group_name, instance, metric_name, stream_type)
     # get the step
@@ -270,7 +270,7 @@ def stream_avg(rconnect, streams):
 
 @app.route('/<connect>/stream_group_hw_avg/<stream_type>/<metric_name>/<group_name>/<hw_selector_list:hw_selects>')
 @app.route('/<connect>/stream_group_hw_avg/<stream_type>/<metric_name>/<group_name>/<hw_selector_list:hw_selects>/<int:downsample>')
-@hardwaredb.hardwaredb_route
+@hardwaredb_route
 def stream_group_hw_avg(connect, stream_type, metric_name, group_name, hw_selects, downsample=1):
     args = stream_args(request.args)
 
@@ -279,7 +279,7 @@ def stream_group_hw_avg(connect, stream_type, metric_name, group_name, hw_select
         downsample = 1
 
     # build the instances
-    channels = [[str(x) for i,x in enumerate(hardwaredb.select(hw_select)) if i % downsample == 0] for hw_select in hw_selects]
+    channels = [[str(x) for i,x in enumerate(select(hw_select)) if i % downsample == 0] for hw_select in hw_selects]
  
     values, min_end_time = stream_group_online_avg(connect, stream_type, metric_name, group_name, channels, args)
 
