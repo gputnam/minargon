@@ -22,6 +22,7 @@
 	<script src="{{ url_for('static', filename='js/library/cubism.v1.js') }}"></script> 
 	<script src="{{ url_for('static', filename='js/moment/moment-timezone-with-data.min.js') }}" defer></script> 
         <script src="{{ url_for('static', filename='js/library/jquery.datetimepicker.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/minargon/minargon.js') }}"></script>
 
         <!-- $SCRIPT_ROOT for app location -->
         <script type="text/javascript">
@@ -99,6 +100,14 @@
               <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>TPC<b class='caret'></b></a>
                 <ul class='dropdown-menu bg-maroon'>
 	          {{ nav_link('Flange_Overview', 'Flange Overview') }}
+                  <li class="dropdown-submenu bg-maroon nav-item">
+                    <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>TPC Flanges<b class='caret'></b></a>
+                    <ul class="dropdown-menu bg-maroon">
+                      {% for TPC in TPCs %}
+                        {{ nav_link('TPC_Flange_Overview', TPC, TPC=TPC) }}
+                      {% endfor %}
+                    </ul>
+                  </li>
                   {{ nav_link('channel_snapshot', 'Waveforms') }}
 	          {{ nav_link('TPC_group_select', 'Group Select') }}
             	  {{ nav_link('NoiseCorr', 'Noise Correlation') }}
