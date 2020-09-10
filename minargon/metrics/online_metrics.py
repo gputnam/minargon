@@ -78,6 +78,11 @@ def test_redis(rconnect):
         raise Exception("Redis cannot get foo")
     return str(x)
 
+@app.route('/<rconnect>/ping_redis')
+@redis_route
+def ping_redis(rconnect):
+    return jsonify(data=rconnect.ping())
+
 # get a datum stored in a snapshot
 @app.route('/<rconnect>/snapshot/<data>')
 @redis_route
@@ -232,7 +237,7 @@ def stream_group(connect, stream_type, metric_names, group_name, instance_start=
     elif instance_start is not None and instance_end is not None: 
         instances = [str(x) for x in range(instance_start, instance_end)]
     elif hw_select is not None:
-        instances = [str(x) for x in hardwaredb.select(hw_select)]
+        instances = [str(x) for x in select(hw_select)]
 
     if stream_type == "archived":
         values = stream_group_archived(connect, stream_type, metric_names, group_name, instances, args)

@@ -114,7 +114,9 @@
              {{ nav_link('CRT_board', 'Side CRT') }} 
              {{ nav_link('pvTree', 'ICARUS EPICS', connection='epics') }}
              <li class="nav-item"><A class='nav-link' HREF=/icarus/dcs/>Archiver Status</A></li>
-             {{ nav_link('icarus_cryo', 'ICARUS CRYO', connection='epics') }}
+             {{ nav_link('icarus_cryo', 'CRYO', connection='epics') }}
+             {{ nav_link('cathodehv', 'CathodeHV', connection='epics') }}
+    
              <!--{{ nav_link('purity', 'Purity', group_name='TPC')}}-->
              {{ nav_link('view_streams', 'Data Browser')}}
            </ul>

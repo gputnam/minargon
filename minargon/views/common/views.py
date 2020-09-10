@@ -19,6 +19,10 @@ def test_error():
     sys.stderr.write("Flask error logging test")
     raise Exception("Flask exception logging test")
 
+@app.route('/verify_on')
+def verify_on():
+    return jsonify(success=True)
+
 @app.route('/hellooo')
 def hellooo():
     return 'Hellooooooo!'
