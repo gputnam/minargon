@@ -4,10 +4,11 @@ export class Poll {
   constructor(link) {
     this.link = link;    
     this.callbacks = [];
+    this.timeout = 5000;
   }
 
   add_callback(f) {
-    this.callbacks.push(f);
+    this.callbacks.push(f.bind(this));
   }
 
   run() {
@@ -19,7 +20,7 @@ export class Poll {
      for (var i = 0; i < self.callbacks.length; i++) {
        self.callbacks[i](data);
      }
-     setTimeout(self.run.bind(self), 5000);
+     setTimeout(self.run.bind(self), self.timeout);
     });
   }
 

@@ -10,6 +10,10 @@ flange_columns = ["flange_pos_at_chimney", "tpc_id"]
 flange_table = "flanges"
 readout_table = "readout_boards"
 
+# For now, hard-code this
+# TODO: use caching or a faster DB so we don't have to do this
+TPCs = ["WW", "WE", "EW", "EE"]
+
 def to_column(s):
     return s.replace(" ", "_").lower()
 
@@ -58,6 +62,15 @@ def flange_channel_list(column, condition):
     return daq_channels
 
 @hardwaredb_route
+def flange_list(column, condition):
+    dataQuery = DataQuery(queryUrl)
+    flange_ids = dataQuery.query(db_name, flange_table, "flange_pos_at_chimney", 
+        to_column(column) + ':eq:%s' % condition)
+    flanges = [c for c in flange_ids if c]
+    print flanges
+    return flanges
+
+@hardwaredb_route
 def slot_local_channel_map(column, condition):
     dataQuery = DataQuery(queryUrl)
     flange_ids = dataQuery.query(db_name, flange_table, "flange_id", 
@@ -86,6 +99,7 @@ def available_selectors():
 SELECTORS = {}
 SELECTORS[daq_table] = daq_channel_list
 SELECTORS[flange_table] = flange_channel_list
+SELECTORS[flange_table + "_flanges"] = flange_list
 
 MAPPINGS = {}
 MAPPINGS[flange_table] = {}

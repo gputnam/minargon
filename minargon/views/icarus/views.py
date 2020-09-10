@@ -9,14 +9,25 @@ from minargon.views.common.views import timeseries_view
 
 from minargon import hardwaredb
 
+# load template injectors
+import inject
+
 @app.route('/test/<int:chan>')
 def test(chan):
     channels =  hardwaredb.icarus_tpc.tpc_channel_list("readout_board_id", str(chan))
     return str(channels)
 
+@app.route('/TPC_Flange_Overview/<TPC>')
+def TPC_Flange_Overview(TPC):
+    flanges = hardwaredb.select(hardwaredb.HWSelector("flanges_flanges", "tpc_id", TPC))
+    return flange_page(flanges)
+
 @app.route('/Flange_Overview')
 def Flange_Overview():
     flanges = ["WE05", "WE06", "WE07", "WE09", "WE18", "WE19"]
+    return flange_page(flanges)
+
+def flange_page(flanges):
     instance_name = "tpc_channel"
 
     config = online_metrics.get_group_config("online", instance_name, front_end_abort=True)

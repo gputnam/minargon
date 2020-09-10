@@ -93,7 +93,7 @@ def stream_args(args):
     ret = {}
     ret["start"] = args.get('start',None,type=parseiso_or_int)
     ret["stop"] = args.get('stop', None,type=parseiso_or_int)
-    ret["n_data"] = args.get('n_data', None, type=int)
+    ret["n_data"] = args.get('n_data', 1000, type=int)
 
     return ret
     
