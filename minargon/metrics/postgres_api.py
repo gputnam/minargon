@@ -541,7 +541,7 @@ def pv_internal(connection, link_name=None, ret_id=None):
 @postgres_route
 def get_icarus_cryo(connection):
   cursor = connection[0].cursor();
-  query = """select name,last_smpl_time,to_char(last_float_val,'99999D99') from dcs_prd.channel where name like 'icarus_cryo%/temp' or name like 'icarus_cryo%/level'"""
+  query = """select name,last_smpl_time,to_char(last_float_val,'99999D99') from dcs_prd.channel where grp_id=8"""
 
   cursor.execute(query);
   dbrows = cursor.fetchall();

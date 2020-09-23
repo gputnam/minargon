@@ -10,7 +10,8 @@
 <P>
 
 <TABLE>
-<TR><TH>East Cryostat</TH><TH>West Cryostat</TH></TR>
+<TR><TH>East Cryostat&nbsp;&nbsp;&minus;&nbsp;&Delta;P<a href="{{ url_for('pv_single_stream', database=connection, ID='162') }}" id="icarus_cryo_e/pressure">&nbsp;</a>&nbsp;mbar</TH>
+    <TH>West Cryostat&nbsp;&nbsp;&minus;&nbsp;&Delta;P<a href="{{ url_for('pv_single_stream', database=connection, ID='161') }}" id="icarus_cryo_w/pressure">&nbsp;</a>&nbsp;mbar</TH></TR>
 
 <TR><TD>
 
@@ -63,7 +64,7 @@
     <TD>
       <TABLE>
         <TR><TH COLSPAN=3 style="width:190px">RLM SE</TH></TR>
-        <TR><TD>+1.5cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database=connection, ID='56') }}"  id="icarus_cryo_ees_p15/level">&nbsp;</TD><TD id="icarus_cryo_ees_p15/level/led" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD></TR>
+        <TR><TD>+1.5cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database=connection, ID='56') }}"  id="icarus_cryo_ees_p15/level">&nbsp;</TD><TD id="icarus_cryo_ees_p15/level/led" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD></TR>
         <TR><TD>0cm</TD>     <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database=connection, ID='88') }}"  id="icarus_cryo_ees_000/level">&nbsp;</TD><TD id="icarus_cryo_ees_000/level/led" class="led-green">&nbsp;</TD></TR>
         <TR><TD>&nbsp;</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database=connection, ID='89') }}"  id="icarus_cryo_ees_100/level">&nbsp;</TD><TD id="icarus_cryo_ees_100/level/led" class="led-green">&nbsp;</TD></TR>
         <TR><TD>-2.0cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database=connection, ID='90') }}"  id="icarus_cryo_ees_m20/level">&nbsp;</TD><TD id="icarus_cryo_ees_m20/level/led" class="led-green">&nbsp;</TD></TR>
