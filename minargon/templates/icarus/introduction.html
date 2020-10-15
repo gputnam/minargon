@@ -23,6 +23,10 @@ DAQConsumer operation is: <span id="OM-status"> </span>
 <br>
 
 Archiver operation is: <span id="AR-status"> </span>
+
+<br>
+
+Redis Memory Usage is: <span id="redis-mem"><span id="redis-mem-GB"> </span>GB / <span id="redis-mem-percent"> </span>%</span>
 </p>
 {%endblock%}
 
@@ -106,6 +110,32 @@ poll_pmt.add_callback(function(data) {
     } 
 });
 poll_pmt.run();
+
+var poll_redis_mem_gb = new Poll.Poll($SCRIPT_ROOT + "/online/total_memory_usage");
+poll_redis_mem_gb.add_callback(function(data) {
+    if (!data || !data.val) return;
+    var spanid = "#redis-mem-GB";
+    $(spanid).text((data.val / (1024 * 1024 * 1024)).toFixed(2));
+});
+poll_redis_mem_gb.run();
+
+var poll_redis_mem_frac = new Poll.Poll($SCRIPT_ROOT + "/online/total_memory_usage_fraction");
+poll_redis_mem_frac.add_callback(function(data) {
+    if (!data || !data.val) return;
+    var spanid = "#redis-mem-percent";
+    $(spanid).text((data.val * 100).toFixed(2));
+
+    spanid = "#redis-mem";
+    if (data.val > 0.85) {
+      $(spanid).css({"color": "red"});
+    }
+    else {
+      $(spanid).css({"color": "green"});
+    }
+   
+});
+poll_redis_mem_frac.run();
+
 </script> 
 {%endblock%}
 

@@ -78,6 +78,19 @@ def test_redis(rconnect):
         raise Exception("Redis cannot get foo")
     return str(x)
 
+@app.route('/<rconnect>/total_memory_usage')
+@redis_route
+def total_memory_usage(rconnect):
+    return jsonify(val=rconnect.info()['used_memory'])
+
+@app.route('/<rconnect>/total_memory_usage_fraction')
+@redis_route
+def total_memory_usage_fraction(rconnect):
+    maxmem = int(rconnect.config_get('maxmemory')['maxmemory'])
+    if maxmem == 0: val = 0
+    else: val = float(rconnect.info()['used_memory']) / maxmem
+    return jsonify(val=val)
+
 @app.route('/<rconnect>/ping_redis')
 @redis_route
 def ping_redis(rconnect):
