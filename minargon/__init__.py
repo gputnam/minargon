@@ -76,7 +76,7 @@ import minargon.views.common.error
 
 import minargon.metrics.online_metrics
 import minargon.metrics.postgres_api
-import minargon.online
+#import minargon.online
 
 # load lua scripts for redis
 app.config["LUA_ASSETS"] = {}

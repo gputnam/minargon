@@ -67,7 +67,6 @@ def flange_list(column, condition):
     flange_ids = dataQuery.query(db_name, flange_table, "flange_pos_at_chimney", 
         to_column(column) + ':eq:%s' % condition)
     flanges = [c for c in flange_ids if c]
-    print flanges
     return flanges
 
 @hardwaredb_route
