@@ -277,6 +277,7 @@ export class LineChart {
     // 	      plotly plot
     constructor(n_data, target, layout, range, xdata, text) {
         this.data = new Array(n_data);
+        this.time = new Array(n_data);
         this.n_data = n_data;
         this.target = target;
         if (xdata === undefined) {
@@ -289,6 +290,7 @@ export class LineChart {
             this.xdata = xdata
         }
 
+        this.text_base = text.slice(); // clone
         this.text = text;
 
         this.draw(layout);
@@ -381,6 +383,9 @@ export class LineChart {
         for (var i = 0; i < this.data.length; i ++) {
             if (data[i].size > 0) {
               this.data[i] = data[i].get_last()[1];
+              this.time[i] = moment.unix(data[i].get_last()[0] / 1000.).tz("America/Chicago").format("YYYY-MM-DD HH:mm:ss");
+              this.text[i] = "At: " + this.time[i];
+              if (this.text_base) this.text[i] = this.text[i] + "<br>" + this.text_base[i];
             }
             else {
               this.data[i] = 0;
