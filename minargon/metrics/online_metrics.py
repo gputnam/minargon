@@ -3,7 +3,7 @@ from flask import jsonify, Response, request, abort
 from redis import Redis
 import redis.exceptions
 import json
-from minargon.tools import parseiso, parseiso_or_int, stream_args
+from minargon.tools import parseiso, parseiso_or_int, stream_args, LOCAL_TZ
 from functools import wraps
 from datetime import datetime, timedelta # needed for testing only
 import calendar
@@ -253,7 +253,12 @@ def stream_group(connect, stream_type, metric_names, group_name, instance_start=
         instances = [str(x) for x in select(hw_select)]
 
     if stream_type == "archived":
-        values = stream_group_archived(connect, stream_type, metric_names, group_name, instances, args)
+        # if we just need the most recent value, we can look in the monitor map
+        if args['n_data'] == 1:
+            values = stream_group_archived_last(connect, stream_type, metric_names, group_name, instances)
+        # otherwise do the full lookup
+        else:
+            values = stream_group_archived(connect, stream_type, metric_names, group_name, instances, args)
         return jsonify(values=values)
     else:
         values, min_end_time = stream_group_online(connect, stream_type, metric_names, group_name, instances, args)
@@ -265,10 +270,14 @@ def stream_group_hw_step(connect, stream_type, metric_name, group_name, hw_selec
     args = stream_args(request.args)
     # get an instance
     instance = select(hw_select)[0]
-    # build a key
-    key = "%s:%s:%s:%s" % (group_name, instance, metric_name, stream_type)
+
     # get the step
-    return infer_step_size_online(connect, key)
+    if stream_type == "archived":
+        return infer_step_size_archived(connect, stream_type, [metric_name], group_name, instance)
+    else:
+        # build a key
+        key = "%s:%s:%s:%s" % (group_name, instance, metric_name, stream_type)
+        return infer_step_size_online(connect, key)
 
 
 def average_streams(streams):
@@ -292,6 +301,10 @@ def stream_avg(rconnect, streams):
 def stream_group_hw_avg(connect, stream_type, metric_name, group_name, hw_selects, downsample=1):
     args = stream_args(request.args)
 
+    # the hw-averaging can't handle archived data for now
+    if stream_type == "archived":
+       return jsonify(values={}, min_end_time=0)
+
     # downsample must be positive
     if downsample < 1:
         downsample = 1
@@ -310,12 +323,57 @@ def stream_group_hw_avg(connect, stream_type, metric_name, group_name, hw_select
     return jsonify(values=ret, min_end_time=min_end_time)
 
 @postgres_api.postgres_route
+def stream_group_archived_last(connection, stream_type, metric_names, group_name, instances):
+    connection, config = connection
+
+    # first figure out if any of the provided metrics are being archived
+    cursor = connection.cursor(cursor_factory=RealDictCursor)
+    query = "SELECT METRIC,CHANNEL_ID,extract(epoch FROM LAST_SMPL_TIME_A)*1000 AS SAMPLE_TIME_A,LAST_SMPL_VALUE_A from RUNCON_PRD.MONITOR_MAP where CHANNEL_ID IN ({INSTANCES}) AND GROUP_NAME = '{GROUP_NAME}' "\
+            "AND METRIC = '{METRIC_NAME}'"
+
+    qs = []
+    for metric in metric_names:
+        query_builder = {
+          "INSTANCES":  ",".join(instances),
+          "METRIC_NAME": metric,
+          "GROUP_NAME": group_name
+        }
+        qs.append(query.format(**query_builder))
+    query = ";".join(qs)
+
+    try:
+        cursor.execute(query)
+    except:
+        cursor.execute("ROLLBACK")
+        connection.commit()
+        raise
+
+    ret = {}
+    for metric in metric_names:
+        ret[metric] = {}
+        for inst in instances:
+            ret[metric][inst] = []
+
+
+    data = cursor.fetchall()
+    for line in data:
+        metric = str(line["metric"]) 
+        ID = str(line["channel_id"])
+        val = line["last_smpl_value_a"]
+        time = line["sample_time_a"]
+        if val and time:
+            val = float(val)
+            ret[metric][ID].append((time, val))
+
+    return ret
+
+@postgres_api.postgres_route
 def infer_step_size_archived(connection, stream_type, metric_names, group_name, instance):
     connection, config = connection
 
     # first figure out if any of the provided metrics are being archived
     cursor = connection.cursor(cursor_factory=RealDictCursor)
-    query = "SELECT POSTGRES_TABLE from RUNCON_PRD.MONITOR_MAP where CHANNEL_ID = {INSTANCE} AND GROUP_NAME = '{GROUP_NAME}' "\
+    query = "SELECT POSTGRES_TABLE,extract(epoch FROM LAST_SMPL_TIME_A)*1000 AS SAMPLE_TIME_A,extract(epoch FROM LAST_SMPL_TIME_B)*1000 AS SAMPLE_TIME_B from RUNCON_PRD.MONITOR_MAP where CHANNEL_ID = {INSTANCE} AND GROUP_NAME = '{GROUP_NAME}' "\
             "AND METRIC = '{METRIC_NAME}'"
     for metric in metric_names:
         query_builder = {
@@ -332,40 +390,16 @@ def infer_step_size_archived(connection, stream_type, metric_names, group_name, 
             raise
 
         data = cursor.fetchall()
+        # The table exists! Get the step
         if len(data) > 0:
-            metric_name = metric
-            break
+            data = data[0]
+            B = data['sample_time_b'] 
+            A = data['sample_time_a'] 
+            if A and B:
+                return jsonify(step=abs(A-B))
  
     # no table exists -- just return step of 0
-    else:
-        return jsonify(step=0)
-
-    start = datetime.now(timezone('UTC')) - timedelta(days=100)  # Start time
-    start = calendar.timegm(start.timetuple()) *1e3 + start.microsecond/1e3 # convert to unix ms
-    stop = datetime.now(timezone('UTC'))
-    stop = calendar.timegm(stop.timetuple()) *1e3 + stop.microsecond/1e3 # convert to unix ms
-
-    cursor = connection.cursor(cursor_factory=RealDictCursor)
-
-    query = postgres_api.postgres_querymaker([instance], start, stop, config, name=group_name, metric=metric_name, avg="mean")
-    try:
-        cursor.execute(query)
-    except:
-        cursor.execute("ROLLBACK")
-        connection.commit()
-        raise
-
-    data = cursor.fetchall()
-    # Get the sample size from last two values in query
-    step_size = None
-    if len(data) >= 2:
-        step_size = data[len(data) - 1]['sample_time'] - data[len(data) - 2]['sample_time'] 
-
-    # Catch for if no step size exists
-    if step_size == None:
-        step_size = 1e3
-
-    return jsonify(step=step_size)
+    return jsonify(step=0)
 
 @postgres_api.postgres_route
 def stream_group_archived(connection, stream_type, metric_names, group_name, instances, args):
@@ -411,8 +445,15 @@ def stream_group_archived(connection, stream_type, metric_names, group_name, ins
         for inst in instances:
             ret[metric][inst] = []
 
+    # Set the number of data points to query from postgres
+    # We can set the overall limit to ("N" data points per instance) * (# instances)
+    # This won't perfectly give each instance N data points, but it is close enough
+    n_data = args["n_data"]
+    if isinstance(n_data, int):
+        n_data = n_data * len(instances)
+
     # build the query
-    query = ";".join([postgres_api.postgres_querymaker(instances, start, stop, config, name=group_name, metric=metric, avg="mean") for metric in metric_names])
+    query = ";".join([postgres_api.postgres_querymaker(instances, start, stop, n_data, config, name=group_name, metric=metric, avg="mean") for metric in metric_names])
     if len(query) > 0:
         try:
             cursor.execute(query)
@@ -425,7 +466,7 @@ def stream_group_archived(connection, stream_type, metric_names, group_name, ins
     else:
         data = []
 
-    for line in data:
+    for line in reversed(data):
         ID = str(line["id"])
         val = line["val0"]
         time = line["sample_time"]

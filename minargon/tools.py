@@ -3,7 +3,9 @@ from datetime import datetime
 import calendar
 
 from werkzeug.routing import BaseConverter
+import pytz
 
+LOCAL_TZ = pytz.timezone("US/Central")
 
 class ListConverter(BaseConverter):
     def to_python(self, value):
@@ -93,7 +95,7 @@ def stream_args(args):
     ret = {}
     ret["start"] = args.get('start',None,type=parseiso_or_int)
     ret["stop"] = args.get('stop', None,type=parseiso_or_int)
-    ret["n_data"] = args.get('n_data', 1000, type=int)
+    ret["n_data"] = args.get('n_data', None, type=int)
 
     return ret
     
