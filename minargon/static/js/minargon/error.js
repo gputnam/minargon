@@ -20,6 +20,7 @@ export function throw_database_error(d3_error, reporter) {
   }
   else {
     warning_text = "Unknown error";
+    console.log(d3_error);
   }
   warning_text = warning_text + " (" + reporter + ")";
   // avoid duplicate warnings

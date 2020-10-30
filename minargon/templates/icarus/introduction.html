@@ -40,9 +40,13 @@ import {throw_database_error} from "{{ url_for('static', filename='js/minargon/e
 // monitor DAQConsumer
 var timeout = 5 * 1000; // ms
 
-function is_recent(time, time_is_ok) {
+function time_delta(earlier) {
   var now = moment(new Date).tz("America/Chicago").unix() * 1000. /* s -> ms */;
-  var ret = (now - time) < time_is_ok;
+  return Math.max(0, now - earlier);
+}
+
+function is_recent(time, time_is_ok) {
+  return time_delta(time) < time_is_ok;
   return ret;
 }
 
@@ -56,18 +60,22 @@ function update_is_recent(data_link, spanid, time_is_ok) {
 
     var datalist = data.values[data_link.accessors()[0][0]];
     var recent;
+    var delta_str = "";
+    
     if (datalist.length == 0) {
       recent = false;
     }
     else {
       recent = is_recent(datalist[datalist.length-1][0], time_is_ok);
+      var delta = (time_delta(datalist[datalist.length-1][0]) / 1000.).toFixed(0);
+      delta_str = " (" + String(delta) + "s)";
     }
     if (recent) {
-      $(spanid).text("ON");
+      $(spanid).text("ON" + delta_str);
       $(spanid).css({"color": "green"});
     }
     else {
-      $(spanid).text("OFF");
+      $(spanid).text("OFF" + delta_str);
       $(spanid).css({"color": "red"});
     }
     setTimeout(function() {update_is_recent(data_link, spanid, time_is_ok);}, timeout);
@@ -80,18 +88,20 @@ var data_link_ar = new Data.D3DataLink(new DataLink.SingleStreamLink($SCRIPT_ROO
 update_is_recent(data_link_ar, "#AR-status", 120 * 1000 /* ms */);
 
 var data_link_om = new Data.D3DataLink(new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", "DAQConsumer")); 
-update_is_recent(data_link_om, "#OM-status", 10 * 1000 /* ms*/);
+update_is_recent(data_link_om, "#OM-status", 120 * 1000 /* ms*/);
 
 
 var poll_tpc = new Poll.Poll($SCRIPT_ROOT + "/online/hget/eventmetaTPC/run,subrun,event,time");
 poll_tpc.add_callback(function(data) {
     var spanid = "#TPC-OM";
-    if (is_recent(data.time, 10 * 1000 /* 10 s*/)) {
-      $(spanid).text("ON");
+    var delta = (time_delta(data.time) / 1000.).toFixed(0);
+    var delta_str = " (" + String(delta) + "s)";
+    if (is_recent(data.time, 120 * 1000 /* 120 s*/)) {
+      $(spanid).text("ON" + delta_str);
       $(spanid).css({"color": "green"});
     }
     else {
-      $(spanid).text("OFF");
+      $(spanid).text("OFF" + delta_str);
       $(spanid).css({"color": "red"});
     } 
 });
@@ -100,12 +110,14 @@ poll_tpc.run();
 var poll_pmt = new Poll.Poll($SCRIPT_ROOT + "/online/hget/eventmetaPMT/run,subrun,event,time");
 poll_pmt.add_callback(function(data) {
     var spanid = "#PMT-OM";
-    if (is_recent(data.time, 10 * 1000 /* 10 s*/)) {
-      $(spanid).text("ON");
+    var delta = (time_delta(data.time) / 1000.).toFixed(0);
+    var delta_str = " (" + String(delta) + "s)";
+    if (is_recent(data.time, 120 * 1000 /* 120 s*/)) {
+      $(spanid).text("ON" + delta_str);
       $(spanid).css({"color": "green"});
     }
     else {
-      $(spanid).text("OFF");
+      $(spanid).text("OFF" + delta_str);
       $(spanid).css({"color": "red"});
     } 
 });

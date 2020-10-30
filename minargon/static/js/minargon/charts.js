@@ -290,8 +290,15 @@ export class LineChart {
             this.xdata = xdata
         }
 
-        this.text_base = text.slice(); // clone
-        this.text = text;
+        if (text) {
+          this.text_base = text.slice(); // clone
+          this.text = text;
+        }
+        else {
+          this.text_base = text;
+          this.text = [];
+        }
+
 
         this.draw(layout);
 
