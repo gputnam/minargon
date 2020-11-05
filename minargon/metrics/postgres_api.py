@@ -15,7 +15,7 @@ import json
 from psycopg2.extras import RealDictCursor
 from minargon.tools import parseiso, parseiso_or_int, stream_args
 from minargon import app
-from flask import jsonify, request, render_template, abort
+from flask import jsonify, request, render_template, abort, g
 from datetime import datetime, timedelta # needed for testing only
 import time
 import calendar
@@ -69,8 +69,6 @@ class PostgresURLException(Exception):
 #________________________________________________________________________________________________
 # database connection configuration
 postgres_instances = app.config["POSTGRES_INSTANCES"]
-# storing different connections to be accessed by routes
-p_databases = {}
 
 def make_connection(connection_name, config):
 	key = config["epics_secret_key"]
@@ -84,8 +82,7 @@ def make_connection(connection_name, config):
 	except IOError as err:
 		connection = PostgresConnectionError().register_fileopen_error(err, connection_name)
 		success = False
-		p_databases[connection_name] = (connection, config, success)
-		return
+                return (connection, success)
 	
         config["web_name"] = connection_name
 	# Connect to the database
@@ -96,12 +93,15 @@ def make_connection(connection_name, config):
 		connection = PostgresConnectionError().register_postgres_error(err, connection_name)
 		success = False
 	
-	# store it
-	p_databases[connection_name] = (connection, config, success)
+	# return
+        return connection, success
 
-# get the connections from the config
-for connection_name, config in postgres_instances.items():
-	make_connection(connection_name, config)
+def get_postgres_db(connection_name, config):
+    db = getattr(g, '_epics_%s' % connection_name, None)
+    if db is None:
+        db = make_connection(connection_name, config)
+        setattr(g, '_epics_%s' % connection_name, db)
+    return db
 
 #________________________________________________________________________________________________
 # decorator for getting the correct database from the provided link
@@ -111,12 +111,9 @@ def postgres_route(func):
 	def wrapper(connection, *args, **kwargs):
                 connection_name = connection
 		front_end_abort = kwargs.pop("front_end_abort", False)
-		if connection in p_databases:
-			connection_name = connection
-			connection, config, success = p_databases[connection]
-			if success and connection.closed > 0:
-				make_connection(connection_name, config)
-				connection, config, success = p_databases[connection_name]
+		if connection_name in postgres_instances:
+                        config = postgres_instances[connection_name]
+                        connection, success = get_postgres_db(connection_name, config)
 			if success:
 				try:
 					return func((connection,config), *args, **kwargs)
@@ -132,9 +129,9 @@ def postgres_route(func):
 	return wrapper
 
 def is_valid_connection(connection_name):
-    if connection_name not in p_databases:
+    if connection_name not in postgres_instances:
         return False
-    connection, config, success = p_databases[connection_name]
+    connection, success = get_postgres_db(connection_name, postgres_instances[connection_name])
     return success
 
 #________________________________________________________________________________________________
