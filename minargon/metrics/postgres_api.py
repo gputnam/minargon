@@ -72,8 +72,7 @@ postgres_instances = app.config["POSTGRES_INSTANCES"]
 # storing different connections to be accessed by routes
 p_databases = {}
 
-# get the connections from the config
-for connection_name, config in postgres_instances.items():
+def make_connection(connection_name, config):
 	key = config["epics_secret_key"]
 	database_name = config["name"]
 	host = config["host"]
@@ -86,7 +85,7 @@ for connection_name, config in postgres_instances.items():
 		connection = PostgresConnectionError().register_fileopen_error(err, connection_name)
 		success = False
 		p_databases[connection_name] = (connection, config, success)
-		continue
+		return
 	
         config["web_name"] = connection_name
 	# Connect to the database
@@ -99,6 +98,11 @@ for connection_name, config in postgres_instances.items():
 	
 	# store it
 	p_databases[connection_name] = (connection, config, success)
+
+# get the connections from the config
+for connection_name, config in postgres_instances.items():
+	make_connection(connection_name, config)
+
 #________________________________________________________________________________________________
 # decorator for getting the correct database from the provided link
 def postgres_route(func):
@@ -108,7 +112,11 @@ def postgres_route(func):
                 connection_name = connection
 		front_end_abort = kwargs.pop("front_end_abort", False)
 		if connection in p_databases:
+			connection_name = connection
 			connection, config, success = p_databases[connection]
+			if success and connection.closed > 0:
+				make_connection(connection_name, config)
+				connection, config, success = p_databases[connection_name]
 			if success:
 				try:
 					return func((connection,config), *args, **kwargs)
