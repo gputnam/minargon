@@ -10,7 +10,8 @@ export var available_functions = [
   function(a, b) {return a - b;},
   function(a, b) {return a * b;},
   function(a, b) {return a / b;},
-  function(a, b) {return Math.atan(a / b) * 180 / Math.PI;}
+  function(a, b) {return Math.atan(a / b) * 180 / Math.PI;},
+  function(a, b) {return Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));}
 ];
 
 export var available_function_names = [
@@ -19,6 +20,7 @@ export var available_function_names = [
   "{A} * {B}",
   "{A} / {B}",
   "arctan({A} / {B}) [deg]",
+  "sqrt({A}^2 + {B}^2)"
 ];
 
 // This file contains a class for plotting the function between two different metrics
