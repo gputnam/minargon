@@ -324,6 +324,30 @@ def view_correlation(streamX, streamY):
     }
     return render_template("common/view_correlation.html", **render_args)
 
+@app.route('/view_functor/<stream:streamA>/<stream:streamB>/<int:find>')
+def view_functor(streamA, streamB, find):
+    if isinstance(streamA, PostgresDataStream):
+        streamAarg = "postgres_" + streamA.name + "=" + str(streamA.ID)
+    else:
+        streamAarg = "redis_" + streamA.name + "=" + str(streamA.key)
+
+    if isinstance(streamB, PostgresDataStream):
+        streamBarg = "postgres_" + streamB.name + "=" + str(streamB.ID)
+    else:
+        streamBarg = "redis_" + streamB.name + "=" + str(streamB.key)
+ 
+
+    render_args = {
+      "streamA": streamA.to_config(),
+      "streamB": streamB.to_config(),
+      "urlStreamA": streamA,
+      "urlstreamB": streamB,
+      "streamAarg": streamAarg,
+      "streamBarg": streamBarg,
+      "find": find
+    }
+    return render_template("common/view_functor.html", **render_args)
+
 @app.route('/view_streams')
 def view_streams():
     postgres_stream_info = {}

@@ -50,6 +50,24 @@
                       </div>
                     </div>
                     {% endif %}
+                    {% if postgres_streams|length + redis_streams|length == 2 %}
+                    <div class="form-group row">
+                      <div class="col-sm-12">
+                        <button type="button" class="btn btn-link">
+                          {% if postgres_streams|length == 2 %}
+                          <a id="functor-link" href="{{ url_for('view_functor', streamA=make_postgres_stream(postgres_streams[0]), streamB=make_postgres_stream(postgres_streams[1]), find=0) }}"> 
+                          {% elif redis_streams|length == 2 %}
+                          <a id="functor-link" href="{{ url_for('view_functor', streamA=make_redis_stream(redis_streams[0]), streamB=make_redis_stream(redis_streams[1]), find=0) }}">
+                          {% else %}
+                          <a id="functor-link" href="{{ url_for('view_functor', streamA=make_postgres_stream(postgres_streams[0]), streamB=make_redis_stream(redis_streams[0]), find=0) }}">
+                          {% endif %}
+                            View Function
+                          </a>
+                        </button>
+                        <select name="functions" id="functions" class="form-control"></select>
+                      </div>
+                    </div>
+                    {% endif %}
                     {{ stream_options.update_page("update", ["tree"], ["fuzzy", "checked"]) }}
 
                     {{ stream_options.checked_select("checked", checked) }}
@@ -94,6 +112,25 @@
 {% block script %}
 <script defer type="module">
 import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
+import {available_functions, available_function_names} from "{{ url_for('static', filename='js/minargon/functor.js') }}";
+
+// Add the options to the select
+                    
+{% if postgres_streams|length + redis_streams|length == 2 %}
+for (var i = 0; i < available_function_names.length; i++) {
+  $("#functions").append(new Option(available_function_names[i], i));
+}
+
+$('#functions').on('change', function() {
+  var link = $("#functor-link").attr("href");
+  var newlink = link.split("/");
+  newlink[newlink.length-1] = this.value;
+  newlink = newlink.join("/");
+  $("#functor-link").attr("href", newlink);
+});
+
+{% endif %}
+
 // build the links
 var links = [];
 var configs = [];

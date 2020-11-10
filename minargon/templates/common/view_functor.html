@@ -1,0 +1,83 @@
+{% import "stream_options_macro.html" | common as stream_options %}
+
+{% extends "layout.html" | front_ended %}
+{% block title %}Stream: {{ID}}{% endblock %}
+{% block body %}
+{{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
+<div class="container">
+<div class="row">
+    <div class="col-md-12">
+	<!-- plotly div -->
+	<div style="padding:0" id="plotly-functor"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4 hcenter">
+        <div class="card">
+            <div class="card-header">Display Options</div>
+            <div class="card-body">
+                <form class="form" role="form">
+                    <div class="form-group row">
+                      <div class="col-sm-12">
+                        <button type="button" class="btn btn-link">
+                          <a href="{{ url_for('view_streams') }}?{{streamAarg}}&{{streamBarg}}"> 
+                            View Streams
+                          </a>
+                        </button>
+                      </div>
+                    </div>
+                    {{ stream_options.time_range("start", "end", "toggle") }}
+                    {{ stream_options.download("download") }}
+	        </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{%endblock%}
+{% block script %}
+<script defer type="module">
+import * as module from "{{ url_for('static', filename='js/minargon/functor.js') }}";
+{% set typeA,IDA,databaseA,configA = streamA %}
+{% set typeB,IDB,databaseB,configB = streamB %}
+
+{% if typeA == "redis" %}
+  var linkA = new module.Data.D3DataLink(new module.DataLink.SingleStreamLink($SCRIPT_ROOT + '/{{databaseA}}', "{{IDA}}"));
+  var configA = {{configA|tojson}};
+  var nameA = "{{IDA}}";
+{% elif typeA == "postgres" %}
+  var linkA = new module.Data.D3DataLink(new module.DataLink.EpicsStreamLink($SCRIPT_ROOT, '{{databaseA}}', "{{IDA}}"));
+  var configA = {{configA|tojson}};
+  {% if "yTitle" in configA %}
+      var nameA = "{{configA['yTitle']}}";
+  {% else %}
+      var nameA = "{{IDA}}";
+  {% endif %}
+{% endif %}
+
+{% if typeB == "redis" %}
+  var linkB = new module.Data.D3DataLink(new module.DataLink.SingleStreamLink($SCRIPT_ROOT + '/{{databaseB}}', "{{IDB}}"));
+  var configB = {{configB|tojson}};
+  var nameB = "{{IDB}}";
+{% elif typeB == "postgres" %}
+  var linkB = new module.Data.D3DataLink(new module.DataLink.EpicsStreamLink($SCRIPT_ROOT, '{{databaseB}}', "{{IDB}}"));
+  var configB = {{configB|tojson}};
+  {% if "yTitle" in configB %}
+      var nameB = "{{configB['yTitle']}}";
+  {% else %}
+      var nameB = "{{IDB}}";
+  {% endif %}
+{% endif %}
+
+// build the plot controller
+var plot_controller = new module.FunctorController("plotly-functor", linkA, nameA, linkB, nameB, 
+    module.available_functions[{{find}}], module.available_function_names[{{find}}])
+    .timeRangeController("#start", "#end", "#toggle")
+    .downloadDataController("#download");
+   
+// start it
+plot_controller.run();
+
+</script>
+{% endblock %}
