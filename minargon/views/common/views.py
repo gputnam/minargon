@@ -341,7 +341,7 @@ def view_functor(streamA, streamB, find):
       "streamA": streamA.to_config(),
       "streamB": streamB.to_config(),
       "urlStreamA": streamA,
-      "urlstreamB": streamB,
+      "urlStreamB": streamB,
       "streamAarg": streamAarg,
       "streamBarg": streamBarg,
       "find": find
