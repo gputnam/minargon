@@ -66,7 +66,7 @@ def cathodehv(connection):
     dbrows = postgres_api.get_epics_last_value(connection,'cathodehv')     
 
     try:
-        return render_template('icarus/cathodehv.html',rows=dbrows)
+        return render_template('icarus/cathodehv.html',rows=dbrows, connection=connection)
     except jinja2.exceptions.TemplateNotFound:
         abort(404)
 
