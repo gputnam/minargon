@@ -43,13 +43,20 @@ class HardwareDBConnectionError:
         return self.name
 
 def get_hw_db(db_name, db_file):
-    db = getattr(g, '_%s' % db_name, None)
+    db = getattr(g, '_sqlite_%s' % db_name, None)
     if db is None:
         fd = os.open(db_file, os.O_RDONLY)
         db = sqlite3.connect('/dev/fd/%d' % fd)
         os.close(fd)
-        setattr(g, '_%s' % db_name, db)
+        setattr(g, '_sqlite_%s' % db_name, db)
     return db
+
+@app.teardown_appcontext
+def close_sqlite_connections(exception):
+    for connection_name in app.config["SQLITE_INSTANCES"]: 
+        db = getattr(g, '_sqlite_%s' % connection_name, None)
+        if db is not None:
+            db.close()
 
 # Decorator which handles and HardwareDB related access errors
 def hardwaredb_route(db_name):

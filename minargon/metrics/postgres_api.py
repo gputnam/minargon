@@ -103,6 +103,15 @@ def get_postgres_db(connection_name, config):
         setattr(g, '_epics_%s' % connection_name, db)
     return db
 
+@app.teardown_appcontext
+def close_postgres_connections(exception):
+    for connection_name in postgres_instances:
+        db = getattr(g, '_epics_%s' % connection_name, None)
+        if db is not None:
+            connection, success = db
+            if success:
+                connection.close()
+
 #________________________________________________________________________________________________
 # decorator for getting the correct database from the provided link
 def postgres_route(func):
