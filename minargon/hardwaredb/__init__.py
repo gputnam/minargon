@@ -71,7 +71,6 @@ def hardwaredb_route(db_name):
                 try:
                     return func(conn, *args, **kwargs)
                 except (sqlite3.OperationalError, sqlite3.ProgrammingError, sqlite3.InternalError, ValueError) as err:
-                    print(err)
                     return abort(503, HardwareDBConnectionError(err))
         return wrapper
     return hardwaredb_route_decorator
