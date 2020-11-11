@@ -1,8 +1,9 @@
 from minargon import app
 from werkzeug.routing import BaseConverter
-from flask import abort
+from flask import abort, g
 from functools import wraps
-import urllib2
+import sqlite3
+import os
 
 class HWSelector:
     def __init__(self, table, column, value):
@@ -31,7 +32,7 @@ class HWSelectorListConverter(BaseConverter):
 class HardwareDBConnectionError:
     def __init__(self, err):
         self.err = err
-        self.msg = "Error accessing hardware DB: %s" % str(err.reason)
+        self.msg = "Error accessing hardware DB: %s" % str(err)
         self.name = "Hardware DB"
         self.front_end_abort = True
 
@@ -41,15 +42,32 @@ class HardwareDBConnectionError:
     def database_name(self):
         return self.name
 
+def get_hw_db(db_name, db_file):
+    db = getattr(g, '_%s' % db_name, None)
+    if db is None:
+        fd = os.open(db_file, os.O_RDONLY)
+        db = sqlite3.connect('/dev/fd/%d' % fd)
+        os.close(fd)
+        setattr(g, '_%s' % db_name, db)
+    return db
+
 # Decorator which handles and HardwareDB related access errors
-def hardwaredb_route(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-            try:
-                return func( *args, **kwargs)
-            except (urllib2.HTTPError, urllib2.URLError) as err:
-                return abort(503, HardwareDBConnectionError(err))
-    return wrapper
+def hardwaredb_route(db_name):
+    def hardwaredb_route_decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+                if db_name not in app.config["SQLITE_INSTANCES"]: 
+                    return abort(404)
+                conn = get_hw_db(db_name, app.config["SQLITE_INSTANCES"][db_name]["file"])
+                if not isinstance(conn, sqlite3.Connection):
+                    return abort(503, HardwareDBConnectionError(conn))
+                try:
+                    return func(conn, *args, **kwargs)
+                except (sqlite3.OperationalError, sqlite3.ProgrammingError, sqlite3.InternalError, ValueError) as err:
+                    print(err)
+                    return abort(503, HardwareDBConnectionError(err))
+        return wrapper
+    return hardwaredb_route_decorator
 
 hw_mappings = {}
 hw_selectors = {}

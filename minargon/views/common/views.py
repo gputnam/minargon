@@ -100,7 +100,6 @@ def single_stream(stream_name):
 def pvTree(connection):
     return render_template('common/pvTree.html', data=postgres_api.pv_internal(connection, "pv_single_stream", front_end_abort=True))
 
-@hardwaredb.hardwaredb_route
 def timeseries_view(args, instance_name, view_ident="", link_function="undefined", eventmeta_key=None, hw_select=None):
     # TODO: what to do with this?
     initial_datum = args.get('data', None)

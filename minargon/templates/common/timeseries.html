@@ -82,7 +82,9 @@ var config = {{config|tojson|safe}};
   {% set hw_select = hw_select|tojson %}
 {% endif %}
 
-var config_controller = new Config.GroupConfigController(config, {{link_function}}, ["{{metric}}"], {{channels}}, 0, 25, {{hw_select}}, {{channel_map}})
+var channels = {{channels}};
+
+var config_controller = new Config.GroupConfigController(config, {{link_function}}, ["{{metric}}"], channels, 0, 25, {{hw_select}}, {{channel_map}})
     .metricController("#form-metric")
     .streamController("#form-stream"); 
 
@@ -109,7 +111,12 @@ var plotly = config_controller.addPlotlyController("time-scatter")
    .downloadDataController("#download");
 
 // start the controllers
-config_controller.runAll();
+if (channels.length > 0) {
+  config_controller.runAll();
+}
+else {
+  alert("No channels available!");
+}
 
 // function to update href
 function wireLink(group, instance) {

@@ -1,8 +1,6 @@
-from minargon.hardwaredb.DataLoader import DataQuery
 from minargon.hardwaredb import HWSelector, hardwaredb_route
 
-queryUrl = "https://dbdata0vm.fnal.gov:9443/QE/hw/app/SQ/query" 
-db_name = "icarus_hardware_dev"
+db_name = "icarus_tpc_hw"
 daq_columns = ["readout_board_id", "chimney_number", "readout_board_slot", "plane", "cable_label_number", "channel_type"]
 daq_table = "daq_channels"
 
@@ -25,66 +23,98 @@ def to_display(s):
 def flatten(l):
     return [item for sublist in l for item in sublist]
 
-@hardwaredb_route
-def available_values(table, column):
-    dataQuery = DataQuery(queryUrl)
+@hardwaredb_route(db_name)
+def available_values(conn, table, column):
+    cur = conn.cursor()
+    data = cur.execute("SELECT %s FROM %s" % (to_column(column), table))
     # make unique and ignore duplicates
-    data = list(set([x for x in dataQuery.query(db_name, table, to_column(column)) if x]))
+    data = list(set([x[0] for x in data if x]))
     # if numeric, sort
     try:
         sorted_data = sorted(data, key=int)
     except:
         sorted_data = data
+    cur.close()
     return [HWSelector(table, column, d) for d in sorted_data]
 
-@hardwaredb_route
-def daq_channel_list(column, condition):
-    dataQuery = DataQuery(queryUrl)
-    channels = dataQuery.query(db_name, daq_table, "channel_id", 
-        to_column(column) + ':eq:%s' % condition)
-    channels = sorted([int(c) for c in channels if c], key=int)
+@hardwaredb_route(db_name)
+def daq_channel_list(conn, column, condition):
+    cur = conn.cursor()
+
+    column = to_column(column)
+    if column not in daq_columns:
+       raise ValueError("Column (%s) is not an available selector in table %s" % (column, daq_table))
+
+    channels = cur.execute("SELECT channel_id FROM %s WHERE %s=?" % (daq_table, column), (condition,))
+    channels = sorted([int(c[0]) for c in channels if c], key=int)
+
+    cur.close()
     return channels
 
-@hardwaredb_route
-def flange_channel_list(column, condition):
-    dataQuery = DataQuery(queryUrl)
-    flange_ids = dataQuery.query(db_name, flange_table, "flange_id", 
-        to_column(column) + ':eq:%s' % condition)
-    # flange ids to readout board ids
-    # readout board ids to daq 
-    readout_board_ids = flatten([dataQuery.query(db_name, readout_table, "readout_board_id", "flange_id:eq:%s" % f) for f in flange_ids if f])
+@hardwaredb_route(db_name)
+def flange_channel_list(conn, column, condition):
+    cur = conn.cursor()
 
-    daq_channel_ids = flatten([dataQuery.query(db_name, daq_table, "channel_id", "readout_board_id:eq:%s" % r) for r in readout_board_ids if r])
-    
+    column = to_column(column)
+    if column not in flange_columns:
+       raise ValueError("Column (%s) is not an available selector in table %s" % (column, flange_table))
+
+    flange_ids = cur.execute("SELECT flange_id FROM %s WHERE %s=?" % (flange_table, column), (condition, ))
+    # collect the flange ids into a selector
+    flange_id_list = [str(f[0]) for f in flange_ids if f]
+    flange_id_spec = "(" + ",".join(["?" for _ in flange_id_list]) + ")"
+
+    readout_board_ids = cur.execute("SELECT readout_board_id FROM %s WHERE flange_id IN %s" % (readout_table, flange_id_spec), flange_id_list) 
+    readout_board_list = [str(f[0]) for f in readout_board_ids if f]
+    readout_board_spec = "(" + ",".join(["?" for _ in readout_board_list]) + ")"
+
+    daq_channel_ids = cur.execute("SELECT channel_id FROM %s WHERE readout_board_id IN %s" % (daq_table, readout_board_spec), readout_board_list)
     # sort the channels
-    daq_channels = sorted([int(c) for c in daq_channel_ids if c], key=int)
+    daq_channels = sorted([int(c[0]) for c in daq_channel_ids if c], key=int)
 
+    cur.close()
     return daq_channels
 
-@hardwaredb_route
-def flange_list(column, condition):
-    dataQuery = DataQuery(queryUrl)
-    flange_ids = dataQuery.query(db_name, flange_table, "flange_pos_at_chimney", 
-        to_column(column) + ':eq:%s' % condition)
-    flanges = [c for c in flange_ids if c]
+@hardwaredb_route(db_name)
+def flange_list(conn, column, condition):
+    cur = conn.cursor()
+
+    column = to_column(column)
+    if column not in flange_columns:
+       raise ValueError("Column (%s) is not an available selector in table %s" % (column, flange_table))
+
+    flange_ids = cur.execute("SELECT flange_pos_at_chimney FROM %s WHERE %s=?" % (flange_table,column), (condition,))
+    flanges = [c[0] for c in flange_ids if c]
+
+    cur.close()
     return flanges
 
-@hardwaredb_route
-def slot_local_channel_map(column, condition):
-    dataQuery = DataQuery(queryUrl)
-    flange_ids = dataQuery.query(db_name, flange_table, "flange_id", 
-        to_column(column) + ':eq:%s' % condition)
-    # flange ids to readout board ids
-    # readout board ids to daq 
-    readout_board_ids = flatten([dataQuery.query(db_name, readout_table, "readout_board_id", "flange_id:eq:%s" % f) for f in flange_ids if f])
+@hardwaredb_route(db_name)
+def slot_local_channel_map(conn, column, condition):
+    cur = conn.cursor()
 
-    # get the info
-    daq_channel_info = flatten([dataQuery.query(db_name, daq_table, "channel_id,channel_number,readout_board_slot", "readout_board_id:eq:%s" % r) for r in readout_board_ids if r])
+    column = to_column(column)
+    if column not in flange_columns:
+       raise ValueError("Column (%s) is not an available selector in table %s" % (column, flange_table))
+
+    flange_ids = cur.execute("SELECT flange_id FROM %s WHERE %s=?" % (flange_table, to_column(column)), (condition,))
+    # collect the flange ids into a selector
+    # collect the flange ids into a selector
+    flange_id_list = [str(f[0]) for f in flange_ids if f]
+    flange_id_spec = "(" + ",".join(["?" for _ in flange_id_list]) + ")"
+
+    readout_board_ids = cur.execute("SELECT readout_board_id FROM %s WHERE flange_id IN %s" % (readout_table, flange_id_spec), flange_id_list) 
+    readout_board_list = [str(f[0]) for f in readout_board_ids if f]
+    readout_board_spec = "(" + ",".join(["?" for _ in readout_board_list]) + ")"
+
+    daq_channel_ids = cur.execute("SELECT channel_id,channel_number,readout_board_slot FROM %s WHERE readout_board_id IN %s" % (daq_table, readout_board_spec), readout_board_list)
     
     # sort the channels
-    daq_channel_info = sorted([c.split(",") for c in daq_channel_info if c], key=lambda x: int(x[0]))
+    # daq_channel_info = sorted([c.split(",") for c in daq_channel_info if c], key=lambda x: int(x[0]))
     # map
-    daq_channels = [int(r[1]) + 64*int(r[2]) for r in daq_channel_info]
+    daq_channels = [int(r[1]) + 64*int(r[2]) for r in daq_channel_ids]
+
+    cur.close()
     return daq_channels
 
 # build the list of available selectors
