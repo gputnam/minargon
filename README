@@ -7,11 +7,6 @@ collaboration (in the SBND and ICARUS detectors)
 Quickstart
 ----------
 
-Note: to install minargon, you need recent versions of pip, virtualenv,
-and python. On the fermilab gpvm servers, setup python v2_7_14 through
-ups. Then, run the `virtualenv` commands below with `python
-~gputnam/virtualenv-15.1.0/virtualenv.py` (this is an instance of
-virtualenv that I have setup myself for use).
 
 To run a local copy of minargon, first create a virtual environment and activate
 it.
@@ -23,9 +18,18 @@ Make sure you have a recent version of pip:
 
     $ pip install --upgrade pip
 
-Now, clone the minard repository, and install the prerequisites:
+Note: to install minargon, you need recent versions of pip, virtualenv,
+and python. Some FNAL servers don't have all these working. If you
+could not follow the preceeding step, instead try the following:
 
-    $ git clone https://github.com/gputnam/minargon.git
+On the fermilab gpvm servers, setup python v2_7_14 through
+ups. Then, run the `virtualenv` commands below with `python
+~gputnam/virtualenv-15.1.0/virtualenv.py` (this is an instance of
+virtualenv that I have setup myself for use).
+
+Now, clone the minargon repository, and install the prerequisites:
+
+    $ git clone https://github.com/SBNSoftware/sbndaq-minargon.git
     $ cd minargon
     $ pip install -r requirements.txt
 
