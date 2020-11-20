@@ -125,7 +125,15 @@ export class FunctorController {
   timeRangeController(id_start, id_end, id_toggle) {
     var self = this;
     
+    self.listDateChangeEVTTime = 0;
     $(id_toggle).on("date-change", function() {
+      var fire = true;
+      if (event.timeStamp - self.listDateChangeEVTTime < 500){
+        fire = false;
+      }
+      self.listDateChangeEVTTime = event.timeStamp;
+      if (!fire) return;
+
       var toggle_val = $(id_toggle).val();
       if (toggle_val == "live" ) {
         self.is_live = true;
