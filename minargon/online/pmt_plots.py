@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from minargon import app
 import redis
 from flask import send_file, jsonify
@@ -8,6 +9,7 @@ from minargon.metrics.redis_api import get_streams
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
+from six.moves import range
 
 @app.route('/<rconnect>/pmt_heatmap')
 @redis_route

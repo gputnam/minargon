@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from minargon import app
 from flask import jsonify, request, render_template, abort
 from werkzeug.exceptions import NotFound

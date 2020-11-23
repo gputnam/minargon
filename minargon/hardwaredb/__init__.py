@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from minargon import app
 from werkzeug.routing import BaseConverter
 from flask import abort, g
@@ -88,7 +89,10 @@ def channel_map(hw_select, channels):
     return None
 
 if app.config["FRONT_END"] == "icarus":
-    import icarus.tpc
+    #from . import icarus
+    #from minargon import hardwaredb
+    #from .hardwaredb import icarus
+    from .icarus import tpc
     hw_selectors = icarus.tpc.SELECTORS
 
     hw_mappings = icarus.tpc.MAPPINGS

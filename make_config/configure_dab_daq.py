@@ -1,5 +1,7 @@
+from __future__ import absolute_import
 from gen_config import gen_config
 import collections
+from six.moves import range
 
 CONFIG = {
   "groups": {
