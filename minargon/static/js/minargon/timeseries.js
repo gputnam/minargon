@@ -188,8 +188,19 @@ export class PlotlyController {
   //            from the id_start/id_end time range
   timeRangeController(id_start, id_end, id_toggle) {
     var self = this;
-    
+
+    self.listDateChangeEVTTime = 0;
     $(id_toggle).on("date-change", function() {
+      // There is a bug in the date-picker library where this
+      // event fires multiple times. "Debounce" this event fire
+      // with a timer check.
+      var fire = true;
+      if (event.timeStamp - self.listDateChangeEVTTime < 500){
+        fire = false;
+      }
+      self.listDateChangeEVTTime = event.timeStamp;
+      if (!fire) return;
+
       var toggle_val = $(id_toggle).val();
       if (toggle_val == "live" ) {
         self.is_live = true;

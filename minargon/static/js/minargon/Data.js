@@ -1,5 +1,6 @@
 import {CircularBuffer} from "./circular_buffer.js";
 import {throw_database_error} from "./error.js";
+import {throw_alert, remove_alert} from "./alert.js";
 
 export class D3DataBuffer {
   // input:
@@ -182,6 +183,9 @@ export class D3DataPoll {
 
     getData(start, stop) {
       var self = this;
+      var alertID = this.name().replace(/\s/g, '').replace(/:/g,'').replace(/_/g,'');
+      var alertText = "Loading data for request (" + this.name() + ")";
+      var timeout = setTimeout(function() { throw_alert(alertText, alertID);}, 3000);
       this.data.get_data_promise(start, stop)
         .then(function(value) {
           for (var i = 0; i < self.listeners.length; i++) {
@@ -191,7 +195,8 @@ export class D3DataPoll {
         })
         .catch(function(error) {
           throw_database_error(error, "poll_get_data");
-        });
+        })
+        .finally(function() { clearTimeout(timeout); remove_alert(alertID); });
     }
     
     start(start, n_data) {
@@ -208,8 +213,12 @@ export class D3DataPoll {
             return;
         }
         var self = this;
+        var alertID = this.name().replace(/\s/g, '').replace(/:/g,'').replace(/_/g,'');
+        var alertText = "Loading data for request (" + this.name() + ")";
+        var timeout = setTimeout(function() { throw_alert(alertText, alertID);}, 3000);
         this.data.get_data_promise(start, undefined, n_data)
             .then(function(value) {
+               clearTimeout(timeout);
                 for (var i = 0; i < self.listeners.length; i++) {
                     var func = self.listeners[i];
                     func(value, true);
@@ -223,7 +232,8 @@ export class D3DataPoll {
             })
             .catch(function(error) {
               throw_database_error(error, "poll_run");
-            });
+            })
+            .finally(function() { clearTimeout(timeout); remove_alert(alertID); });
     }
 
     isRunning() {
