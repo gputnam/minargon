@@ -572,6 +572,24 @@ def get_icarus_cryo(connection):
         formatted.append((row[0], time, row[2]))
 
     return formatted
+
+#______________________________________________________________________
+@postgres_route
+def get_icarus_tpcps(connection):
+    cursor = connection[0].cursor()
+    query = """select name, last_smpl_time, to_char(last_float_val,'99999D99') from dcs_prd.channel where grp_id=14"""
+
+    cursor.execute(query)
+    dbrows = cursor.fetchall();
+    cursor.close();
+
+    formatted = []
+    for row in dbrows:
+        time = row[1].strftime("%Y-%m-%d %H:%M")
+        formatted.append((row[0], time, row[2]))
+
+    return formatted
+
 #________________________________________________________________________________________________
 @postgres_route
 def get_gps(connection):
