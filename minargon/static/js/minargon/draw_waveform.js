@@ -99,7 +99,7 @@ export function draw_fft(target, param, keyname, name) {
     if (!fft_vals.length) return;
 
     // get the xrange from the "tick period" -- which should be in units of frequency
-    var mhz_scaling_value = (data.period*2) / fft_vals.length;
+    var mhz_scaling_value = (data.period) / (2*(fft_vals.length-1));
 
     // ignore the first element of the fft, corresponding to the baseline
     var xrange = Array.apply(null, Array(fft_vals.length - 1)).map(function (_, i) {return (i+1) * mhz_scaling_value;});
@@ -109,7 +109,7 @@ export function draw_fft(target, param, keyname, name) {
     // var fft = fft_vals.slice(1, -1).map( (dat) => dat / fft_vals.length);
 
     // don't normalize for now
-    var fft = fft_vals.slice(1, -1);
+    var fft = fft_vals.slice(1);
 
     var trace = {
       x: xrange,
