@@ -108,9 +108,9 @@ def slot_local_channel_map(conn, column, condition):
     readout_board_spec = "(" + ",".join(["?" for _ in readout_board_list]) + ")"
 
     daq_channel_ids = cur.execute("SELECT channel_id,channel_number,readout_board_slot FROM %s WHERE readout_board_id IN %s" % (daq_table, readout_board_spec), readout_board_list)
-    
+
     # sort the channels
-    # daq_channel_info = sorted([c.split(",") for c in daq_channel_info if c], key=lambda x: int(x[0]))
+    daq_channel_ids = sorted(list(daq_channel_ids), key=lambda x: x[0])
     # map
     daq_channels = [int(r[1]) + 64*int(r[2]) for r in daq_channel_ids]
 
