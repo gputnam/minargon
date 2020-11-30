@@ -43,7 +43,7 @@ export class TimeSeriesScatter {
           layout[this._y_axes[i].layout_name()] = this._y_axes[i].build();
         }
         if (this._y_axes.length > 2) {
-          this.x_domain_hi = 1; // - 0.15 * (this._y_axes.length - 2);
+          this.x_domain_hi = 1 - 0.15 * (this._y_axes.length - 1);
         }
         else {
           this.x_domain_hi = 1;

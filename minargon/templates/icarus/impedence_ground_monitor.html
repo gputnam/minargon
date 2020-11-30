@@ -47,7 +47,7 @@
 {% endblock %}
 
 {# Define a macro to startup the javascript #}
-{% macro run_stream(database, id, config, ytitle) %}
+{% macro run_stream(database, id, config, ytitle, lo, hi) %}
 {
     // Build the link
     var link = new module.Data.D3DataLink(new module.DataLink.EpicsStreamLink($SCRIPT_ROOT, "{{ database }}", {{id}} ));
@@ -66,13 +66,14 @@
 	.timeRangeController(start_id, end_id, toggle_id)
 	.downloadDataController(download_id )
     plotly_controller.setYTitles(["{{ytitle}}"]);
+    plotly_controller.setYRanges([[{{lo}}, {{hi}}]]);
     
     // Start it
     plotly_controller.run();
 }
 {% endmacro %}
 
-{% macro run_atan(database, IDA, IDB, configA, configB, ytitle, plotid) %}
+{% macro run_atan(database, IDA, IDB, configA, configB, ytitle, plotid, lo, hi) %}
 
   var linkA = new module.Data.D3DataLink(new module.DataLink.EpicsStreamLink($SCRIPT_ROOT, '{{database}}', "{{IDA}}"));
   var configA = {{configA|tojson}};
@@ -89,6 +90,7 @@
     .downloadDataController("#download-{{plotid}}");
 
   plot_controller.setTitle("{{ytitle}}");
+  plot_controller.setYRange({{lo}}, {{hi}});
    
   // start it
   plot_controller.run();
@@ -100,13 +102,13 @@
     import * as functor from "{{ url_for('static', filename='js/minargon/functor.js') }}";
     import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
     
-    {{ run_stream(database, 46, configs[46], "Magnitude" )}}   
-    {{ run_stream(database, 44, configs[44], "Impedence [ohm]") }}   
-    {{ run_atan(database, 48, 47, configs[48], configs[47], "Phase [deg]", "atan-48-47") }}
+    {{ run_stream(database, 46, configs[46], "Magnitude", 450, 550)}} 
+    {{ run_stream(database, 44, configs[44], "Impedence [ohm]", 400, 550) }}
+    {{ run_atan(database, 48, 47, configs[48], configs[47], "Phase [deg]", "atan-48-47", -130, 140) }}
 
-    {{ run_stream(database, 51, configs[51], "Magnitude") }}
-    {{ run_stream(database, 49, configs[49], "Impedence [ohm]") }}   
-    {{ run_atan(database, 53, 52, configs[53], configs[52], "Phase [deg]", "atan-53-52") }}
+    {{ run_stream(database, 51, configs[51], "Magnitude", 500, 600) }}
+    {{ run_stream(database, 49, configs[49], "Impedence [ohm]", 450, 550) }}   
+    {{ run_atan(database, 53, 52, configs[53], configs[52], "Phase [deg]", "atan-53-52", -130, 140) }}
 
 </script>
 {% endblock %}

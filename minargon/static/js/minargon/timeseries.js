@@ -68,6 +68,11 @@ export class PlotlyController {
     this.scatter.y_axes = this.buildScatterAxes(); 
   }
 
+  setYRanges(ranges) {
+    this.yranges = ranges;
+    this.scatter.y_axes = this.buildScatterAxes(); 
+  }
+
   // ---------------------------------------------------------------------------
   buildScatterAxes() {
     var ret = [];
@@ -90,7 +95,10 @@ export class PlotlyController {
       }
 
       var range;
-      if (this.metric_config[i].range !== undefined && this.metric_config[i].range.length == 2) {
+      if (this.yranges !== undefined && this.yranges.length > i && this.yranges[i].length == 2) {
+        range = this.yranges[i];
+      }
+      else if (this.metric_config[i].range !== undefined && this.metric_config[i].range.length == 2) {
         range = this.metric_config[i].range;
       }
     

@@ -40,6 +40,15 @@ export class FunctorScatter {
              ' (' + String(B) + ') at: ' + time_B;
     }
 
+    set yrange(yrange) {
+      this._yrange = yrange;
+      if (this.is_drawn) {
+        var layout = {};
+        layout["yaxis.range"] = this._yrange;
+        Plotly.relayout(this.target, layout);
+      }
+    }
+
     set title(title) {
       this._title = title;
       if (this.is_drawn) {
@@ -207,6 +216,9 @@ export class FunctorScatter {
       layout["yaxis"] = {
         title: this._title
       };
+      if (this._yrange) {
+        layout["yaxis.range"] = this._yrange;
+      }
 
       return layout;
     }
