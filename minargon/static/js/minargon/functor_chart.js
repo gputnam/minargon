@@ -45,7 +45,7 @@ export class FunctorScatter {
       if (this.is_drawn) {
         var layout = {};
         layout["yaxis.title"] = this._title;
-        Pltoly.relayout(this.target, layout);
+        Plotly.relayout(this.target, layout);
       }
     }
 

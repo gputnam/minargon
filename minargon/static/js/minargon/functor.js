@@ -52,6 +52,10 @@ export class FunctorController {
     this.is_running = false;
   }
 
+  setTitle(title) {
+    this.scatter.title = title;
+  }
+
   // ---------------------------------------------------------------------------
   // Internal function: grap the time step from the server and run a
   // callback

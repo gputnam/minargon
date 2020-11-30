@@ -38,6 +38,8 @@ export class PlotlyController {
     this.target = target;
     this.max_data = 1000;
     this.titles = titles;
+    this.ytitles = [];
+
     // title of plot is link name
     var plot_title = link.name();
     // make a new plotly scatter plot
@@ -60,12 +62,22 @@ export class PlotlyController {
   restrictNumInstances() {
     return true;
   }
+
+  setYTitles(ytitles) {
+    this.ytitles = ytitles;
+    this.scatter.y_axes = this.buildScatterAxes(); 
+  }
+
   // ---------------------------------------------------------------------------
   buildScatterAxes() {
     var ret = [];
     for (var i = 0; i < this.metric_config.length; i++) {
       var title = "";
-      if (this.metric_config[i].yTitle !== undefined) {
+
+      if (this.ytitles.length > i) {
+        title = this.ytitles[i];
+      }
+      else if (this.metric_config[i].yTitle !== undefined) {
         if (this.metric_config[i].unit !== undefined) {
           title = this.metric_config[i].yTitle + " [" + this.metric_config[i].unit + "]";
         }
@@ -76,6 +88,7 @@ export class PlotlyController {
       else {
         title = this.titles[i];
       }
+
       var range;
       if (this.metric_config[i].range !== undefined && this.metric_config[i].range.length == 2) {
         range = this.metric_config[i].range;
