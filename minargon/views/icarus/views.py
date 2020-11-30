@@ -199,3 +199,19 @@ def purity():
     }
 
     return render_template('icarus/purity_timeseries.html', **render_args)
+
+@app.route('/Impedence_Ground_Monitor')
+def Impedence_Ground_Monitor():
+    database = "epics"
+    IDs = [44, 46, 47, 48, 49, 51, 52, 53] 
+
+    configs = {}
+    for i in IDs:
+      configs[i] = postgres_api.pv_meta_internal(database, i, front_end_abort=True)
+
+    render_args = {
+      "configs": configs,
+      "database": database
+    }
+    return render_template('icarus/impedence_ground_monitor.html', **render_args)
+
