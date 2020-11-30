@@ -64,7 +64,7 @@ def hardwaredb_route(db_name):
         @wraps(func)
         def wrapper(*args, **kwargs):
                 if db_name not in app.config["SQLITE_INSTANCES"]: 
-                    return abort(404)
+                    return abort(404, HardwareDBConnectionError("sqlite instance does not exist."))
                 conn = get_hw_db(db_name, app.config["SQLITE_INSTANCES"][db_name]["file"])
                 if not isinstance(conn, sqlite3.Connection):
                     return abort(503, HardwareDBConnectionError(conn))
