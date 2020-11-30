@@ -323,7 +323,8 @@ export class D3DataChain {
   get_data_promise(start, stop, n_data) {
       var self = this;
       return new Promise(function(resolve, reject) {
-        self.get_data(resolve, start, stop, n_data);
+        self.get_data(resolve, start, stop, n_data)
+            .catch(reject);
       });
   }
   name() {
