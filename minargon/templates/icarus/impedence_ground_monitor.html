@@ -66,7 +66,7 @@
 	.timeRangeController(start_id, end_id, toggle_id)
 	.downloadDataController(download_id )
     plotly_controller.setYTitles(["{{ytitle}}"]);
-    plotly_controller.setYRanges([[{{lo}}, {{hi}}]]);
+    // plotly_controller.setYRanges([[{{lo}}, {{hi}}]]);
     
     // Start it
     plotly_controller.run();
@@ -90,7 +90,7 @@
     .downloadDataController("#download-{{plotid}}");
 
   plot_controller.setTitle("{{ytitle}}");
-  plot_controller.setYRange({{lo}}, {{hi}});
+  // plot_controller.setYRange({{lo}}, {{hi}});
    
   // start it
   plot_controller.run();
