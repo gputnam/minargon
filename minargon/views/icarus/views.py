@@ -204,7 +204,7 @@ def purity():
     return render_template('icarus/purity_timeseries.html', **render_args)
 
 @app.route('/TPCPS')
-def tpcpps():
+def tpcps():
     channel = reqeust.args.get('tpcps', 0, type=int)
     config = online_metrics.get_group_config("online", "tpcps", front_end_abort=True)
     

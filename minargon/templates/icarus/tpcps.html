@@ -91,9 +91,9 @@
 <script type="text/javascript">
 $(document).ready(function() {
   {%for row in rows%} {
-    var pvName = "{{row[0]}}";
+    var pvName = "{{row[1]}}";
     var tr = document.createElement("tr");
-    tr.innerHTML = "<td id='{{row[0]}}'>{{ row[0] }}</td><td>{{ row[2] }}</td>"
+    tr.innerHTML = "<td id='{{row[1]}}'>{{ row[1] }}</td><td><a href='{{ url_for('pv_single_stream', database=connection, ID=row[0]) }}'>{{ row[3] }}</a></td>"
     var units = document.createElement("td");
     if (pvName.endsWith("temp")) {
       units.innerHTML = "&deg;C";
@@ -110,7 +110,7 @@ $(document).ready(function() {
     }
     var ts = document.createElement("td");
     ts.id="{{row[0]}}/timestamp";
-    ts.innerHTML = "{{row[1]}}";
+    ts.innerHTML = "{{row[2]}}";
     tr.appendChild(ts);
     document.getElementById("main_table").appendChild(tr);
   }
