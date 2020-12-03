@@ -26,6 +26,9 @@ Archiver operation is: <span id="AR-status"> </span>
 
 <br>
 
+Most recent archived data is: <span id="Archived-Data"> </span>
+<br>
+
 Redis Memory Usage is: <span id="redis-mem"><span id="redis-mem-GB"> </span>GB / <span id="redis-mem-percent"> </span>%</span>
 </p>
 {%endblock%}
@@ -90,6 +93,22 @@ update_is_recent(data_link_ar, "#AR-status", 120 * 1000 /* ms */);
 var data_link_om = new Data.D3DataLink(new DataLink.SingleStreamLink($SCRIPT_ROOT + "/online", "DAQConsumer")); 
 update_is_recent(data_link_om, "#OM-status", 120 * 1000 /* ms*/);
 
+var poll_archived_data = new Poll.Poll($SCRIPT_ROOT + "/metric_archiving/stream_group_last_time/archived/rms/tpc_channel");
+poll_archived_data.add_callback(function(data) {
+    console.log(data);
+    var spanid = "#Archived-Data";
+    var delta = (time_delta(data.time) / 1000. / 60).toFixed(0);
+    var delta_str = " (" + String(delta) + "m)";
+    if (is_recent(data.time, 120 * 1000 * 60 /* 120 m*/)) {
+      $(spanid).text("RECENT" + delta_str);
+      $(spanid).css({"color": "green"});
+    }
+    else {
+      $(spanid).text("OLD" + delta_str);
+      $(spanid).css({"color": "red"});
+    } 
+});
+poll_archived_data.run();
 
 var poll_tpc = new Poll.Poll($SCRIPT_ROOT + "/online/hget/eventmetaTPC/run,subrun,event,time");
 poll_tpc.add_callback(function(data) {
