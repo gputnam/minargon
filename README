@@ -40,6 +40,13 @@ settings file (if your database in a different location). Then set:
 
     $ export MINARGON_SETTINGS=`pwd`/your_settings_file.conf
 
+Note on the different example settings files:
+	-`example_settings.conf` sets up a website instance with no database connections
+	-`example_settings_with_local_redis.conf` sets up a website instance with a 
+		database connection to an (already running) instance of redis
+	-`example_settings_icarus_gateway.conf` sets up a website instance with the 
+		proper database connections as running on the icarus-gateway machine
+
 Now, you can start up the webserver:
 
     $ ./runserver.py

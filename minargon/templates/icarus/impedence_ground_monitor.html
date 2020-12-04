@@ -1,0 +1,115 @@
+{% import "stream_options_macro.html" | common as stream_options %}
+
+{% extends "layout.html" | front_ended %}
+{% block title %}Impedence Ground Monitor{% endblock %}
+
+{# Define macro to setup plot #}
+{% macro plot_row(id) %}
+    <!-- Plot and Options -->
+    <div class="row">
+        <!-- Plot -->
+        <div class="col-md-8">
+            <!-- plotly div -->
+            <div style="padding:0" id="plotly-controller-{{ id }}"></div>
+        </div>
+        <!-- Options -->
+        <div class="col-md-4 vcenter">
+            <div class="card hcenter">
+                <div class="card-header">Display Options</div>
+                <div class="card-body">
+                    <form class="form" role="form">
+                        {{ stream_options.time_range("start-"+ id, "end-"+id, "toggle-"+id) }}
+                        {{ stream_options.download("download-"+id) }}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{# ------------------------------ Html Body --------------------------------- #}
+{% block body %}
+{{ super() }}
+<!-- Variable Header -->
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-only-glyphicons.css') }}" media="screen">
+<div class="container">
+   <h1>Gizmo 0</h1>
+   {{ plot_row("44") }} 
+   {{ plot_row("46") }} 
+   {{ plot_row("atan-48-47") }}
+
+   <h1>Gizmo 1</h1>
+   {{ plot_row("49") }} 
+   {{ plot_row("51") }} 
+   {{ plot_row("atan-53-52") }}
+
+</div>
+{% endblock %}
+
+{# Define a macro to startup the javascript #}
+{% macro run_stream(database, id, config, ytitle, lo, hi) %}
+{
+    // Build the link
+    var link = new module.Data.D3DataLink(new module.DataLink.EpicsStreamLink($SCRIPT_ROOT, "{{ database }}", {{id}} ));
+    
+    // Create controller and id names
+    var controller  = "plotly-controller-"+{{id}};
+    var start_id    = "#start-"+{{id}};
+    var end_id      = "#end-"+{{id}};
+    var toggle_id   = "#toggle-"+{{id}};
+    var download_id = "#download-"+{{id}};
+
+    var config = {{config | tojson}};
+    
+    // Build plotly controller
+    var plotly_controller = new module.PlotlyController(controller, link, [config["yTitle"]], config)
+	.timeRangeController(start_id, end_id, toggle_id)
+	.downloadDataController(download_id )
+    plotly_controller.setYTitles(["{{ytitle}}"]);
+    // plotly_controller.setYRanges([[{{lo}}, {{hi}}]]);
+    
+    // Start it
+    plotly_controller.run();
+}
+{% endmacro %}
+
+{% macro run_atan(database, IDA, IDB, configA, configB, ytitle, plotid, lo, hi) %}
+
+  var linkA = new module.Data.D3DataLink(new module.DataLink.EpicsStreamLink($SCRIPT_ROOT, '{{database}}', "{{IDA}}"));
+  var configA = {{configA|tojson}};
+  var nameA = "{{configA['yTitle']}}";
+
+  var linkB = new module.Data.D3DataLink(new module.DataLink.EpicsStreamLink($SCRIPT_ROOT, '{{database}}', "{{IDB}}"));
+  var configB = {{configB|tojson}};
+  var nameB = "{{configB['yTitle']}}";
+
+  // build the plot controller
+  var plot_controller = new functor.FunctorController("plotly-controller-{{plotid}}", linkA, nameA, linkB, nameB, 
+    functor.available_functions[4], functor.available_function_names[4])
+    .timeRangeController("#start-{{plotid}}", "#end-{{plotid}}", "#toggle-{{plotid}}")
+    .downloadDataController("#download-{{plotid}}");
+
+  plot_controller.setTitle("{{ytitle}}");
+  // plot_controller.setYRange({{lo}}, {{hi}});
+   
+  // start it
+  plot_controller.run();
+
+{% endmacro %}
+
+{% block script %}
+<script defer type="module">
+    import * as functor from "{{ url_for('static', filename='js/minargon/functor.js') }}";
+    import * as module from "{{ url_for('static', filename='js/minargon/timeseries.js') }}";
+    
+    {{ run_stream(database, 46, configs[46], "Magnitude", 450, 550)}} 
+    {{ run_stream(database, 44, configs[44], "Impedence [ohm]", 400, 550) }}
+    {{ run_atan(database, 48, 47, configs[48], configs[47], "Phase [deg]", "atan-48-47", -130, 140) }}
+
+    {{ run_stream(database, 51, configs[51], "Magnitude", 500, 600) }}
+    {{ run_stream(database, 49, configs[49], "Impedence [ohm]", 450, 550) }}   
+    {{ run_atan(database, 53, 52, configs[53], configs[52], "Phase [deg]", "atan-53-52", -130, 140) }}
+
+</script>
+{% endblock %}
+{# ---------------------------------- End ----------------------------------- #}
