@@ -215,7 +215,7 @@ def tpcps():
 
     return render_template('icarus/tpcps.html', **render_args)
 
-  @app.route('/Impedence_Ground_Monitor')
+@app.route('/Impedence_Ground_Monitor')
 def Impedence_Ground_Monitor():
     database = "epics"
     IDs = [44, 46, 47, 48, 49, 51, 52, 53] 
