@@ -1,5 +1,6 @@
 # from gevent import monkey
 # monkey.patch_all()
+from __future__ import absolute_import
 from flask.app import Flask
 
 import os
@@ -60,7 +61,7 @@ from .hardwaredb import HWSelectorConverter, HWSelectorListConverter
 app.url_map.converters["hw_selector"] = HWSelectorConverter
 app.url_map.converters["hw_selector_list"] = HWSelectorListConverter
 # load in the hardwaredb
-import hardwaredb
+from . import hardwaredb
 
 # routes
 if app.config["FRONT_END"] == "sbnd":

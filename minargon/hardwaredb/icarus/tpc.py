@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from minargon.hardwaredb import HWSelector, hardwaredb_route
 
 db_name = "icarus_tpc_hw"

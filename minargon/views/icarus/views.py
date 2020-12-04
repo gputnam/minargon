@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from minargon import app
 from flask import render_template, jsonify, request, redirect, url_for, flash
 import json
@@ -10,7 +11,9 @@ from minargon.views.common.views import timeseries_view
 from minargon import hardwaredb
 
 # load template injectors
-import inject
+from . import inject
+from six.moves import range
+from six.moves import zip
 
 @app.route('/test/<int:chan>')
 def test(chan):
@@ -122,7 +125,7 @@ def PMT_snapshot():
     channel = request.args.get("PMT", 0, type=int)
     group_name = "PMT"
     # TODO: fix hardcode
-    pmt_range = range(360)
+    pmt_range = list(range(360))
     config = online_metrics.get_group_config("online", group_name, front_end_abort=True)
 
     template_args = {
@@ -147,10 +150,10 @@ def CRT_board_snapshot():
 
     view_ind = {'board_no': board_no}
     # TODOL fix..... all of this
-    view_ind_opts = {'board_no': range(8)}
+    view_ind_opts = {'board_no': list(range(8))}
 
     # TODO: implement real channel mapping
-    board_channels = range(board_no*32, (board_no+1)*32)
+    board_channels = list(range(board_no*32, (board_no+1)*32))
 
     render_args = {
         'title': ("CRT Board %i Snapshot" % board_no),
@@ -171,7 +174,7 @@ def channel_snapshot():
 
     view_ind = {'channel': channel}
     # TODOL fix..... all of this
-    view_ind_opts = {'channel': range(2304)}
+    view_ind_opts = {'channel': list(range(2304))}
 
     instance_name = "tpc_channel"
     config = online_metrics.get_group_config("online", instance_name, front_end_abort=True)
@@ -200,7 +203,19 @@ def purity():
 
     return render_template('icarus/purity_timeseries.html', **render_args)
 
-@app.route('/Impedence_Ground_Monitor')
+@app.route('/TPCPS')
+def tpcps():
+    channel = reqeust.args.get('tpcps', 0, type=int)
+    config = online_metrics.get_group_config("online", "tpcps", front_end_abort=True)
+    
+    render_args = {
+        'channel': channel,
+        'config': config,
+    }
+
+    return render_template('icarus/tpcps.html', **render_args)
+
+  @app.route('/Impedence_Ground_Monitor')
 def Impedence_Ground_Monitor():
     database = "epics"
     IDs = [44, 46, 47, 48, 49, 51, 52, 53] 

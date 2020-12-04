@@ -1,8 +1,11 @@
+from __future__ import absolute_import
 from minargon import app
 from redis import Redis
 from flask import jsonify
 import struct
 import math
+from six.moves import range
+from six.moves import zip
 
 # import gevent
 
@@ -58,7 +61,7 @@ def extract_datum(dat):
         except:
             return dat["dat"]
     else:
-        typename = dat.keys()[0]
+        typename = list(dat.keys())[0]
         structname = type_to_struct_type(typename)
         if structname is None:
             raise MalformedRedisEntry("Redis Steam entry missing binary type.")

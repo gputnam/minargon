@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from minargon import app
 from flask import render_template, jsonify, request, redirect, url_for, flash, abort
 import jinja2
@@ -51,6 +52,11 @@ def latest_gps_info(connection):
 def icarus_cryo(connection):
     dbrows = postgres_api.get_icarus_cryo(connection, front_end_abort=True)     
     return render_template('icarus/cryo.html', rows=dbrows, connection=connection)
+
+@app.route('/<connection>/icarus_tpcps')
+def icarus_tpcps(connection):
+    dbrows = postgres_api.get_icarus_tpcps(connection, front_end_abort=True)
+    return render_template('icarus/tpcps.html', rows=dbrows, connection=connection)
 
 @app.route('/<connection>/epics_last_value/<group>')
 def epics_last_value(connection,group):
@@ -171,31 +177,31 @@ def pv_single_stream(database, ID):
     #date format to turn back to string: Month/Day/Year Hour:Minute
     start = request.args.get('start')
     if start is not None:
-	start_obj = datetime.strptime(start, '%m-%d-%Y_%H:%M')
-	#start time string to be placed in date picker
+        start_obj = datetime.strptime(start, '%m-%d-%Y_%H:%M')
+        #start time string to be placed in date picker
         start_time = datetime.strftime(start_obj,'%m/%d/%Y %H:%M')
         #%m%d%y%H:%M format to convert string into integer|mmddyyyyHHMM
 
-	# start timestamp to update plot
-	start_timestamp_int = parseiso(start_time);
+        # start timestamp to update plot
+        start_timestamp_int = parseiso(start_time);
 
     else:
-	start_obj = None
-	start_time = start
+        start_obj = None
+        start_time = start
         start_timestamp_int = None
  
     end = request.args.get('end')
     if end is not None:
-	end_obj = datetime.strptime(end, '%m-%d-%Y_%H:%M')
-	#end time string to be placed in date picker
-	end_time = datetime.strftime(end_obj, '%m/%d/%Y %H:%M')
+        end_obj = datetime.strptime(end, '%m-%d-%Y_%H:%M')
+        #end time string to be placed in date picker
+        end_time = datetime.strftime(end_obj, '%m/%d/%Y %H:%M')
         #%m%d%y%H:%M format to convert string into integer|mmddyyyyHHMM
 
-	#end timestamp to update plot
-	end_timestamp_int = parseiso(end_time);
+        #end timestamp to update plot
+        end_timestamp_int = parseiso(end_time);
 
     else:
-	end_obj = None
+        end_obj = None
         end_time = end
         end_timestamp_int = None
 

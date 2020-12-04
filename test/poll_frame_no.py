@@ -1,4 +1,7 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import redis
+from six.moves import range
 
 RUN_RANGE = (304, 349)
 FEM_RANGE = (0, 10)
@@ -9,10 +12,10 @@ def frame_key(run, sub_run, fem):
 
 def print_result(run, sub_run, frame_no_set):
     result = "OK" if len(frame_no_set) == 1 else "BAD"
-    print run, sub_run, result,
+    print(run, sub_run, result, end=' ')
     for f in frame_no_set:
-        print f,
-    print "\n",
+        print(f, end=' ')
+    print("\n", end=' ')
     
 
 def main():

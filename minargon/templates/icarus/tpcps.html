@@ -1,0 +1,125 @@
+{% extends "layout.html" | front_ended %}
+
+{% block title %}ICARUS Cathod Drift HV Supply Status{% endblock %}
+
+{% block body %}
+{{ super() }}
+<h2>ICARUS Cathode Drift HV Supply Status</h2>
+
+<P>
+<TABLE><TR><TD>Last Reading Time</TD><TD id="icarus_cathodehv_monitor/tss">&nbsp;</TD></TR></TABLE>
+<P>
+<TABLE id="main_table">
+<TR><TH>PV Name</TH><TH>Value</TH><TH>Units</TH><TH>TimeStamp</TH></TR>
+
+<!--TR><TD>icarus_cathodehv_set/volt</TD>
+    <TD style="text-align:right"><a href="{{ url_for('pv_single_stream', database=connection, ID='165') }}" id="icarus_cathodehv_set/volt">&nbsp;</A></TD>
+    <TD style="text-align:center">V</TD>
+    <TD id="icarus_cathodehv_set/volt/timestamp">&nbsp;</A></TD>
+</TR>
+
+<TR><TD>icarus_cathodehv_set/current</TD>
+    <TD style="text-align:right"><a href="{{ url_for('pv_single_stream', database=connection, ID='166') }}" id="icarus_cathodehv_set/current">&nbsp;</A></TD>
+    <TD style="text-align:center">&mu;A</TD>
+    <TD    id="icarus_cathodehv_set/current/timestamp">&nbsp;</A></TD>
+</TR>
+
+<TR><TD>icarus_cathodehv_monitor/volt</TD>
+    <TD style="text-align:right"><a href="{{ url_for('pv_single_stream', database=connection, ID='163') }}" id="icarus_cathodehv_monitor/volt">&nbsp;</A></TD>
+    <TD style="text-align:center">V</TD>
+    <TD   id="icarus_cathodehv_monitor/volt/timestamp">&nbsp;</A></TD>
+</TR>
+
+<TR><TD>icarus_cathodehv_monitor/current</TD>
+    <TD style="text-align:right"><a href="{{ url_for('pv_single_stream', database=connection, ID='164') }}" id="icarus_cathodehv_monitor/current">&nbsp;</A></TD>
+    <TD style="text-align:center">&mu;A</TD>
+    <TD   id="icarus_cathodehv_monitor/current/timestamp">&nbsp;</A></TD>
+</TR>
+
+<TR><TD>icarus_cathodehv_monitor_ee/volt</TD>
+    <TD style="text-align:right"><a href="{{ url_for('pv_single_stream', database=connection, ID='170') }}" id="icarus_cathodehv_monitor_ee/volt">&nbsp;</A></TD>
+    <TD style="text-align:center">V</TD>
+    <TD   id="icarus_cathodehv_monitor_ee/volt/timestamp">&nbsp;</A></TD>
+</TR>
+
+<TR><TD>icarus_cathodehv_monitor_ew/volt</TD>
+    <TD style="text-align:right"><a href="{{ url_for('pv_single_stream', database=connection, ID='168') }}" id="icarus_cathodehv_monitor_ew/volt">&nbsp;</A></TD>
+    <TD style="text-align:center">V</TD>
+    <TD id="icarus_cathodehv_monitor_ew/volt/timestamp">&nbsp;</A></TD>
+</TR>
+
+<TR><TD>icarus_cathodehv_monitor_we/volt</TD>
+    <TD style="text-align:right"><a href="{{ url_for('pv_single_stream', database=connection, ID='169') }}" id="icarus_cathodehv_monitor_we/volt">&nbsp;</A></TD>
+    <TD style="text-align:center">V</TD>
+    <TD   id="icarus_cathodehv_monitor_we/volt/timestamp">&nbsp;</A></TD>
+</TR>
+
+<TR><TD>icarus_cathodehv_monitor_ww/volt</TD>
+    <TD style="text-align:right"><a href="{{ url_for('pv_single_stream', database=connection, ID='167') }}" id="icarus_cathodehv_monitor_ww/volt">&nbsp;</A></TD>
+    <TD style="text-align:center">V</TD>
+    <TD    id="icarus_cathodehv_monitor_ww/volt/timestamp">&nbsp;</A></TD>
+</TR-->
+
+{%endblock%}
+
+{% block script %}
+<link href="{{ url_for('static', filename='bootstrap/css/bootstrap.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ url_for('static', filename='css/lights.css') }}" rel="stylesheet" type="text/css">
+<script src="{{ url_for('static', filename='js/lights.js') }}"></script>
+    <style>
+      table
+      {
+        border:1px solid black;padding:5px;font-size: 100%
+      }
+      td
+      {
+        text-align:right;
+        border:1px solid grey;padding:5px;
+      }
+      th
+      {
+        text-align:center;
+        border:1px solid grey;padding:5px;
+      }
+      body
+      {
+        margin: 28px;
+      }
+    </style>
+
+<!-- Populate above table -->
+<script type="text/javascript">
+$(document).ready(function() {
+  {%for row in rows%} {
+    var pvName = "{{row[1]}}";
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<td id='{{row[1]}}'>{{ row[1] }}</td><td><a href='{{ url_for('pv_single_stream', database=connection, ID=row[0]) }}'>{{ row[3] }}</a></td>"
+    var units = document.createElement("td");
+    if (pvName.endsWith("temp")) {
+      units.innerHTML = "&deg;C";
+      tr.appendChild(units);
+    } else if (pvName.endsWith("curr")) {
+      units.innerHTML = "A";
+      tr.appendChild(units);
+    } else if (pvName.endsWith("volt")) {
+      units.innerHTML = "V";
+      tr.appendChild(units);
+    } else if (pvName.endsWith("fan")) {
+      units.innerHTML = "%";
+      tr.appendChild(units);
+    }
+    var ts = document.createElement("td");
+    ts.id="{{row[0]}}/timestamp";
+    ts.innerHTML = "{{row[2]}}";
+    tr.appendChild(ts);
+    document.getElementById("main_table").appendChild(tr);
+  }
+  {%endfor%}
+  document.getElementById("main_table").innerHTML += "</table>";
+});
+</script>
+
+
+<!-- <meta http-equiv="refresh" content="15">-->
+<!-- </html> -->
+{%endblock%}

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from minargon import app
 from flask import render_template, jsonify, request, redirect, url_for, flash, abort
 import time
@@ -6,7 +7,7 @@ import json
 import os
 import sys
 import random
-import constants
+from . import constants
 import sys
 from minargon.metrics import postgres_api
 from minargon.views.common.views import timeseries_view
@@ -16,6 +17,7 @@ import re
 from minargon.tools import parseiso
 # from minargon.data_config import parse
 from minargon.metrics import online_metrics
+from six.moves import range
 
 # snapshot of noise (currently just correlation matrix)
 @app.route('/noise_snapshot')
@@ -31,7 +33,7 @@ def fem_snapshot():
     fem = request.args.get('fem', 0, type=int)
 
     view_ind = {'fem': fem}
-    view_ind_opts = {'fem': range(constants.N_FEM)}
+    view_ind_opts = {'fem': list(range(constants.N_FEM))}
 
     template_args = {
         'fem': fem,
@@ -46,7 +48,7 @@ def channel_snapshot():
     channel = request.args.get('channel', 0, type=int)
 
     view_ind = {'channel': channel}
-    view_ind_opts = {'channel': range(constants.N_CHANNELS)}
+    view_ind_opts = {'channel': list(range(constants.N_CHANNELS))}
 
     instance_name = "tpc_channel"
     config = online_metrics.get_group_config("online", instance_name, front_end_abort=True)
@@ -65,7 +67,7 @@ def channel_snapshot_dab():
     channel = request.args.get('channel', 0, type=int)
 
     view_ind = {'channel': channel}
-    view_ind_opts = {'channel': range(constants.N_CHANNELS)}
+    view_ind_opts = {'channel': list(range(constants.N_CHANNELS))}
 
     instance_name = "tpc_channel_dab"
     config = online_metrics.get_group_config("online", instance_name, front_end_abort=True)

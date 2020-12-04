@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import absolute_import
 from datetime import datetime
 import calendar
 
@@ -43,7 +44,7 @@ class PostgresDataStream(DataStream):
         self.ID = ID
 
     def to_config(self):
-        from metrics.postgres_api import pv_meta_internal
+        from .metrics.postgres_api import pv_meta_internal
         dtype = "postgres"
         database = self.name
         config = pv_meta_internal(database, self.ID, front_end_abort=True)
@@ -75,9 +76,9 @@ def total_seconds(td):
 def parseiso(timestr):
     """Convert an iso time string -> [ms] unix timestamp."""
     try: 
-    	dt = datetime.strptime(timestr,'%Y-%m-%dT%H:%M:%S.%fZ')
+        dt = datetime.strptime(timestr,'%Y-%m-%dT%H:%M:%S.%fZ')
     except:
-	dt = datetime.strptime(timestr, '%m/%d/%Y %H:%M')
+        dt = datetime.strptime(timestr, '%m/%d/%Y %H:%M')
     return int(calendar.timegm(dt.timetuple())*1e3 + dt.microsecond/1e3)
 
 # try parsing as int, falling back to parseiso

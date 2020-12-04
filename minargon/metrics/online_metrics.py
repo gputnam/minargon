@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from minargon import app
 from flask import jsonify, Response, request, abort
 from redis import Redis
@@ -9,10 +10,13 @@ from datetime import datetime, timedelta # needed for testing only
 import calendar
 from pytz import timezone
 
-import redis_api
-import postgres_api
+from . import redis_api
+from . import postgres_api
 from psycopg2.extras import RealDictCursor
 from minargon.hardwaredb import select
+import six
+from six.moves import range
+from six.moves import zip
 
 # error class for connecting to redis
 class RedisConnectionError:
@@ -71,8 +75,8 @@ def redis_route(func):
 @redis_route
 def test_redis(rconnect):
     try:
-	x = rconnect.ping()
-    except Exception, err:
+        x = rconnect.ping()
+    except Exception as err:
         import sys
         sys.stderr.write('ERROR: %s' % str(err))
         raise Exception("Redis cannot get foo")
@@ -104,7 +108,7 @@ def snapshot(rconnect, data):
     # args should be key-value pairs of specifiers in the redis keys
     # e.g. /snapshot/waveform?wire=1
     # decodes to the redis key snapshot:waveform:wire:1
-    for (k, v) in request.args.iteritems():
+    for (k, v) in six.iteritems(request.args):
         redis_key += ":%s:%s" % (k, v)
     return jsonify(values=redis_api.get_key(rconnect, redis_key))
 
@@ -115,7 +119,7 @@ def waveform(rconnect, data):
     # args should be key-value pairs of specifiers in the redis keys
     # e.g. /waveform/sparse_waveform?wire=1
     # decodes to the redis key snapshot:sparse_waveform:wire:1
-    for (k, v) in request.args.iteritems():
+    for (k, v) in six.iteritems(request.args):
         redis_key += ":%s:%s" % (k, v)
     data, offsets, period = redis_api.get_waveform(rconnect, redis_key)
     ret = jsonify(data=data, offsets=offsets, period=period)
@@ -128,7 +132,7 @@ def waveform_binary(rconnect, data):
     # args should be key-value pairs of specifiers in the redis keys
     # e.g. /waveform/sparse_waveform?wire=1
     # decodes to the redis key snapshot:sparse_waveform:wire:1
-    for (k, v) in request.args.iteritems():
+    for (k, v) in six.iteritems(request.args):
         redis_key += ":%s:%s" % (k, v)
     data = redis_api.get_waveform_binary(rconnect, redis_key)
     return Response(data, mimetype="application/octet-stream")
@@ -181,7 +185,7 @@ def stream(rconnect, name):
 @app.route('/<rconnect>/alarms')
 @redis_route
 def alarms(rconnect):
-    alarms = list(reversed(sorted(redis_api.fetch_alarms(rconnect).items(), key=lambda d: d[1]["time"])))
+    alarms = list(reversed(sorted(list(redis_api.fetch_alarms(rconnect).items()), key=lambda d: d[1]["time"])))
     return jsonify(values=alarms)
 
 # get data and subscribe to a stream
@@ -616,13 +620,13 @@ def build_link_list(rconnect):
     # index by group, the metric, then instance
     for group, config, this_members, in zip(groups, configs, members):
         config = json.loads(config)
-	if "metric_config" not in config: continue
-        metrics = config["metric_config"].keys()
+        if "metric_config" not in config: continue
+        metrics = list(config["metric_config"].keys())
         streams = config["streams"]
         ret.append({
             "multiply": [[group], this_members, metrics, streams],
-	    "database": "online",
-	    "database_type": "redis",
+            "database": "online",
+            "database_type": "redis",
             "file_join": " ",
             "ID_join": ":"
         })
@@ -633,8 +637,8 @@ def build_link_tree(rconnect):
     groups = rconnect.smembers("GROUPS")
     pipeline = rconnect.pipeline()
     for group in groups:
-       pipeline.get("GROUP_CONFIG:%s" % group)
-       pipeline.lrange("GROUP_MEMBERS:%s" % group, 0, -1)
+        pipeline.get("GROUP_CONFIG:%s" % group)
+        pipeline.lrange("GROUP_MEMBERS:%s" % group, 0, -1)
     result = pipeline.execute()
 
     configs = []
@@ -660,7 +664,7 @@ def build_link_tree(rconnect):
             "displayCheckbox": False,
             "nodes" : []
         })
-	if "metric_config" not in config: continue
+        if "metric_config" not in config: continue
 
         for metric,_ in config["metric_config"].items():
             tree_dict["nodes"][-1]["nodes"].append({
@@ -724,7 +728,7 @@ def get_group_config(rconnect, group_name):
     # setup the instances
     config["instances"] = list(instances)
     # setup the metric list
-    config["metric_list"] = config["metric_config"].keys()
+    config["metric_list"] = list(config["metric_config"].keys())
     # set the group name
     config["group"] = group_name
 

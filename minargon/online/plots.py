@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from minargon import app
 import redis
 from flask import send_file
@@ -10,4 +12,4 @@ from minargon.metric.redis_api import get_streams
 def print_last(rconnect):
     # get the last value from the "example" stream and print it
     last = get_streams(rconnect, ["example"], n_data=1)
-    print last
+    print(last)
