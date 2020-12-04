@@ -339,7 +339,7 @@ def stream_group_archived_last_time(connection, stream_type, metric, group):
     # first figure out if any of the provided metrics are being archived
     cursor = connection.cursor(cursor_factory=RealDictCursor)
     query = "SELECT  extract(epoch FROM LAST_SMPL_TIME_A)*1000 AS SAMPLE_TIME_A,LAST_SMPL_VALUE_A from RUNCON_PRD.MONITOR_MAP where GROUP_NAME = '{GROUP_NAME}' "\
-            "AND METRIC = '{METRIC_NAME}' ORDER BY LAST_SMPL_TIME_A LIMIT 1"
+            "AND METRIC = '{METRIC_NAME}' ORDER BY LAST_SMPL_TIME_A DESC LIMIT 1"
 
     query = query.format(GROUP_NAME=group, METRIC_NAME=metric)
     try:
@@ -350,7 +350,6 @@ def stream_group_archived_last_time(connection, stream_type, metric, group):
         raise
     time = 0
     data = cursor.fetchall()
-    print(data)
     for line in data: # should only be one
         time = data[0]["sample_time_a"]
     return time
