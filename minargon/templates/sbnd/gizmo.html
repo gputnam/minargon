@@ -1,0 +1,122 @@
+{% extends "layout.html" | front_ended %}
+
+{% block title %}Rack Monitor Status{% endblock %}
+
+{% block body %}
+{{ super() }}
+<h2>Rack Monitor Status</h2>
+<P>
+<TABLE>
+<TR><TH>Rack</TH><TH>RPS Status</TH><TH>Temperature &deg;C</TH><TH>Last Read Time</TH></TR>
+
+<TR align="center"><TD>CDAQ</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='420') }}" id="sbnd_cdaq/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='384') }}" id="sbnd_cdaq/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_cdaq/timestamp"></a></TD>
+</TR>
+
+<TR align="center"><TD>CRT-DAQ</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='424') }}" id="sbnd_crt_daq/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='386') }}" id="sbnd_crt_daq/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_crt_daq/timestamp"></a></TD>
+</TR>
+
+<TR align="center"><TD>PDS-DAQ</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='428') }}" id="sbnd_pds_daq/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='388') }}" id="sbnd_pds_daq/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_pds_daq/timestamp"></a></TD>
+</TR>
+
+<TR align="center"><TD>EVB</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='432') }}" id="sbnd_evb/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='390') }}" id="sbnd_evb/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_evb/timestamp"></a></TD>
+</TR>
+
+<TR align="center"><TD>TPC-DAQ0</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='436') }}" id="sbnd_tpc_daq0/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='392') }}" id="sbnd_tpc_daq0/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_tpc_daq0/timestamp"></a></TD>
+</TR>
+
+<TR align="center"><TD>TPC-DAQ1</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='440') }}" id="sbnd_tpc_daq1/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='394') }}" id="sbnd_tpc_daq1/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_tpc_daq1/timestamp"></a></TD>
+</TR>
+
+<TR align="center"><TD>NETWORK</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='444') }}" id="sbnd_network/rps_status" class="led-green">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='445') }}" id="sbnd_network/temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_network/timestamp"></a></TD>
+</TR>
+
+
+</TABLE>
+</P>
+
+{%endblock%}
+
+{% block style %}
+      table
+      {
+        border:1px solid black;padding:5px;font-size: 100%
+      }
+      td
+      {
+        text-align:right;
+        border:1px solid grey;padding:5px;
+      }
+      th
+      {
+        text-align:center;
+        border:1px solid grey;padding:5px;
+      }
+      body
+      {
+        margin: 28px;
+      }
+{% endblock %}
+
+<!---->
+{% block script %}
+
+<link href="{{ url_for('static', filename='css/lights.css') }}" rel="stylesheet" type="text/css">
+<script src="{{ url_for('static', filename='js/lights.js') }}"></script>
+ 
+<!-- Populate above table -->
+<script type="text/javascript">
+$(document).ready(function() {
+{%for row in rows%}
+{
+  var item = document.getElementById("{{row[0]}}");
+  var pvName = "{{row[0]}}";
+
+  if (item) 
+  {
+    if ( pvName.endsWith("interlock") || pvName.endsWith("rps_status"))
+    {
+      var pvValue = "{{row[3]}}";
+      if ( pvValue =="1.000" || pvValue == "1" )
+      {
+         item.className = "led-green";
+      }
+      else
+      {
+         item.className = "led-red";
+      }
+    }
+    else
+    {
+      item.innerHTML = "{{row[3]}}";
+    }
+  }
+}
+{%endfor%}		
+});
+</script>
+
+<meta http-equiv="refresh" content="15">
+<!-- </html> -->
+{%endblock%}
+

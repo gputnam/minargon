@@ -1,0 +1,121 @@
+{% extends "layout.html" | front_ended %}
+
+{% block title %}Electronics Rack Power Distribution{% endblock %}
+
+{% block body %}
+{{ super() }}
+<h2>Electronics Rack Power Distributions</h2>
+<P>
+
+<TABLE>
+<TR><TH>Rack</TH><TH>Current Draw, A</TH><TH>Temperature &deg;C</TH><TH>Last Read Time</TH></TR>
+
+<TR align="center"><TD>CRYO</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='454') }}" id="sbnd_cryo_mezz_rack/pdu_current">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='446') }}" id="sbnd_cryo_mezz_rack/pdu_temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_cryo_mezz_rack/pdu_timestamp"></a></TD>
+</TR>
+
+
+<TR align="center"><TD>TPC-R3</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='458') }}" id="sbnd_tpc_readout_rack3/pdu_current">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='450') }}" id="sbnd_tpc_readout_rack3/pdu_temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_tpc_readout_rack3/pdu_timestamp"></a></TD>
+</TR>
+
+
+<TR align="center"><TD>TPC-R2</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='457') }}" id="sbnd_tpc_readout_rack2/pdu_current">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='449') }}" id="sbnd_tpc_readout_rack2/pdu_temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_tpc_readout_rack2/pdu_timestamp"></a></TD>
+</TR>
+
+
+<TR align="center"><TD>TPC-R1</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='456') }}" id="sbnd_tpc_readout_rack1/pdu_current">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='448') }}" id="sbnd_tpc_readout_rack1/pdu_temperature">>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_tpc_readout_rack0/pdu_timestamp">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+</TR>
+
+
+<TR align="center"><TD>TPC-R0</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='455') }}" id="sbnd_tpc_readout_rack0/pdu_current">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='447') }}" id="sbnd_tpc_readout_rack0/pdu_temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_tpc_readout_rac0k/pdu_timestamp"></a></TD>
+</TR>
+
+
+<TR align="center"><TD>PTB</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='461') }}" id="sbnd_ptb_rack/pdu_current">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='453') }}" id="sbnd_ptb_rack/pdu_temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_ptb_rack/timestamp"></a></TD>
+</TR>
+
+
+<TR align="center"><TD>PDS-R2</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='459') }}" id="sbnd_pds_readout_rack2/pdu_current">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='451') }}" id="sbnd_pds_readout_rack2/pdu_temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_pds_readout_rack2/pdu_timestamp"></a></TD>
+</TR>
+
+
+<TR align="center"><TD>PDS-R1</TD>
+    <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='460') }}" id="sbnd_pds_readout_rack1/pdu_current">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></td>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='452') }}" id="sbnd_pds_readout_rack1/pdu_temperature"></a></TD>
+    <td><a href="{{ url_for('pv_single_stream', database='sbnd_epics', ID='') }}" id="sbnd_pds_readout_rack1/pdu_timestamp"></a></TD>
+</TR>
+
+
+</TABLE>
+</P>
+
+{%endblock%}
+
+{% block style %}
+      table
+      {
+        border:1px solid black;padding:5px;font-size: 100%
+      }
+      td
+      {
+        text-align:right;
+        border:1px solid grey;padding:5px;
+      }
+      th
+      {
+        text-align:center;
+        border:1px solid grey;padding:5px;
+      }
+      body
+      {
+        margin: 28px;
+      }
+{% endblock %}
+
+<!---->
+{% block script %}
+
+<link href="{{ url_for('static', filename='css/lights.css') }}" rel="stylesheet" type="text/css">
+<script src="{{ url_for('static', filename='js/lights.js') }}"></script>
+ 
+<!-- Populate above table -->
+<script type="text/javascript">
+$(document).ready(function() {
+{%for row in rows%}
+{
+  var item = document.getElementById("{{row[0]}}");
+  var pvName = "{{row[0]}}";
+
+  if (item) 
+  {
+    item.innerHTML = "{{row[3]}}";
+  }
+}
+{%endfor%}		
+});
+</script>
+
+<!-- <meta http-equiv="refresh" content="15">-->
+<!-- </html> -->
+{%endblock%}
+

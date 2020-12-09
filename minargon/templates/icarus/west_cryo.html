@@ -1,0 +1,154 @@
+{% extends "layout.html" | front_ended %}
+
+{% block title %}ICARUS West Cryostat Status{% endblock %}
+
+{% block body %}
+{{ super() }}
+<h2>ICARUS West Cryostat Status</h2>
+
+<div class="row">
+<P>
+
+<TABLE>
+  <TR>
+
+    <TD>
+      <TABLE>
+        <TR><TH COLSPAN=3>RLM NE</TH></TR>
+        <TR><TD>+1.5cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='60') }}"  id="icarus_cryo_wen_p15/level"> </TD><TD ID="icarus_cryo_wen_p15/led" class="led-green">&nbsp;</TD></TR>
+        <TR><TD>0cm</TD>     <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='57') }}"  id="icarus_cryo_wen_000/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>&nbsp;</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='59') }}"  id="icarus_cryo_wen_100/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>-2.0cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='61') }}"  id="icarus_cryo_wen_m20/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>-6.0cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='62') }}"  id="icarus_cryo_wen_m60/level"> </TD><TD>&nbsp;</TD></TR>
+      </TABLE>
+    </TD>
+
+
+    <TD>
+      <TABLE>
+        <TR><TH COLSPAN=3>RTD E</TH></TR>
+        <TR><TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='101') }}"  id="icarus_cryo_wen_4/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='106') }}"  id="icarus_cryo_wem_4/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='11') }}"   id="icarus_cryo_wes_4/temp"> </TD>
+        </TR>
+
+        <TR><TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='100') }}"  id="icarus_cryo_wen_3/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='105') }}"  id="icarus_cryo_wem_3/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='110') }}"  id="icarus_cryo_wes_3/temp"> </TD>
+        </TR>
+
+        <TR><TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='99') }}"   id="icarus_cryo_wen_2/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='104') }}"  id="icarus_cryo_wem_2/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='109') }}"  id="icarus_cryo_wes_2/temp"> </TD>
+        </TR>
+
+        <TR><TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='98') }}"   id="icarus_cryo_wen_1/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='103') }}"  id="icarus_cryo_wem_1/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='108') }}"  id="icarus_cryo_wes_1/temp"> </TD>
+        </TR>
+
+        <TR><TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='97') }}"   id="icarus_cryo_wen_0/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='102') }}"  id="icarus_cryo_wem_0/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='107') }}"  id="icarus_cryo_wes_0/temp"> </TD>
+        </TR>
+
+      </TABLE>
+    </TD>
+
+
+    <TD>
+      <TABLE>
+        <TR><TH COLSPAN=3>RLM SE</TH></TR>
+        <TR><TD>+1.5cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='70') }}"  id="icarus_cryo_wes_p15/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>0cm</TD>     <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='68') }}"  id="icarus_cryo_wes_000/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>&nbsp;</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='69') }}"  id="icarus_cryo_wes_100/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>-2.0cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='71') }}"  id="icarus_cryo_wes_m20/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>-6.0cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='72') }}"  id="icarus_cryo_wes_m60/level"> </TD><TD>&nbsp;</TD></TR>
+      </TABLE>
+    </TD>
+
+  </TR>
+
+  <TR>
+
+    <TD>
+      <TABLE>
+        <TR><TH COLSPAN=3>RLM NW</TH></TR>
+        <TR><TD>+1.5cm</TD>  <TD style="text-align:center;visibility:hidden"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='') }}"  id="icarus_cryo_wwn_p15/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>0cm</TD>     <TD style="text-align:center;visibility:hidden"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='') }}"  id="icarus_cryo_wwn_000/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>&nbsp;</TD>  <TD style="text-align:center;visibility:hidden"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='') }}"  id="icarus_cryo_wwn_100/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>-2.0cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='66') }}"  id="icarus_cryo_wwn_m20/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>-6.0cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='67') }}"  id="icarus_cryo_wwn_m60/level"> </TD><TD>&nbsp;</TD></TR>
+      </TABLE>
+    </TD>
+
+
+    <TD>
+      <TABLE>
+        <TR><TH COLSPAN=3>RTD W</TH></TR>
+        <TR><TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='116') }}"  id="icarus_cryo_wwn_4/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='121') }}"  id="icarus_cryo_wwm_4/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='126') }}"  id="icarus_cryo_wws_4/temp"> </TD>
+        </TR>
+
+        <TR><TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='115') }}"  id="icarus_cryo_wwn_3/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='120') }}"  id="icarus_cryo_wwm_3/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='125') }}"  id="icarus_cryo_wws_3/temp"> </TD>
+        </TR>
+
+        <TR><TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='114') }}"  id="icarus_cryo_wwn_2/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='119') }}"  id="icarus_cryo_wwm_2/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='124') }}"  id="icarus_cryo_wws_2/temp"> </TD>
+        </TR>
+
+        <TR><TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='113') }}"  id="icarus_cryo_wwn_1/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='118') }}"  id="icarus_cryo_wwm_1/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='123') }}"  id="icarus_cryo_wws_1/temp"> </TD>
+        </TR>
+
+        <TR><TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='112') }}"  id="icarus_cryo_wwn_0/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='117') }}"  id="icarus_cryo_wwm_0/temp"> </TD>
+            <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='122') }}"  id="icarus_cryo_wws_0/temp"> </TD>
+        </TR>
+
+      </TABLE>
+    </TD>
+
+    <TD>
+      <TABLE>
+        <TR><TH COLSPAN=3>RLM SW</TH></TR>
+        <TR><TD>+1.5cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='75') }}"  id="icarus_cryo_wws_p15/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>0cm</TD>     <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='73') }}"  id="icarus_cryo_wws_000/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>&nbsp;</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='74') }}"  id="icarus_cryo_wws_100/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>-2.0cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='76') }}"  id="icarus_cryo_wws_m20/level"> </TD><TD>&nbsp;</TD></TR>
+        <TR><TD>-6.0cm</TD>  <TD style="text-align:center"><a href="{{ url_for('pv_single_stream', database='icarus_epics', ID='77') }}"  id="icarus_cryo_wws_m60/level"> </TD><TD>&nbsp;</TD></TR>
+      </TABLE>
+    </TD>
+
+ </TR>
+
+
+</TABLE>
+
+
+
+<!-- Populate above table -->
+<script type="text/javascript">
+$(document).ready(function() {
+{%for row in rows%}
+{
+  var item = document.getElementById("{{row[0]}}");
+  var pvName = "{{row[0]}}";
+
+  if (item) {
+      item.innerHTML = "{{row[3]}}";
+  }
+}
+{%endfor%}		
+});
+</script>
+
+
+<meta http-equiv="refresh" content="15">
+<!-- </html> -->
+{%endblock%}
