@@ -4,3 +4,4 @@
 /env*
 *.wsgi
 __pycache__
+*~
