@@ -649,12 +649,12 @@ def get_epics_last_value(connection,group):
 
     database = connection[1]["name"]
     if (database == "sbnteststand"):
-        query = """select c.name, c.descr, c.last_smpl_time, 
+        query = """select c.name, c.descr, to_char( c.last_smpl_time,'YYYY.MM.DD HH24:MI:SS'),
     coalesce((c.last_num_val::numeric)::text,(trunc(c.last_float_val::numeric,3))::text, c.last_str_val),channel_id
     from dcs_archiver.channel c,dcs_archiver.chan_grp g
     where c.grp_id=g.grp_id and g.name='%s' order by c.name""" % group
     else:
-        query = """select c.name, c.descr, c.last_smpl_time, 
+        query = """select c.name, c.descr, to_char( c.last_smpl_time,'YYYY.MM.DD HH24:MI:SS'),
     coalesce((c.last_num_val::numeric)::text,(trunc(c.last_float_val::numeric,3))::text, c.last_str_val),channel_id
     from dcs_prd.channel c,dcs_prd.chan_grp g
     where c.grp_id=g.grp_id and g.name='%s' order by c.name""" % group

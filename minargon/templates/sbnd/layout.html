@@ -121,8 +121,9 @@
               <li class='dropdown nav-item'>
               <a href='#' class='nav-link dropdown-toggle' data-toggle='dropdown'>EPICS Status<b class='caret'></b></a>
                 <ul class='dropdown-menu bg-maroon'>
-                  {{ nav_link('epics_last_value', 'SlowControls', connection='sbnd_epics', group='slowcontrols') }}
+                  {{ nav_link('epics_last_value', 'TPC Readout Crates', connection='sbnd_epics', group='slowcontrols') }}
                   {{ nav_link('epics_last_value', 'TPC Readout Power', connection='sbnd_epics', group='tpc_readout_power') }}
+                  {{ nav_link('epics_last_value', 'DAQ Status', connection='sbnd_epics', group='daq') }}
                   <li class="nav-item"><A class='nav-link' HREF=/sbnd/dcs/>Archiver Status</A></li>
                 </ul>
               </li>

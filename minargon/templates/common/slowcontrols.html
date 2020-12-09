@@ -1,10 +1,10 @@
 {% extends "layout.html" | front_ended %}
 
-{% block title %}SBND Slow Controls Rack Monitor Status{% endblock %}
+{% block title %}TPC Readout Crate Monitor Status{% endblock %}
 
 {% block body %}
 {{ super() }}
-<h2>SBND Slow Controls Rack Monitor Status</h2>
+<h2>TPC Readout Crate Monitor Status</h2>
 <P>
 <TABLE>
 <TR><TH>Crate</TH><TH>RPS Status</TH><TH>Interlock</TH><TH>Temperature &deg;C</TH><TH>Fan Speed 0</TH><TH>Fan Speed 1</TH><TH>Fan Speed 2</TH><TH>Last Read Time</TH></TR>
@@ -175,6 +175,12 @@
 <!-- Populate above table -->
 <script type="text/javascript">
 $(document).ready(function() {
+var dt_format_options = options = {
+  year: 'numeric', month: 'numeric', day: 'numeric',
+  hour: 'numeric', minute: 'numeric', second: 'numeric',
+  hour12: false,
+};
+
 {%for row in rows%}
 {
   var item = document.getElementById("{{row[0]}}");
@@ -194,12 +200,11 @@ $(document).ready(function() {
          item.className = "led-red";
       }
     }
-    else if ( pvName.endsWith("timestamp") )
+    else if ( pvName.endsWith("timestamp"))
     {
-      var pvValue = "{{row[3]}}";
-      iValue = parseInt(pvValue);
-      zeit = new Date(iValue*1000);
-      item.innerHTML = zeit.toString();
+      var format = Intl.DateTimeFormat("en-US", dt_format_options);
+      var zeit = new Date({{row[3]}}*1000);
+      item.innerHTML = format.format(zeit);
     }
     else
     {
